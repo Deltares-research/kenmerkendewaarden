@@ -9,7 +9,7 @@ __version__ = "0.1.0"
 
 from kenmerkendewaarden.slotgemiddelden import *
 from kenmerkendewaarden.havengetallen import *
-from kenmerkendewaarden.gemgetij import *
+from kenmerkendewaarden.gemiddeldgetij import *
 from kenmerkendewaarden.overschrijding import *
 
 import warnings
