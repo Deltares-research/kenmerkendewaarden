@@ -12,13 +12,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.close('all')
 from matplotlib import ticker
-import hatyan # available via `pip install hatyan` or at https://github.com/Deltares/hatyan
-#import contextily as ctx #`conda install -c conda-forge contextily -y` #commented since not part of hatyan_hmcenv
+import hatyan # pip install hatyan (or at https://github.com/Deltares/hatyan)
+#import contextily as ctx # pip install contextily
 
 #TODO: convert to netcdf instead of pkl (dfm_tools ssh retrieve format is the same as DCSM, could be useful)
+#TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers (nog niet gedaan voor hele periode, wel voor 2000-2022 (listAB+HARVT10): https://github.com/Deltares-research/kenmerkendewaarden/issues/10
 
 get_catalog = False
-dataTKdia = True #TODO: communicate data issues to TK (wl and ext): p:\11208031-010-kenmerkende-waarden-k\work\data_vanRWS_20220805\convert_dia2pickle_dataTK.py
+dataTKdia = True
 
 tstart_dt_DDL = dt.datetime(1870,1,1) #1870,1,1 for measall folder
 tstop_dt_DDL = dt.datetime(2022,1,1)
@@ -94,7 +95,7 @@ def clean_data(ts_meas_pd,current_station):
         keep_columns = ['values','QC']
     ts_meas_pd = ts_meas_pd[keep_columns] # reduces the memory consumption significantly
     ts_meas_pd.index = ts_meas_pd.index.tz_localize(None)
-    ts_meas_pd = ts_meas_pd.loc[~(ts_meas_pd['QC']==99)] #TODO: remove or make nans?
+    ts_meas_pd = ts_meas_pd.loc[~(ts_meas_pd['QC']==99)] #TODO: make nans instead
     
     #optional nap correction
     if NAP2005correction:
@@ -162,7 +163,7 @@ for current_station in []:#stat_list:
     else:
         print(f'retrieving measext data from DDL for {current_station} to {os.path.basename(dir_meas_DDL)}')
         request_output_extval = hatyan.get_DDL_data(station_dict=station_dict,tstart_dt=tstart_dt_DDL,tstop_dt=tstop_dt_DDL,tzone=tzone_DLL, allow_multipleresultsfor=allow_multipleresultsfor,
-                                                    meta_dict={'Grootheid.Code':'WATHTE','Groepering.Code':'GETETM2'})#,'MeetApparaat.Code':'127'}) #ts_measwlHWLW # TODO: MeetApparaat is necessary for IJMBTHVN/NIEUWSTZL/HOLWD, maybe remove if servicedesk has resolved this probable Vlotter/Radar issue (gemeld op 28-4-2022 voor IJMBTHVN) (or keep and also add Hoedanigheid.Code, alle ext data is toch NAP)
+                                                    meta_dict={'Grootheid.Code':'WATHTE','Groepering.Code':'GETETM2'})#,'MeetApparaat.Code':'127'}) #ts_measwlHWLW
         request_output_exttyp = hatyan.get_DDL_data(station_dict=station_dict,tstart_dt=tstart_dt_DDL,tstop_dt=tstop_dt_DDL,tzone=tzone_DLL, allow_multipleresultsfor=allow_multipleresultsfor,
                                                     meta_dict={'Groepering.Code':'GETETM2','Typering.Code':'GETETTPE'})#,'MeetApparaat.Code':'127'}) #ts_measwlHWLWtype
         if request_output_extval is None:
@@ -170,7 +171,7 @@ for current_station in []:#stat_list:
         ts_meas_ext_pd, metadata, stationdata = request_output_extval
         ts_meas_exttyp_pd, metadata2, dummy = request_output_exttyp
         ts_meas_ext_pd['values'] = ts_meas_ext_pd['values']/100 #convert from cm to m
-        if ts_meas_exttyp_pd['values'].isnull().any(): #TODO: remove this exception for SCHEVNGN after DDL exttype data is fixed
+        if ts_meas_exttyp_pd['values'].isnull().any(): #TODO: remove this exception for SCHEVNGN after DDL exttype data is fixed: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/14
             print(f'WARNING: invalid ext type values for {current_station}, skipping station')    
             continue
         ts_meas_ext_pd = hatyan.convert_HWLWstr2num(ts_meas_ext_pd,ts_meas_exttyp_pd)
@@ -179,138 +180,6 @@ for current_station in []:#stat_list:
 
 
 
-
-
-
-### LOAD DATA FROM PICKLE plot and do checks
-#TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers (nog niet gedaan voor hele periode, wel voor 2000-2022 (listAB+HARVT10):
-#   IJMDBTHVN extremen missen vanaf 2018 want Radar ipv Vlotter (al gemeld op 28-4-2022). HOLWD ook vanaf 2012, terwijl measwl allemaal Vlotter is.
-#   Missende data vanaf 2000 (gemeld op 26-4):
-#       BATH (2000-2020, measwl en measext, komt doordat er twee stations zijn genaamd Bath/BATH) >> andere station bevat wel een goede dataset
-#       EURPFM (2000-2001, measwl en measext)
-#       HOEKVHLD (2000-2006, 2013, 2019, measext)
-#       ROOMPBTN (2016, measext)
-#       ROTTDM (2013, 2019, measext)
-#       SCHEVNGN (extrementype bevatten nans ipv strings als 'hoogwater', data is dus ongeldig)
-#       STELLDBTN (geen data beschikbaar) >> geen ext data vanaf 2000
-#   sterke outliers in tijdreeksen (na filtering QC=99, gemeld op 26-4): IJMDBTHVN/ROOMPBTN (2001) >> is niet meer zo na verwijderen Radar metingen
-#   >> NIEUWSTZL extremen missen vanaf 2012/2013 want Radar ipv Vlotter, maar hier missen ook de metingen dus is het waarschijnlijker dat ze op Radar over zijn gegaan? (IJMDBTHVN heeft nog wel lang Vlotter measwl data na stoppen van Vlotter extremen)
-#TODO: wadden data opvallendheden melden:
-#   Outliers HUIBGT 1979/1985/1987 en WIERMGDN 1985/1987 >> en meer jaren
-#   TEXNZE 2007/2012/2015: veel grote gaps (2007 heeft 10 maanden gap) >> 2007 is nog steeds het geval
-#   HUIBGT 1982: veel ongeldige waardes rond 1.7m >> nog steeds?
-#   HUIBGT 2017: veel missende waardes >> nog steeds?
-#   UITHZWD1/WIERMWD1 2008 tm 2012 negatieve outliers. Sowieso alle ts vlak aan onderkant door droogval >> niet bij KWK meegenomen?
-#TODO: report dubbelingen HARVT10 (2000-2022, al gedaan?) en andere stations (1900-2000), en EURPFM ext, zie data_summary.csv (er zijn ook dubbelingen met nan-waardes)
-#TODO: report wl/ext missings in recent period 2000-2021 (vanuit data_summary)
-#TODO: vergelijking yearmean wl/HW/LW met validatiedata Anneke (opgevraagd op 28-04-2022) (nu alleen beschikbaar voor HOEKVHLD en HARVT10, sowieso wl is nodig voor slotgemiddelde), it is clear in the HARVT10 figures that something is off for meanwl, dit gebeurt misschien ook bij andere stations met duplicate times in data_summary_filtered.xlsx (also check on nanvalues that are not nan in validationdata, this points to missing data in DDL)
-#TODO: DORDT getijslag lijkt in 1970 ineens kleiner te worden, is dit geen foute dataset? >> deltawerken?
-
-"""
-#TODO: controleren of andere datasets nuttige data bevatten nadat gemiddelde HW/LW/wl uitwijzen dat ze meer data bevatten? (onderstaande komt uit data_summary.T)
-	BATH (Vlotter en NAP voor ext)
-DDL_MeetApparaat.Code_wl	127|155
-DDL_MeetApparaat.Omschrijving_wl	Vlotter|Druksensor
-DDL_Hoedanigheid.Code_wl	NAP
-	EURPFM (Vlotter en NAP voor ext)
-DDL_MeetApparaat.Code_wl	125|127
-DDL_MeetApparaat.Omschrijving_wl	Stappenbaak|Vlotter
-DDL_Hoedanigheid.Code_wl	MSL|NAP
-	IJMDBTHVN (Radar/Vlotter en NAP voor ext, Radar is tijdelijke meting voor wl maar lijkt of ext per ongeluk ook zo zijn geregistreerd) >> gemeld
-DDL_MeetApparaat.Code_wl	109|127
-DDL_MeetApparaat.Omschrijving_wl	Radar|Vlotter
-DDL_Hoedanigheid.Code_wl	NAP
-	K13APFM (ext ontbreekt)
-DDL_MeetApparaat.Code_wl	109
-DDL_MeetApparaat.Omschrijving_wl	Radar
-DDL_Hoedanigheid.Code_wl	MSL
-	LICHTELGRE (Radar en NAP voor ext)
-DDL_MeetApparaat.Code_wl	109|125
-DDL_MeetApparaat.Omschrijving_wl	Radar|Stappenbaak
-DDL_Hoedanigheid.Code_wl	MSL|NAP
-	NES (Vlotter en NAP voor ext)
-DDL_MeetApparaat.Code_wl	109|127
-DDL_MeetApparaat.Omschrijving_wl	Radar|Vlotter
-DDL_Hoedanigheid.Code_wl	NAP
-	NIEUWSTZL (Radar/Vlotter en NAP voor ext)
-DDL_MeetApparaat.Code_wl	109|127
-DDL_MeetApparaat.Omschrijving_wl	Radar|Vlotter
-DDL_Hoedanigheid.Code_wl	NAP
-	ROOMPBTN (Vlotter en NAP voor ext, Radar is tijdelijke meting) >> goed zo dus
-DDL_MeetApparaat.Code_wl	109|127
-DDL_MeetApparaat.Omschrijving_wl	Radar|Vlotter
-DDL_Hoedanigheid.Code_wl	NAP
-	VLISSGN (Vlotter en NAP voor ext)
-DDL_MeetApparaat.Code_wl	124|127
-DDL_MeetApparaat.Omschrijving_wl	Peilschaal|Vlotter
-DDL_Hoedanigheid.Code_wl	NAP
-	WESTKPLE (Vlotter en NAP voor ext)
-DDL_MeetApparaat.Code_wl	109|127
-DDL_MeetApparaat.Omschrijving_wl	Radar|Vlotter
-DDL_Hoedanigheid.Code_wl	NAP
-
-MAASMSMPL wl >> geen vlotter (geen ext data beschikbaar)
-"""
-
-"""
-#TODO: melden servicedesk data: zes duplicate timesteps in extremen aanwezig met gelijke waarden EURPFM en NIEUWSTZL (laatste van ander MeetApparaat)
-ts_meas_ext_pd.loc[ts_meas_ext_pd.index.duplicated(keep=False),['values','QC','Status','HWLWcode']].sort_index()
-                     values  QC         Status  HWLWcode
-Tijdstip                                                
-2012-12-31 09:35:00   -0.70   0  Gecontroleerd         2
-2012-12-31 09:35:00   -0.70   0  Gecontroleerd         2
-2012-12-31 15:44:00    0.95   0  Gecontroleerd         1
-2012-12-31 15:44:00    0.95   0  Gecontroleerd         1
-2012-12-31 20:50:00   -0.63   0  Gecontroleerd         2
-2012-12-31 20:50:00   -0.63   0  Gecontroleerd         2
-2013-01-01 04:04:00    1.40   0  Gecontroleerd         1
-2013-01-01 04:04:00    1.40   0  Gecontroleerd         1
-2013-01-01 09:34:00   -0.36   0  Gecontroleerd         2
-2013-01-01 09:34:00   -0.36   0  Gecontroleerd         2
-2013-01-01 16:26:00    1.39   0  Gecontroleerd         1
-2013-01-01 16:26:00    1.39   0  Gecontroleerd         1
-                           values  QC  ... MeetApparaat.Omschrijving HWLWcode
-Tijdstip                               ...                                   
-2012-12-31 09:20:00+01:00   -0.15   0  ...                   Vlotter        2
-2012-12-31 09:20:00+01:00   -0.15   0  ...                     Radar        2
-2012-12-31 14:04:00+01:00    1.47   0  ...                   Vlotter        1
-2012-12-31 14:04:00+01:00    1.47   0  ...                     Radar        1
-2012-12-31 21:28:00+01:00   -0.89   0  ...                   Vlotter        2
-2012-12-31 21:28:00+01:00   -0.89   0  ...                     Radar        2
-2013-01-01 02:30:00+01:00    1.79   0  ...                   Vlotter        1
-2013-01-01 02:30:00+01:00    1.79   0  ...                     Radar        1
-2013-01-01 09:50:00+01:00   -0.78   0  ...                   Vlotter        2
-2013-01-01 09:50:00+01:00   -0.78   0  ...                     Radar        2
-2013-01-01 14:31:00+01:00    2.17   0  ...                   Vlotter        1
-2013-01-01 14:31:00+01:00    2.17   0  ...                     Radar        1
-[12 rows x 8 columns]
-"""
-"""
-#gemeld op 28-4-2022 bij servicedesk data: Radar extremen IJMDBTHVN vanaf 2018 (dus missings) #TODO: is ook het geval voor NIEUWSTZL
-import hatyan # "pip install hatyan"
-station_dict_IJMDBTHVN = {'Locatie_MessageID': 20503,
-                          'Coordinatenstelsel': '25831',
-                          'X': 605633.035699228,
-                          'Y': 5813598.03897256,
-                          'Naam': 'IJmuiden buitenhaven',
-                          'Code': 'IJMDBTHVN'}
-request_output_extval = hatyan.get_DDL_data(station_dict=station_dict_IJMDBTHVN,tstart_dt=dt.datetime(2018,1,1),tstop_dt=dt.datetime(2018,12,31,23,50),tzone='UTC+01:00', allow_multipleresultsfor=['WaardeBepalingsmethode'],
-                                            meta_dict={'Grootheid.Code':'WATHTE','Groepering.Code':'GETETM2'}) #HWLWvalues
-                                            #meta_dict={'Groepering.Code':'GETETM2','Typering.Code':'GETETTPE'}) #HWLWtypes
-#IMPROVEMENT (data): results in duplicate MeetApparaat, states that 'Radar' is used to derive waterlevels for extremes from somewhere in 2018 for IJMDBTHVN. This is probably not true since the measured waterlevels for that period are measured with 'Vlotter', just like extremes in all other years for this station and all other stations I checked (for period 1900-2022). This also goes for the GETETTPE
-Result 1:
-              'MeetApparaat': {'MeetApparaat.Code': '127', 'MeetApparaat.Omschrijving': 'Vlotter'},
-Result 2:
-              'MeetApparaat': {'MeetApparaat.Code': '109', 'MeetApparaat.Omschrijving': 'Radar'},
-
-request_output_extval = hatyan.get_DDL_data(station_dict=station_dict_IJMDBTHVN,tstart_dt=dt.datetime(2018,1,1),tstop_dt=dt.datetime(2018,12,31,23,50),tzone='UTC+01:00', allow_multipleresultsfor=['WaardeBepalingsmethode'],
-                                            meta_dict={'Grootheid.Code':'WATHTE','Groepering.Code':'GETETM2','MeetApparaat.Omschrijving':'Vlotter'}) #HWLWvalues
-#IMPROVEMENT (DDL): now with 'MeetApparaat.Omschrijving':'Vlotter' included in query, but this seems not to be read by the DDL (same error, this should not happen I think)  (ook ROOMPBTN heeft alleen 'Vlotter' extremen, terwijl daar in 2000 ook radarmetingen aanwezig zijn in de gemeten waterstanden)
-
-request_output_extval = hatyan.get_DDL_data(station_dict=station_dict_IJMDBTHVN,tstart_dt=dt.datetime(2018,1,1),tstop_dt=dt.datetime(2018,12,31,23,50),tzone='UTC+01:00', allow_multipleresultsfor=['WaardeBepalingsmethode'],
-                                            meta_dict={'Grootheid.Code':'WATHTE','Groepering.Code':'GETETM2','MeetApparaat.Code':'127'}) #HWLWvalues
-#now with 'MeetApparaat.Code':'127' included in query, this does the trick.
-"""
 """
 not in M2phasediff document: ['LICHTELGRE','EURPFM']
 HW/LW numbers not always increasing: ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
@@ -324,7 +193,7 @@ for current_station in []:#stat_list:
     list_relevantDDLdata = ['WaardeBepalingsmethode.Code','MeetApparaat.Code','MeetApparaat.Omschrijving','Hoedanigheid.Code']
     
     if not dataTKdia:
-        station_dict = dict(cat_locatielijst_sel_codeidx.loc[current_station,['Naam','Code']]) #TODO: put comment in hatyan.getonlinedata.py: get_DDL_stationmetasubset() does not work if 'X','Y','Locatie_MessageID' is added, since there is no column with that name (is index) and if it is, it is an int and not a str
+        station_dict = dict(cat_locatielijst_sel_codeidx.loc[current_station,['Naam','Code']])
         cat_aquometadatalijst_temp, cat_locatielijst_temp = hatyan.get_DDL_stationmetasubset(catalog_dict=catalog_dict,station_dict=station_dict,meta_dict={'Grootheid.Code':'WATHTE','Groepering.Code':'NVT'})
         for metakey in list_relevantDDLdata:
             data_summary.loc[current_station,f'DDL_{metakey}_wl'] = '|'.join(cat_aquometadatalijst_temp[metakey].unique())
@@ -386,7 +255,7 @@ for current_station in []:#stat_list:
     mean_peryear_long = ts_meas_pd.groupby(pd.PeriodIndex(ts_meas_pd.index, freq="Y"))['values'].mean()
     data_summary.loc[current_station,'yearmean_mean_wl'] = mean_peryear_long.mean()
     data_summary.loc[current_station,'yearmean_std_wl'] = mean_peryear_long.std()
-    """#TODO: move to hatyan.timeseries.* or hatyan.kenmerkendewaarden.*. Add minimum # values to calculate monthmean? Make long2array edit simpler with pandas smart stuff?
+    """#TODO: move to function. Add minimum # values to calculate monthmean? Make long2array edit simpler with pandas smart stuff?
     numvals_peryearmonth_long = ts_meas_pd.groupby(pd.PeriodIndex(ts_meas_pd.index, freq="M"))['values'].count()
     mean_peryearmonth_array = pd.DataFrame(index=range(1,13))
     for year in mean_peryearmonth_long.index.year.unique():
