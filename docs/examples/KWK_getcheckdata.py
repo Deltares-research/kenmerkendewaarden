@@ -140,13 +140,12 @@ HW/LW numbers not always increasing: ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
 no extremes in requested time frame: ['STELLDBTN','OOSTSDE11']
 Catalog query yielded no results (no ext available like K13APFM): A12
 """
-data_summary = pd.DataFrame(index=stat_list).sort_index()
-#TODO: make row per station and append to list (concat after loop), probably solves warnings
-# >>Value 'False' has dtype incompatible with float64, please explicitly cast to a compatible dtype first: data_summary.loc[current_station,'data_ext'] = False
+row_list = []
 for current_station in stat_list:
     if not create_summary:
         continue
     print(f'checking data for {current_station}')
+    data_summary_row = pd.Series()
     list_relevantmetadata = ['WaardeBepalingsmethode.Code','WaardeBepalingsmethode.Omschrijving','MeetApparaat.Code','MeetApparaat.Omschrijving','Hoedanigheid.Code','Grootheid.Code','Groepering.Code','Typering.Code']
     list_relevantDDLdata = ['WaardeBepalingsmethode.Code','MeetApparaat.Code','MeetApparaat.Omschrijving','Hoedanigheid.Code']
     
@@ -154,16 +153,18 @@ for current_station in stat_list:
     # station_dict = dict(cat_locatielijst_sel_codeidx.loc[current_station,['Naam','Code']])
     # cat_aquometadatalijst_temp, cat_locatielijst_temp = hatyan.get_DDL_stationmetasubset(catalog_dict=catalog_dict,station_dict=station_dict,meta_dict={'Grootheid.Code':'WATHTE','Groepering.Code':'NVT'})
     # for metakey in list_relevantDDLdata:
-    #     data_summary.loc[current_station,f'DDL_{metakey}_wl'] = '|'.join(cat_aquometadatalijst_temp[metakey].unique())
+    #     data_summary_row[f'DDL_{metakey}_wl'] = '|'.join(cat_aquometadatalijst_temp[metakey].unique())
     # if not current_station in ['K13APFM','MAASMSMPL']:# no ext available for these stations
     #     cat_aquometadatalijst_temp, cat_locatielijst_temp = hatyan.get_DDL_stationmetasubset(catalog_dict=catalog_dict,station_dict=station_dict,meta_dict={'Grootheid.Code':'WATHTE','Groepering.Code':'GETETM2'})
     #     for metakey in list_relevantDDLdata:
-    #         data_summary.loc[current_station,f'DDL_{metakey}_ext'] = '|'.join(cat_aquometadatalijst_temp[metakey].unique())
+    #         data_summary_row[f'DDL_{metakey}_ext'] = '|'.join(cat_aquometadatalijst_temp[metakey].unique())
     
     #add coordinates to data_summary
     # TODO: maybe sometimes not present in ts, then take from ext
-    data_summary.loc[current_station,['X','Y']] = locs_meas_ts_nap.loc[current_station,['X','Y']]
-    # data_summary.loc[current_station,['Coordinatenstelsel']] = locs_meas_ts_nap.loc[current_station,['Coordinatenstelsel']]
+    data_summary_row['Code'] = locs_meas_ts_nap.loc[current_station].name
+    data_summary_row['X'] = locs_meas_ts_nap.loc[current_station,'X']
+    data_summary_row['Y'] = locs_meas_ts_nap.loc[current_station,'Y']
+    data_summary_row['Coordinatenstelsel'] = locs_meas_ts_nap.loc[current_station,'Coordinatenstelsel']
     time_interest_start = dt.datetime(2000,1,1)
     time_interest_stop = dt.datetime(2021,2,1)
     
@@ -171,15 +172,15 @@ for current_station in stat_list:
     file_wl_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measwl.pkl")
     # file_wlmeta_pkl = os.path.join(dir_meas_alldata,f"meta_{current_station}_measwl.pkl")
     if not os.path.exists(file_wl_pkl):
-        data_summary.loc[current_station,'data_wl'] = False
-        data_summary.loc[current_station,'data_ext'] = False
+        data_summary_row['data_wl'] = False
+        data_summary_row['data_ext'] = False
         continue
-    data_summary.loc[current_station,'data_wl'] = True
+    data_summary_row['data_wl'] = True
     ts_meas_pd = pd.read_pickle(file_wl_pkl)
     # TODO: re-enable after pickle to netcdf conversion (including metadata)
     # metawl = pd.read_pickle(file_wlmeta_pkl)
     # for metakey in list_relevantmetadata:
-    #     data_summary.loc[current_station,f'{metakey}_wl'] = '|'.join(metawl[metakey].unique())
+    #     data_summary_row[f'{metakey}_wl'] = '|'.join(metawl[metakey].unique())
     ts_meas_pd = ts_meas_pd[['values','QC']] # reduces the memory consumption significantly
     # TODO: re-check timezone later on
     # if str(ts_meas_pd.index[0].tz) != 'Etc/GMT-1': #this means UTC+1
@@ -188,34 +189,34 @@ for current_station in stat_list:
     bool_99 = ts_meas_pd['QC']==99
     if bool_99.any(): #ts contains invalid values
         ts_meas_pd[bool_99] = np.nan
-    data_summary.loc[current_station,'tstart_wl'] = ts_meas_pd.index[0]
-    data_summary.loc[current_station,'tstop_wl'] = ts_meas_pd.index[-1]
-    data_summary.loc[current_station,'tstart2000_wl'] = ts_meas_pd.index[0]<=time_interest_start
-    data_summary.loc[current_station,'tstop202102_wl'] = ts_meas_pd.index[-1]>=time_interest_stop
-    data_summary.loc[current_station,'nvals_wl'] = len(ts_meas_pd['values'])
-    data_summary.loc[current_station,'#nans_wl'] = bool_99.sum()
-    data_summary.loc[current_station,'min_wl'] = ts_meas_pd['values'].min()
-    data_summary.loc[current_station,'max_wl'] = ts_meas_pd['values'].max()
-    data_summary.loc[current_station,'std_wl'] = ts_meas_pd['values'].std()
-    data_summary.loc[current_station,'mean_wl'] = ts_meas_pd['values'].mean()
+    data_summary_row['tstart_wl'] = ts_meas_pd.index[0]
+    data_summary_row['tstop_wl'] = ts_meas_pd.index[-1]
+    data_summary_row['tstart2000_wl'] = ts_meas_pd.index[0]<=time_interest_start
+    data_summary_row['tstop202102_wl'] = ts_meas_pd.index[-1]>=time_interest_stop
+    data_summary_row['nvals_wl'] = len(ts_meas_pd['values'])
+    data_summary_row['#nans_wl'] = bool_99.sum()
+    data_summary_row['min_wl'] = ts_meas_pd['values'].min()
+    data_summary_row['max_wl'] = ts_meas_pd['values'].max()
+    data_summary_row['std_wl'] = ts_meas_pd['values'].std()
+    data_summary_row['mean_wl'] = ts_meas_pd['values'].mean()
     ts_meas_dupltimes = ts_meas_pd.index.duplicated()
-    data_summary.loc[current_station,'dupltimes_wl'] = ts_meas_dupltimes.sum()
+    data_summary_row['dupltimes_wl'] = ts_meas_dupltimes.sum()
     #count #nans for duplicated times, happens at HARVT10/HUIBGT/STELLDBTN
-    data_summary.loc[current_station,'#nans_dupltimes_wl'] = ts_meas_pd.loc[ts_meas_pd.index.duplicated(keep=False),'values'].isnull().sum()
+    data_summary_row['#nans_dupltimes_wl'] = ts_meas_pd.loc[ts_meas_pd.index.duplicated(keep=False),'values'].isnull().sum()
     
     #calc #nan-values in recent period
     ts_meas_2000to202102a = ts_meas_pd.loc[~ts_meas_dupltimes,['values']].loc[time_interest_start:min(ts_meas_pd.index[-1],time_interest_stop)]
     ts_meas_2000to202102b = pd.DataFrame({'values':ts_meas_pd.loc[~ts_meas_dupltimes,'values']},index=pd.date_range(start=time_interest_start,end=time_interest_stop,freq='10min'))
-    data_summary.loc[current_station,'#nans_2000to202102a_wl'] = ts_meas_2000to202102a['values'].isnull().sum()
-    data_summary.loc[current_station,'#nans_2000to202102b_wl'] = ts_meas_2000to202102b['values'].isnull().sum()
+    data_summary_row['#nans_2000to202102a_wl'] = ts_meas_2000to202102a['values'].isnull().sum()
+    data_summary_row['#nans_2000to202102b_wl'] = ts_meas_2000to202102b['values'].isnull().sum()
     
     #calculate monthly/yearly mean for meas wl data #TODO: use hatyan.calc_wltidalindicators() instead (with threshold of eg 2900 like slotgem)
     mean_peryearmonth_long = ts_meas_pd.groupby(pd.PeriodIndex(ts_meas_pd.index, freq="M"))['values'].mean()
-    data_summary.loc[current_station,'monthmean_mean_wl'] = mean_peryearmonth_long.mean()
-    data_summary.loc[current_station,'monthmean_std_wl'] = mean_peryearmonth_long.std()
+    data_summary_row['monthmean_mean_wl'] = mean_peryearmonth_long.mean()
+    data_summary_row['monthmean_std_wl'] = mean_peryearmonth_long.std()
     mean_peryear_long = ts_meas_pd.groupby(pd.PeriodIndex(ts_meas_pd.index, freq="Y"))['values'].mean()
-    data_summary.loc[current_station,'yearmean_mean_wl'] = mean_peryear_long.mean()
-    data_summary.loc[current_station,'yearmean_std_wl'] = mean_peryear_long.std()
+    data_summary_row['yearmean_mean_wl'] = mean_peryear_long.mean()
+    data_summary_row['yearmean_std_wl'] = mean_peryear_long.std()
     """#TODO: move to function. Add minimum # values to calculate monthmean? Make long2array edit simpler with pandas smart stuff?
     numvals_peryearmonth_long = ts_meas_pd.groupby(pd.PeriodIndex(ts_meas_pd.index, freq="M"))['values'].count()
     mean_peryearmonth_array = pd.DataFrame(index=range(1,13))
@@ -230,9 +231,9 @@ for current_station in stat_list:
     file_ext_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measext.pkl")
     file_extmeta_pkl = os.path.join(dir_meas_ddl,f"meta_{current_station}_measext.pkl")
     if not os.path.exists(file_ext_pkl):
-        data_summary.loc[current_station,'data_ext'] = False
+        data_summary_row['data_ext'] = False
     else:
-        data_summary.loc[current_station,'data_ext'] = True
+        data_summary_row['data_ext'] = True
         ts_meas_ext_pd = pd.read_pickle(file_ext_pkl)
         timediff_ext = ts_meas_ext_pd.index[1:]-ts_meas_ext_pd.index[:-1]
         if timediff_ext.min() < dt.timedelta(hours=4): #TODO: min timediff for e.g. BROUWHVSGT08 is 3 minutes: ts_meas_ext_pd.loc[dt.datetime(2015,1,1):dt.datetime(2015,1,2),['values', 'QC', 'Status']]. This should not happen and with new dataset should be converted to an error
@@ -240,33 +241,33 @@ for current_station in stat_list:
         # TODO: re-enable after pickle to netcdf conversion (including metadata)
         # metaext = pd.read_pickle(file_extmeta_pkl)
         # for metakey in list_relevantmetadata:
-        #     data_summary.loc[current_station,f'{metakey}_ext'] = '|'.join(metaext[metakey].unique())
+        #     data_summary_row[f'{metakey}_ext'] = '|'.join(metaext[metakey].unique())
         # TODO: re-check timezone later on
         # if str(ts_meas_ext_pd.index[0].tz) != 'Etc/GMT-1': #this means UTC+1
         #     raise Exception(f'measext data for {current_station} is not in expected timezone (Etc/GMT-1): {ts_meas_ext_pd.index[0].tz}')
         ts_meas_ext_pd.index = ts_meas_ext_pd.index.tz_localize(None)
         ts_meas_ext_dupltimes = ts_meas_ext_pd.index.duplicated()
-        data_summary.loc[current_station,'mintimediff_ext'] = timediff_ext.min()
-        data_summary.loc[current_station,'dupltimes_ext'] = ts_meas_ext_dupltimes.sum()
-        data_summary.loc[current_station,'tstart_ext'] = ts_meas_ext_pd.index[0]
-        data_summary.loc[current_station,'tstop_ext'] = ts_meas_ext_pd.index[-1]
-        data_summary.loc[current_station,'tstart2000_ext'] = ts_meas_ext_pd.index[0]<=(time_interest_start+M2_period_timedelta)
-        data_summary.loc[current_station,'tstop202102_ext'] = ts_meas_ext_pd.index[-1]>=(time_interest_stop-M2_period_timedelta)
-        data_summary.loc[current_station,'nvals_ext'] = len(ts_meas_ext_pd['values'])
-        data_summary.loc[current_station,'min_ext'] = ts_meas_ext_pd['values'].min()
-        data_summary.loc[current_station,'max_ext'] = ts_meas_ext_pd['values'].max()
-        data_summary.loc[current_station,'std_ext'] = ts_meas_ext_pd['values'].std()
-        data_summary.loc[current_station,'mean_ext'] = ts_meas_ext_pd['values'].mean()
+        data_summary_row['mintimediff_ext'] = timediff_ext.min()
+        data_summary_row['dupltimes_ext'] = ts_meas_ext_dupltimes.sum()
+        data_summary_row['tstart_ext'] = ts_meas_ext_pd.index[0]
+        data_summary_row['tstop_ext'] = ts_meas_ext_pd.index[-1]
+        data_summary_row['tstart2000_ext'] = ts_meas_ext_pd.index[0]<=(time_interest_start+M2_period_timedelta)
+        data_summary_row['tstop202102_ext'] = ts_meas_ext_pd.index[-1]>=(time_interest_stop-M2_period_timedelta)
+        data_summary_row['nvals_ext'] = len(ts_meas_ext_pd['values'])
+        data_summary_row['min_ext'] = ts_meas_ext_pd['values'].min()
+        data_summary_row['max_ext'] = ts_meas_ext_pd['values'].max()
+        data_summary_row['std_ext'] = ts_meas_ext_pd['values'].std()
+        data_summary_row['mean_ext'] = ts_meas_ext_pd['values'].mean()
         if len(ts_meas_ext_pd['HWLWcode'].unique()) > 2:
-            data_summary.loc[current_station,'aggers_ext'] = True
+            data_summary_row['aggers_ext'] = True
         else:
-            data_summary.loc[current_station,'aggers_ext'] = False
+            data_summary_row['aggers_ext'] = False
         try:
             ts_meas_ext_2000to202102 = ts_meas_ext_pd.loc[(ts_meas_ext_pd.index>=time_interest_start) & (ts_meas_ext_pd.index<=time_interest_stop)]
             ts_meas_ext_pd.loc[dt.datetime(2015,1,1):dt.datetime(2015,1,2)]
             ts_meas_ext_2000to202102 = hatyan.calc_HWLWnumbering(ts_meas_ext_2000to202102)
             HWmissings = (ts_meas_ext_2000to202102.loc[ts_meas_ext_pd['HWLWcode']==1,'HWLWno'].diff().dropna()!=1).sum()
-            data_summary.loc[current_station,'#HWgaps_2000to202102_ext'] = HWmissings
+            data_summary_row['#HWgaps_2000to202102_ext'] = HWmissings
         except Exception as e: #"tidal wave numbering: HW/LW numbers not always increasing" and "zero-size array to reduction operation minimum which has no identity" #TODO: fix by calulate and providing station or corr_tideperiods argument? Or fix otherwise in hatyan (maybe under different project)
             print(f'ERROR: {e}')
         
@@ -279,43 +280,6 @@ for current_station in stat_list:
         data_pd_LW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==2]
         HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))['values'].mean() #TODO: use hatyan.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
         LW_mean_peryear_long = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="y"))['values'].mean()
-        
-    if data_summary['data_ext'].isnull().sum() == 0: #if all stat_list stations were processed (only True/False in this array, no nans)
-        #print and save data_summary
-        print(data_summary[['data_wl','tstart_wl','tstop_wl','nvals_wl','dupltimes_wl','#nans_wl','#nans_2000to202102a_wl']])
-        try:
-            print(data_summary[['data_ext','dupltimes_ext','#HWgaps_2000to202102_ext']])
-        except KeyError:
-            print(data_summary[['data_ext','dupltimes_ext']])            
-        data_summary.to_csv(os.path.join(dir_meas_ddl,'data_summary.csv'))
-        
-        #make spatial plot of available/retrieved stations
-        fig_map,ax_map = plt.subplots(figsize=(8,7))
-        file_ldb = r'p:\11206813-006-kpp2021_rmm-2d\C_Work\31_RMM_FMmodel\computations\model_setup\run_205\20101209-06.ldb' #TODO: make ldb available in code or at least KWK project drive
-        if os.path.exists(file_ldb):
-            ldb_pd = pd.read_csv(file_ldb, delim_whitespace=True,skiprows=4,names=['RDx','RDy'],na_values=[999.999])
-            ax_map.plot(ldb_pd['RDx'],ldb_pd['RDy'],'-k',linewidth=0.4)
-        ax_map.plot(data_summary['X'],data_summary['Y'],'xk')#,alpha=0.4) #all ext stations
-        ax_map.plot(data_summary.loc[stat_list,'X'],data_summary.loc[stat_list,'Y'],'xr') # selected ext stations (stat_list)
-        ax_map.plot(data_summary.loc[data_summary['data_ext'],'X'],data_summary.loc[data_summary['data_ext'],'Y'],'xm') # data retrieved
-        """
-        for iR, row in cat_locatielijst_sel.iterrows():
-            ax_map.text(row['RDx'],row['RDy'],row['Code'])
-        """
-        # TODO: convert coords to RD and apply axis limits again
-        # ax_map.set_xlim(-50000,300000)
-        # ax_map.set_ylim(350000,650000)
-        ax_map.set_title('overview of stations with GETETM2 data')
-        ax_map.set_aspect('equal')
-        # def div1000(x,pos): return f'{int(x//1000)}'
-        # ax_map.xaxis.set_major_formatter(ticker.FuncFormatter(div1000))
-        # ax_map.yaxis.set_major_formatter(ticker.FuncFormatter(div1000))
-        ax_map.set_xlabel('X')
-        ax_map.set_ylabel('Y')
-        ax_map.grid(alpha=0.5)
-        fig_map.tight_layout()
-        #ctx.add_basemap(ax_map, source=ctx.providers.Esri.WorldImagery, crs="EPSG:28992", attribution=False)
-        fig_map.savefig(os.path.join(dir_meas_ddl,'stations_map.png'))
     
     #plotting
     file_wl_png = os.path.join(dir_meas_ddl,f'ts_{current_station}.png')
@@ -347,3 +311,45 @@ for current_station in stat_list:
     ax1.set_xlim(dt.datetime(2000,1,1),dt.datetime(2022,1,1)) # period of interest
     fig.savefig(file_wl_png)
     plt.close(fig)
+    
+    row_list.append(data_summary_row)
+    
+data_summary = pd.concat(row_list, axis=1).T
+data_summary = data_summary.set_index('Code').sort_index()
+
+
+#print and save data_summary
+print(data_summary[['data_wl','tstart_wl','tstop_wl','nvals_wl','dupltimes_wl','#nans_wl','#nans_2000to202102a_wl']])
+try:
+    print(data_summary[['data_ext','dupltimes_ext','#HWgaps_2000to202102_ext']])
+except KeyError:
+    print(data_summary[['data_ext','dupltimes_ext']])            
+data_summary.to_csv(os.path.join(dir_meas_ddl,'data_summary.csv'))
+
+#make spatial plot of available/retrieved stations
+fig_map,ax_map = plt.subplots(figsize=(8,7))
+file_ldb = r'p:\11206813-006-kpp2021_rmm-2d\C_Work\31_RMM_FMmodel\computations\model_setup\run_205\20101209-06.ldb' #TODO: make ldb available in code or at least KWK project drive
+if os.path.exists(file_ldb):
+    ldb_pd = pd.read_csv(file_ldb, delim_whitespace=True,skiprows=4,names=['RDx','RDy'],na_values=[999.999])
+    ax_map.plot(ldb_pd['RDx'],ldb_pd['RDy'],'-k',linewidth=0.4)
+ax_map.plot(data_summary['X'],data_summary['Y'],'xk')#,alpha=0.4) #all ext stations
+ax_map.plot(data_summary.loc[stat_list,'X'],data_summary.loc[stat_list,'Y'],'xr') # selected ext stations (stat_list)
+ax_map.plot(data_summary.loc[data_summary['data_ext'],'X'],data_summary.loc[data_summary['data_ext'],'Y'],'xm') # data retrieved
+"""
+for iR, row in cat_locatielijst_sel.iterrows():
+    ax_map.text(row['RDx'],row['RDy'],row['Code'])
+"""
+# TODO: convert coords to RD and apply axis limits again
+# ax_map.set_xlim(-50000,300000)
+# ax_map.set_ylim(350000,650000)
+ax_map.set_title('overview of stations with GETETM2 data')
+ax_map.set_aspect('equal')
+# def div1000(x,pos): return f'{int(x//1000)}'
+# ax_map.xaxis.set_major_formatter(ticker.FuncFormatter(div1000))
+# ax_map.yaxis.set_major_formatter(ticker.FuncFormatter(div1000))
+ax_map.set_xlabel('X')
+ax_map.set_ylabel('Y')
+ax_map.grid(alpha=0.5)
+fig_map.tight_layout()
+#ctx.add_basemap(ax_map, source=ctx.providers.Esri.WorldImagery, crs="EPSG:28992", attribution=False)
+fig_map.savefig(os.path.join(dir_meas_ddl,'stations_map.png'))
