@@ -171,7 +171,7 @@ for current_station in []:#stat_list:
         ts_meas_ext_pd, metadata, stationdata = request_output_extval
         ts_meas_exttyp_pd, metadata2, dummy = request_output_exttyp
         ts_meas_ext_pd['values'] = ts_meas_ext_pd['values']/100 #convert from cm to m
-        if ts_meas_exttyp_pd['values'].isnull().any(): #TODO: remove this exception for SCHEVNGN after DDL exttype data is fixed: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/14
+        if ts_meas_exttyp_pd['values'].isnull().any(): #TODO: remove this exception for SCHEVNGN after DDL exttype data is fixed (this seems to be the case)
             print(f'WARNING: invalid ext type values for {current_station}, skipping station')    
             continue
         ts_meas_ext_pd = hatyan.convert_HWLWstr2num(ts_meas_ext_pd,ts_meas_exttyp_pd)
