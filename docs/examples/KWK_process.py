@@ -11,8 +11,8 @@ import datetime as dt
 import matplotlib.pyplot as plt
 plt.close('all')
 import hatyan # available via `pip install hatyan` or at https://github.com/Deltares/hatyan
+import kenmerkendewaarden # pip install git+https://github.com/Deltares-research/kenmerkendewaarden
 
-dataTKdia = True
 NAP2005correction = False #True #TODO: define for all stations
 
 tstart_dt = dt.datetime(2011,1,1)
@@ -23,10 +23,11 @@ else:
     year_slotgem = 'invalid'
 print(f'year_slotgem: {year_slotgem}')
 
-dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
-dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20220101')
-if dataTKdia:
-    dir_meas += '_dataTKdia'
+# dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
+dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
+# dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20220101')
+#TODO: move to full data folder
+dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
 
 dir_havget = os.path.join(dir_base,f'out_havengetallen_{year_slotgem}')
 if not os.path.exists(dir_havget):
@@ -43,14 +44,12 @@ if not os.path.exists(dir_overschrijding):
 
 fig_alltimes_ext = [dt.datetime.strptime(x,'%Y%m%d') for x in os.path.basename(dir_meas).split('_')[2:4]]
 
-if dataTKdia:
-    stat_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUWHVSGT08','GATVBSLE','BRESKVHVN','CADZD','D15','DELFZL','DENHDR','EEMSHVN','EURPFM','F16','F3PFM','HARVT10','HANSWT','HARLGN','HOEKVHLD','HOLWD','HUIBGT','IJMDBTHVN','IJMDSMPL','J6','K13APFM','K14PFM','KATSBTN','KORNWDZBTN','KRAMMSZWT','L9PFM','LAUWOG','LICHTELGRE','MARLGT','NES','NIEUWSTZL','NORTHCMRT','DENOVBTN','OOSTSDE04','OOSTSDE11','OOSTSDE14','OUDSD','OVLVHWT','Q1','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE'] #all stations from TK
-    stat_list = ['BAALHK','BATH','BERGSDSWT','BRESKVHVN','CADZD','DELFZL','DENHDR','DENOVBTN','EEMSHVN','GATVBSLE','HANSWT','HARLGN','HARVT10','HOEKVHLD','IJMDBTHVN','KATSBTN','KORNWDZBTN','KRAMMSZWT','LAUWOG','OUDSD','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','STAVNSE','STELLDBTN','TERNZN','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN'] #all files with valid data for 2010 to 2021
-    #stat_list = stat_list[stat_list.index('STELLDBTN'):]
-else:
-    stat_list = None #TODO: get from DDL catalog (check KWK_download script)
+# stat_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUWHVSGT08','GATVBSLE','BRESKVHVN','CADZD','D15','DELFZL','DENHDR','EEMSHVN','EURPFM','F16','F3PFM','HARVT10','HANSWT','HARLGN','HOEKVHLD','HOLWD','HUIBGT','IJMDBTHVN','IJMDSMPL','J6','K13APFM','K14PFM','KATSBTN','KORNWDZBTN','KRAMMSZWT','L9PFM','LAUWOG','LICHTELGRE','MARLGT','NES','NIEUWSTZL','NORTHCMRT','DENOVBTN','OOSTSDE04','OOSTSDE11','OOSTSDE14','OUDSD','OVLVHWT','Q1','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE'] #all stations from TK
+# stat_list = ['BAALHK','BATH','BERGSDSWT','BRESKVHVN','CADZD','DELFZL','DENHDR','DENOVBTN','EEMSHVN','GATVBSLE','HANSWT','HARLGN','HARVT10','HOEKVHLD','IJMDBTHVN','KATSBTN','KORNWDZBTN','KRAMMSZWT','LAUWOG','OUDSD','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','STAVNSE','STELLDBTN','TERNZN','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN'] #all files with valid data for 2010 to 2021
+stat_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
 
 
+# TODO: move to functions (although hatyan.ddlpy_to_hatyan might make more sense now), combine with to_xarray
 def clean_data(ts_meas_pd,current_station):
     if 'HWLWcode' in ts_meas_pd.columns:
         keep_columns = ['values','QC','HWLWcode']
@@ -58,7 +57,7 @@ def clean_data(ts_meas_pd,current_station):
         keep_columns = ['values','QC']
     ts_meas_pd = ts_meas_pd[keep_columns] # reduces the memory consumption significantly in case of DDL data with a lot of metadata
     ts_meas_pd.index = ts_meas_pd.index.tz_localize(None)
-    ts_meas_pd = ts_meas_pd.loc[~(ts_meas_pd['QC']==99)] #remove invalid data
+    ts_meas_pd = ts_meas_pd.loc[~(ts_meas_pd['QC']==99)] #remove invalid data #TODO: this is already done by ddlpy (replaced with nan)
     
     #optional nap correction
     if NAP2005correction:
@@ -66,6 +65,7 @@ def clean_data(ts_meas_pd,current_station):
     return ts_meas_pd
 
 
+# TODO: move to functions
 def nap2005_correction(data_pd,current_station):
     #NAP correction for dates before 1-1-2005
     #TODO: check if ths make a difference (for havengetallen it makes a slight difference so yes. For gemgetijkromme it only makes a difference for spring/doodtij. (now only applied at gemgetij en havengetallen)). If so, make this flexible per station, where to get the data or is the RWS data already corrected for it?
@@ -74,6 +74,7 @@ def nap2005_correction(data_pd,current_station):
     print('applying NAP2005 correction')
     data_pd_corr = data_pd.copy()
     before2005bool = data_pd_corr.index<dt.datetime(2005,1,1)
+    # TODO: move to csv file and add as package data
     dict_correct_nap2005 = {'HOEKVHLD':-0.0277,
                             'HARVT10':-0.0210,
                             'VLISSGN':-0.0297}
@@ -86,7 +87,7 @@ def nap2005_correction(data_pd,current_station):
     return data_pd_corr
 
 
-
+# TODO: move to csv file and add as package data
 #physical_break_dict for slotgemiddelden and overschrijdingsfrequenties TODO: maybe use everywhere to crop data?
 physical_break_dict = {'DENOVBTN':'1933', #laatste sluitgat afsluitdijk in 1932 
                        'HARLGN':'1933', #laatste sluitgat afsluitdijk in 1932
@@ -99,7 +100,7 @@ compute_gemgetij = True
 compute_overschrijding = True
 
 
-for current_station in ['HOEKVHLD','DENOVBTN']:#stat_list: #stat_list[stat_list.index('SCHEVNGN'):]: #['HOEKVHLD','DENOVBTN']:#
+for current_station in stat_list:
     plt.close('all')
     
     print(f'loading data for {current_station}')
@@ -108,7 +109,7 @@ for current_station in ['HOEKVHLD','DENOVBTN']:#stat_list: #stat_list[stat_list.
         data_pd_meas_all = pd.read_pickle(file_wl_pkl)
         data_pd_meas_all = clean_data(data_pd_meas_all,current_station)
         #crop measurement data
-        data_pd_meas_10y = hatyan.crop_timeseries(data_pd_meas_all, times_ext=[tstart_dt,tstop_dt-dt.timedelta(minutes=10)])#,onlyfull=False)
+        data_pd_meas_10y = hatyan.crop_timeseries(data_pd_meas_all, times=slice(tstart_dt,tstop_dt-dt.timedelta(minutes=10)))#,onlyfull=False)
     
     file_ext_pkl = os.path.join(dir_meas,f"{current_station}_measext.pkl")
     if os.path.exists(file_ext_pkl): #for slotgemiddelden, havengetallen, overschrijding
