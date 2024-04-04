@@ -12,14 +12,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 plt.close('all')
 from matplotlib import ticker
-import hatyan # pip install hatyan (or at https://github.com/Deltares/hatyan)
+import ddlpy
+import kenmerkendewaarden # pip install git+https://github.com/Deltares-research/kenmerkendewaarden
 #import contextily as ctx # pip install contextily
+from hatyan.schureman import get_schureman_freqs
 
 #TODO: convert to netcdf instead of pkl (dfm_tools ssh retrieve format is the same as DCSM, could be useful)
 #TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers (nog niet gedaan voor hele periode, wel voor 2000-2022 (listAB+HARVT10): https://github.com/Deltares-research/kenmerkendewaarden/issues/10
 
 get_catalog = False
 dataTKdia = True
+
 
 tstart_dt_DDL = dt.datetime(1870,1,1) #1870,1,1 for measall folder
 tstop_dt_DDL = dt.datetime(2022,1,1)
@@ -33,29 +36,32 @@ else:
     year_slotgem = 'invalid'
 print(f'year_slotgem: {year_slotgem}')
 
-dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
-if dataTKdia:
-    dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20220101_dataTKdia')
-    dir_meas_alldata = os.path.join(dir_base,'measurements_wl_18700101_20220101_dataTKdia')
-else:
-    dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20220101')
-    dir_meas_alldata = os.path.join(dir_base,'measurements_wl_18700101_20220101')
+# dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
+dir_base = r"p:\11210325-005-kenmerkende-waarden\work"
+dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
+dir_meas_alldata = os.path.join(dir_base,'measurements_wl_18700101_20240101')
     
 dir_meas_DDL = os.path.join(dir_base,f"measurements_wl_{tstart_dt_DDL.strftime('%Y%m%d')}_{tstop_dt_DDL.strftime('%Y%m%d')}")
-if not os.path.exists(dir_meas_DDL):
-    os.mkdir(dir_meas_DDL)
+os.makedirs(dir_meas_DDL, exist_ok=True)
 
 fig_alltimes_ext = [dt.datetime.strptime(x,'%Y%m%d') for x in os.path.basename(dir_meas_alldata).split('_')[2:4]]
 
-if get_catalog:
-    print('retrieving DDL catalog')
-    catalog_dict = hatyan.get_DDL_catalog(catalog_extrainfo=['WaardeBepalingsmethoden','MeetApparaten','Typeringen'])
-    pd.to_pickle(catalog_dict,os.path.join(dir_base,'DDL_catalog.pkl'))
-    print('...done')
+file_catalog_pkl = os.path.join(dir_base, 'DDL_catalog.pkl')
+if not os.path.exists(file_catalog_pkl): #TODO: prefferably speed up catalog retrieval
+    print('retrieving DDL locations catalog with ddlpy')
+    locations = ddlpy.locations()
+    pd.to_pickle(locations, file_catalog_pkl)
 else:
-    catalog_dict = pd.read_pickle(os.path.join(dir_base,'DDL_catalog.pkl'))
-cat_locatielijst = catalog_dict['LocatieLijst']#.set_index('Locatie_MessageID',drop=True)
-cat_locatielijst.to_pickle(os.path.join(dir_meas_DDL,'catalog_lokatielijst.pkl'))
+    print('loading DDL locations catalog from pickle')
+    locations = pd.read_pickle(file_catalog_pkl)
+print('...done')
+
+dfsdf
+bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
+bool_groepering_ts = locations["Groepering.Code"].isin(["NVT"])
+bool_groepering_ext = locations["Groepering.Code"].isin(["WATHTE"])
+bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
+bool_hoedanigheid_msl = locations["Hoedanigheid.Code"].isin(["MSL"])
 
 #get list of stations with extremes #TODO: before, stations K13A, MAASMSMPL did not have extremes (many kenmerkende waarden are not possible then so skipping is fine)
 if dataTKdia:
@@ -85,7 +91,7 @@ if dataTKdia:
     stat_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUWHVSGT08','GATVBSLE','BRESKVHVN','CADZD','D15','DELFZL','DENHDR','EEMSHVN','EURPFM','F16','F3PFM','HARVT10','HANSWT','HARLGN','HOEKVHLD','HOLWD','HUIBGT','IJMDBTHVN','IJMDSMPL','J6','K13APFM','K14PFM','KATSBTN','KORNWDZBTN','KRAMMSZWT','L9PFM','LAUWOG','LICHTELGRE','MARLGT','NES','NIEUWSTZL','NORTHCMRT','DENOVBTN','OOSTSDE04','OOSTSDE11','OOSTSDE14','OUDSD','OVLVHWT','Q1','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE'] #all stations from TK
     stat_list = ['BAALHK','BATH','BERGSDSWT','BRESKVHVN','CADZD','DELFZL','DENHDR','DENOVBTN','EEMSHVN','GATVBSLE','HANSWT','HARLGN','HARVT10','HOEKVHLD','IJMDBTHVN','KATSBTN','KORNWDZBTN','KRAMMSZWT','LAUWOG','OUDSD','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','STAVNSE','STELLDBTN','TERNZN','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN'] #all files with valid data for 2010 to 2021
     #stat_list = stat_list[stat_list.index('STELLDBTN'):]
-M2_period_timedelta = pd.Timedelta(hours=hatyan.get_schureman_freqs(['M2']).loc['M2','period [hr]'])
+M2_period_timedelta = pd.Timedelta(hours=get_schureman_freqs(['M2']).loc['M2','period [hr]'])
 
 
 def clean_data(ts_meas_pd,current_station):
