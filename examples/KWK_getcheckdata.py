@@ -97,8 +97,10 @@ for current_station in stat_list:
         continue
     
     #TODO: write to netcdf instead (including metadata)
-    file_wl_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measwl.pkl")
+    # file_wl_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measwl.pkl")
     file_ext_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measext.pkl")
+    file_wl_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measwl.nc")
+    # file_ext_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measext.nc")
     
     bool_station_ts = locs_meas_ts_nap.index.isin([current_station])
     bool_station_ext = locs_meas_ext_nap.index.isin([current_station])
@@ -118,8 +120,19 @@ for current_station in stat_list:
     else:
         print(f'retrieving measwl data from DDL for {current_station} to {os.path.basename(dir_meas_ddl)}')
         measurements_ts = ddlpy.measurements(location=loc_meas_ts_nap_one.iloc[0], start_date=tstart_dt_DDL, end_date=tstop_dt_DDL)
-        ts_meas_pd = hatyan.ddlpy_to_hatyan(measurements_ts)
-        ts_meas_pd.to_pickle(file_wl_pkl)
+        # ts_meas_pd = hatyan.ddlpy_to_hatyan(measurements_ts)
+        # ts_meas_pd.to_pickle(file_wl_pkl)
+        drop_if_constant = ["WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
+                            "WaarnemingMetadata.BemonsteringshoogteLijst",
+                            "WaarnemingMetadata.ReferentievlakLijst",
+                            "AquoMetadata_MessageID", 
+                            "BioTaxonType", 
+                            "BemonsteringsSoort.Code", 
+                            "Compartiment.Code", "Eenheid.Code", "Grootheid.Code", "Hoedanigheid.Code",
+                            "WaardeBepalingsmethode.Code", "MeetApparaat.Code",
+                            ]
+        meas_ts_ds = ddlpy.dataframe_to_xarray(measurements_ts, drop_if_constant)
+        meas_ts_ds.to_netcdf(file_wl_pkl)
     
     #retrieving measured extremes
     if os.path.exists(file_ext_pkl):
@@ -132,6 +145,7 @@ for current_station in stat_list:
         ts_meas_exttype_pd = hatyan.ddlpy_to_hatyan(measurements_exttyp)
         ts_meas_ext_pd = hatyan.convert_HWLWstr2num(ts_meas_extval_pd, ts_meas_exttype_pd)
         ts_meas_ext_pd.to_pickle(file_ext_pkl)
+        #TODO: update to netcdf also, but requires the convert_HWLWstr2num function to be applied everytime when loading netcdf?
 
 
 """
