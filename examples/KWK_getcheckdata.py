@@ -14,6 +14,7 @@ plt.close('all')
 import ddlpy
 #import contextily as ctx # pip install contextily
 import hatyan
+import xarray as xr
 
 #TODO: convert to netcdf instead of pkl (dfm_tools ssh retrieve format is the same as DCSM, could be useful)
 #TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers (nog niet gedaan voor hele periode, wel voor 2000-2022 (listAB+HARVT10): https://github.com/Deltares-research/kenmerkendewaarden/issues/10
@@ -23,7 +24,7 @@ create_summary = True
 
 tstart_dt_DDL = dt.datetime(1870,1,1) #1870,1,1 for measall folder
 tstart_dt_DDL = dt.datetime(2021,12,1)
-tstop_dt_DDL = dt.datetime(2022,1,1)
+tstop_dt_DDL = dt.datetime(2022,2,1)
 tstart_dt = dt.datetime(2001,1,1)
 tstop_dt = dt.datetime(2011,1,1)
 
@@ -92,15 +93,23 @@ M2_period_timedelta = pd.Timedelta(hours=hatyan.schureman.get_schureman_freqs(['
 
 
 ### RETRIEVE DATA FROM DDL AND WRITE TO PICKLE
+drop_if_constant = ["WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
+                    "WaarnemingMetadata.BemonsteringshoogteLijst",
+                    "WaarnemingMetadata.ReferentievlakLijst",
+                    "AquoMetadata_MessageID", 
+                    "BioTaxonType", 
+                    "BemonsteringsSoort.Code", 
+                    "Compartiment.Code", "Eenheid.Code", "Grootheid.Code", "Hoedanigheid.Code",
+                    "WaardeBepalingsmethode.Code", "MeetApparaat.Code",
+                    ]
+
 for current_station in stat_list:
     if not retrieve_data:
         continue
     
-    #TODO: write to netcdf instead (including metadata)
-    # file_wl_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measwl.pkl")
-    file_ext_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measext.pkl")
-    file_wl_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measwl.nc")
-    # file_ext_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measext.nc")
+    # write to netcdf instead (including metadata)
+    file_wl_nc = os.path.join(dir_meas_ddl,f"{current_station}_measwl.nc")
+    file_ext_nc = os.path.join(dir_meas_ddl,f"{current_station}_measext.nc")
     
     bool_station_ts = locs_meas_ts_nap.index.isin([current_station])
     bool_station_ext = locs_meas_ext_nap.index.isin([current_station])
@@ -115,37 +124,34 @@ for current_station in stat_list:
         raise ValueError(f"no or multiple stations present after station subsetting:\n{loc_meas_ext_nap_one}")
     
     #retrieving waterlevels
-    if os.path.exists(file_wl_pkl):
+    if os.path.exists(file_wl_nc):
         print(f'measwl data for {current_station} already available in {os.path.basename(dir_meas_ddl)}')
     else:
         print(f'retrieving measwl data from DDL for {current_station} to {os.path.basename(dir_meas_ddl)}')
         measurements_ts = ddlpy.measurements(location=loc_meas_ts_nap_one.iloc[0], start_date=tstart_dt_DDL, end_date=tstop_dt_DDL)
-        # ts_meas_pd = hatyan.ddlpy_to_hatyan(measurements_ts)
-        # ts_meas_pd.to_pickle(file_wl_pkl)
-        drop_if_constant = ["WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
-                            "WaarnemingMetadata.BemonsteringshoogteLijst",
-                            "WaarnemingMetadata.ReferentievlakLijst",
-                            "AquoMetadata_MessageID", 
-                            "BioTaxonType", 
-                            "BemonsteringsSoort.Code", 
-                            "Compartiment.Code", "Eenheid.Code", "Grootheid.Code", "Hoedanigheid.Code",
-                            "WaardeBepalingsmethode.Code", "MeetApparaat.Code",
-                            ]
         meas_ts_ds = ddlpy.dataframe_to_xarray(measurements_ts, drop_if_constant)
-        meas_ts_ds.to_netcdf(file_wl_pkl)
+        meas_ts_ds.to_netcdf(file_wl_nc)
     
     #retrieving measured extremes
-    if os.path.exists(file_ext_pkl):
+    if os.path.exists(file_ext_nc):
         print(f'measext data for {current_station} already available in {os.path.basename(dir_meas_ddl)}')
     else:
         print(f'retrieving measext data from DDL for {current_station} to {os.path.basename(dir_meas_ddl)}')
         measurements_ext = ddlpy.measurements(location=loc_meas_ext_nap_one.iloc[0], start_date=tstart_dt_DDL, end_date=tstop_dt_DDL)
+        if measurements_ext.empty:
+            raise ValueError("[NO DATA]")
         measurements_exttyp = ddlpy.measurements(location=loc_meas_exttype_nap_one.iloc[0], start_date=tstart_dt_DDL, end_date=tstop_dt_DDL)
+        meas_ext_ds = ddlpy.dataframe_to_xarray(measurements_ext, drop_if_constant)
+        
+        #convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
+        # TODO: simplify by retrieving the extreme value and type from ddl in a single request (not supported yet)
         ts_meas_extval_pd = hatyan.ddlpy_to_hatyan(measurements_ext)
         ts_meas_exttype_pd = hatyan.ddlpy_to_hatyan(measurements_exttyp)
         ts_meas_ext_pd = hatyan.convert_HWLWstr2num(ts_meas_extval_pd, ts_meas_exttype_pd)
-        ts_meas_ext_pd.to_pickle(file_ext_pkl)
-        #TODO: update to netcdf also, but requires the convert_HWLWstr2num function to be applied everytime when loading netcdf?
+        meas_ext_ds["extreme_type"] = xr.DataArray(ts_meas_exttype_pd['values'].values, dims="time")
+        meas_ext_ds["HWLWcode"] = xr.DataArray(ts_meas_ext_pd['HWLWcode'].values, dims="time")
+        meas_ext_ds.to_netcdf(file_ext_nc)
+
 
 
 """
@@ -183,14 +189,14 @@ for current_station in stat_list:
     time_interest_stop = dt.datetime(2021,2,1)
     
     #load measwl data
-    file_wl_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measwl.pkl")
+    file_wl_nc = os.path.join(dir_meas_ddl,f"{current_station}_measwl.nc")
     # file_wlmeta_pkl = os.path.join(dir_meas_alldata,f"meta_{current_station}_measwl.pkl")
-    if not os.path.exists(file_wl_pkl):
+    if not os.path.exists(file_wl_nc):
         data_summary_row['data_wl'] = False
         data_summary_row['data_ext'] = False
         continue
     data_summary_row['data_wl'] = True
-    ts_meas_pd = pd.read_pickle(file_wl_pkl)
+    ts_meas_pd = xr.open_dataset(file_wl_nc)
     # TODO: re-enable after pickle to netcdf conversion (including metadata)
     # metawl = pd.read_pickle(file_wlmeta_pkl)
     # for metakey in list_relevantmetadata:
@@ -242,13 +248,13 @@ for current_station in stat_list:
     """
 
     #load measext data
-    file_ext_pkl = os.path.join(dir_meas_ddl,f"{current_station}_measext.pkl")
-    file_extmeta_pkl = os.path.join(dir_meas_ddl,f"meta_{current_station}_measext.pkl")
-    if not os.path.exists(file_ext_pkl):
+    file_ext_nc = os.path.join(dir_meas_ddl,f"{current_station}_measext.nc")
+    # file_extmeta_pkl = os.path.join(dir_meas_ddl,f"meta_{current_station}_measext.pkl")
+    if not os.path.exists(file_ext_nc):
         data_summary_row['data_ext'] = False
     else:
         data_summary_row['data_ext'] = True
-        ts_meas_ext_pd = pd.read_pickle(file_ext_pkl)
+        ts_meas_ext_pd = xr.open_dataset(file_ext_nc)
         timediff_ext = ts_meas_ext_pd.index[1:]-ts_meas_ext_pd.index[:-1]
         if timediff_ext.min() < dt.timedelta(hours=4): #TODO: min timediff for e.g. BROUWHVSGT08 is 3 minutes: ts_meas_ext_pd.loc[dt.datetime(2015,1,1):dt.datetime(2015,1,2),['values', 'QC', 'Status']]. This should not happen and with new dataset should be converted to an error
             print(f'WARNING: extreme data contains values that are too close ({timediff_ext.min()}), should be at least 4 hours difference')
@@ -327,43 +333,46 @@ for current_station in stat_list:
     plt.close(fig)
     
     row_list.append(data_summary_row)
+
+
+if create_summary:
+    data_summary = pd.concat(row_list, axis=1).T
+    data_summary = data_summary.set_index('Code').sort_index()
     
-data_summary = pd.concat(row_list, axis=1).T
-data_summary = data_summary.set_index('Code').sort_index()
-
-
-#print and save data_summary
-print(data_summary[['data_wl','tstart_wl','tstop_wl','nvals_wl','dupltimes_wl','#nans_wl','#nans_2000to202102a_wl']])
-try:
-    print(data_summary[['data_ext','dupltimes_ext','#HWgaps_2000to202102_ext']])
-except KeyError:
-    print(data_summary[['data_ext','dupltimes_ext']])            
-data_summary.to_csv(os.path.join(dir_meas_ddl,'data_summary.csv'))
-
-#make spatial plot of available/retrieved stations
-fig_map,ax_map = plt.subplots(figsize=(8,7))
-file_ldb = r'p:\11206813-006-kpp2021_rmm-2d\C_Work\31_RMM_FMmodel\computations\model_setup\run_205\20101209-06.ldb' #TODO: make ldb available in code or at least KWK project drive
-if os.path.exists(file_ldb):
-    ldb_pd = pd.read_csv(file_ldb, delim_whitespace=True,skiprows=4,names=['RDx','RDy'],na_values=[999.999])
-    ax_map.plot(ldb_pd['RDx'],ldb_pd['RDy'],'-k',linewidth=0.4)
-ax_map.plot(data_summary['X'],data_summary['Y'],'xk')#,alpha=0.4) #all ext stations
-ax_map.plot(data_summary.loc[stat_list,'X'],data_summary.loc[stat_list,'Y'],'xr') # selected ext stations (stat_list)
-ax_map.plot(data_summary.loc[data_summary['data_ext'],'X'],data_summary.loc[data_summary['data_ext'],'Y'],'xm') # data retrieved
-"""
-for iR, row in cat_locatielijst_sel.iterrows():
-    ax_map.text(row['RDx'],row['RDy'],row['Code'])
-"""
-# TODO: convert coords to RD and apply axis limits again
-# ax_map.set_xlim(-50000,300000)
-# ax_map.set_ylim(350000,650000)
-ax_map.set_title('overview of stations with GETETM2 data')
-ax_map.set_aspect('equal')
-# def div1000(x,pos): return f'{int(x//1000)}'
-# ax_map.xaxis.set_major_formatter(ticker.FuncFormatter(div1000))
-# ax_map.yaxis.set_major_formatter(ticker.FuncFormatter(div1000))
-ax_map.set_xlabel('X')
-ax_map.set_ylabel('Y')
-ax_map.grid(alpha=0.5)
-fig_map.tight_layout()
-#ctx.add_basemap(ax_map, source=ctx.providers.Esri.WorldImagery, crs="EPSG:28992", attribution=False)
-fig_map.savefig(os.path.join(dir_meas_ddl,'stations_map.png'))
+    
+    #print and save data_summary
+    print(data_summary[['data_wl','tstart_wl','tstop_wl','nvals_wl','dupltimes_wl','#nans_wl','#nans_2000to202102a_wl']])
+    try:
+        print(data_summary[['data_ext','dupltimes_ext','#HWgaps_2000to202102_ext']])
+    except KeyError:
+        print(data_summary[['data_ext','dupltimes_ext']])            
+    data_summary.to_csv(os.path.join(dir_meas_ddl,'data_summary.csv'))
+    
+    
+    #make spatial plot of available/retrieved stations
+    fig_map,ax_map = plt.subplots(figsize=(8,7))
+    file_ldb = r'p:\11206813-006-kpp2021_rmm-2d\C_Work\31_RMM_FMmodel\computations\model_setup\run_205\20101209-06.ldb' #TODO: make ldb available in code or at least KWK project drive
+    if os.path.exists(file_ldb):
+        ldb_pd = pd.read_csv(file_ldb, delim_whitespace=True,skiprows=4,names=['RDx','RDy'],na_values=[999.999])
+        ax_map.plot(ldb_pd['RDx'],ldb_pd['RDy'],'-k',linewidth=0.4)
+    ax_map.plot(data_summary['X'],data_summary['Y'],'xk')#,alpha=0.4) #all ext stations
+    ax_map.plot(data_summary.loc[stat_list,'X'],data_summary.loc[stat_list,'Y'],'xr') # selected ext stations (stat_list)
+    ax_map.plot(data_summary.loc[data_summary['data_ext'],'X'],data_summary.loc[data_summary['data_ext'],'Y'],'xm') # data retrieved
+    """
+    for iR, row in cat_locatielijst_sel.iterrows():
+        ax_map.text(row['RDx'],row['RDy'],row['Code'])
+    """
+    # TODO: convert coords to RD and apply axis limits again
+    # ax_map.set_xlim(-50000,300000)
+    # ax_map.set_ylim(350000,650000)
+    ax_map.set_title('overview of stations with GETETM2 data')
+    ax_map.set_aspect('equal')
+    # def div1000(x,pos): return f'{int(x//1000)}'
+    # ax_map.xaxis.set_major_formatter(ticker.FuncFormatter(div1000))
+    # ax_map.yaxis.set_major_formatter(ticker.FuncFormatter(div1000))
+    ax_map.set_xlabel('X')
+    ax_map.set_ylabel('Y')
+    ax_map.grid(alpha=0.5)
+    fig_map.tight_layout()
+    #ctx.add_basemap(ax_map, source=ctx.providers.Esri.WorldImagery, crs="EPSG:28992", attribution=False)
+    fig_map.savefig(os.path.join(dir_meas_ddl,'stations_map.png'))
