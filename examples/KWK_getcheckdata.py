@@ -108,8 +108,33 @@ locs_meas_ts = locations.loc[bool_grootheid & bool_groepering_ts]
 locs_meas_ext = locations.loc[bool_grootheid & bool_groepering_ext]
 locs_meas_exttype = locations.loc[bool_grootheid_exttypes & bool_groepering_ext]
 
-# find all stations in list # TODO: way too much matches so move to station code instead (still Bath will be duplicated and maybe others)
-# stat_name_list = ['BATH','DELFZIJL','DEN HELDER','DORDRECHT','EEMSHAVEN','EURO PLATFORM','HANSWEERT','HARINGVLIETSLUIZEN','HARLINGEN','HOEK VAN HOLLAND','HUIBERTGAT','IJMUIDEN','KORNWERDERZAND','LAUWERSOOG','ROOMPOT BUITEN','ROTTERDAM','SCHEVENINGEN','STAVENISSE','TERNEUZEN','VLISSINGEN','WEST-TERSCHELLING'] # lijst AB
+# station_list
+# TODO: fix multiple hits (first one is retrieved, although two rows probably raises error in code below)
+"""
+station name BATH found 2 times, should be 1:
+      Naam  Locatie_MessageID Hoedanigheid.Code
+Code                                           
+BATH  Bath              10518               NAP
+BATH  Bath              13615               NAP
+
+station name NES found 2 times, should be 1:
+     Naam  Locatie_MessageID Hoedanigheid.Code
+Code                                          
+NES   Nes               5391               NAP
+NES   Nes              10309               NAP
+
+station name LICHTELGRE found 2 times, should be 1:
+                          Naam  Locatie_MessageID Hoedanigheid.Code
+Code                                                               
+LICHTELGRE  Lichteiland Goeree              10953               MSL
+LICHTELGRE  Lichteiland Goeree              10953               NAP
+
+station name EURPFM found 2 times, should be 1:
+                 Naam  Locatie_MessageID Hoedanigheid.Code
+Code                                                      
+EURPFM  Euro platform              10946               MSL
+EURPFM  Euro platform              10946               NAP
+"""
 stat_name_list = ['TERNZN','BATH','HANSWT','VLISSGN','BERGSDSWT','KRAMMSZWT',
                   'STAVNSE','ROOMPBNN','CADZD','WESTKPLE','ROOMPBTN','BROUWHVSGT08',
                   'HARVT10','HOEKVHLD','SCHEVNGN','IJMDBTHVN','PETTZD','DENHDR','TEXNZE','TERSLNZE',
@@ -118,7 +143,7 @@ stat_name_list = ['TERNZN','BATH','HANSWT','VLISSGN','BERGSDSWT','KRAMMSZWT',
                   'NIEUWSTZL','LICHTELGRE','EURPFM','K13APFM'] + ['DORDT','STELLDBTN','ROTTDM'] + ['MAASMSMPL','OOSTSDE11'] #+ stat_list_addnonext[2:] #"KW kust en GR Dillingh 2013" en "KW getijgebied RWS 2011.0", aangevuld met 3 stations AB, aangevuld met BOI wensen, aangevuld met dialijst ABCT
 stat_list = []
 for stat_name in stat_name_list:
-    bool_isstation = locs_meas_ts.index.str.contains(stat_name,case=False)
+    bool_isstation = locs_meas_ts.index == stat_name
     if bool_isstation.sum()!=1:
         print(f'station name {stat_name} found {bool_isstation.sum()} times, should be 1:')
         print(f'{locs_meas_ts.loc[bool_isstation,["Naam","Locatie_MessageID","Hoedanigheid.Code"]]}')
@@ -126,13 +151,13 @@ for stat_name in stat_name_list:
     if bool_isstation.sum()==0: #skip if none found
         continue
     stat_list.append(locs_meas_ts.loc[bool_isstation].index[0])
-    #print(f'{stat_name:30s}: {bool_isstation.sum()}')
-#stat_list = ['BATH','DELFZL','DENHDR','DORDT','EEMSHVN','EURPFM','HANSWT','STELLDBTN','HARLGN','HOEKVHLD','HUIBGT','IJMDBTHVN','KORNWDZBTN','LAUWOG','ROOMPBTN','ROTTDM','SCHEVNGN','STAVNSE','TERNZN','VLISSGN','WESTTSLG'] # lijst AB vertaald naar DONAR namen
 stat_list = ['HOEKVHLD','HARVT10','VLISSGN']
+
 # dataTKdia station selections
 # stat_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUWHVSGT08','GATVBSLE','BRESKVHVN','CADZD','D15','DELFZL','DENHDR','EEMSHVN','EURPFM','F16','F3PFM','HARVT10','HANSWT','HARLGN','HOEKVHLD','HOLWD','HUIBGT','IJMDBTHVN','IJMDSMPL','J6','K13APFM','K14PFM','KATSBTN','KORNWDZBTN','KRAMMSZWT','L9PFM','LAUWOG','LICHTELGRE','MARLGT','NES','NIEUWSTZL','NORTHCMRT','DENOVBTN','OOSTSDE04','OOSTSDE11','OOSTSDE14','OUDSD','OVLVHWT','Q1','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE'] #all stations from TK
 # stat_list = ['BAALHK','BATH','BERGSDSWT','BRESKVHVN','CADZD','DELFZL','DENHDR','DENOVBTN','EEMSHVN','GATVBSLE','HANSWT','HARLGN','HARVT10','HOEKVHLD','IJMDBTHVN','KATSBTN','KORNWDZBTN','KRAMMSZWT','LAUWOG','OUDSD','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','STAVNSE','STELLDBTN','TERNZN','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN'] #all files with valid data for 2010 to 2021
-# stat_list = stat_list[stat_list.index('STELLDBTN'):]
+
+
 M2_period_timedelta = pd.Timedelta(hours=hatyan.schureman.get_schureman_freqs(['M2']).loc['M2','period [hr]'])
 
 
