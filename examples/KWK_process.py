@@ -13,6 +13,8 @@ plt.close('all')
 import hatyan # available via `pip install hatyan` or at https://github.com/Deltares/hatyan
 import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-research/kenmerkendewaarden
 
+#TODO: convert from pickle to netcdf
+
 NAP2005correction = False #True #TODO: define for all stations
 
 tstart_dt = dt.datetime(2011,1,1)
