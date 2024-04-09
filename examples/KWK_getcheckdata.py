@@ -31,8 +31,8 @@ except ModuleNotFoundError:
 # TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers. Create new issues if needed: https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: all TODOS in this script
 
-retrieve_meas_amount = True
-retrieve_data = False
+retrieve_meas_amount = False
+retrieve_data = True
 create_summary = False
 test = False
 
@@ -174,7 +174,9 @@ for current_station in station_list:
         # TODO: this happens for BATH 1993, probably multiple waardebepalingsmethoden? >> create ddlpy issue
         amount_ts_clean = amount_ts_clean.groupby(amount_ts_clean.index).sum()
     ts_amount_list.append(amount_ts_clean)
-    if len(loc_meas_ext_one)==0: #TODO: no ext station available for ['MAASMSMPL','A12']. also AWGPFM?
+    if len(loc_meas_ext_one)==0: 
+        # TODO: no ext station available for ["MAASMSMPL","A12","AWGPFM","BAALHK","GATVBSLE","F16","F3PFM","K14PFM",
+        #                                     "L9PFM","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
         amount_ext_clean = pd.DataFrame({current_station:[]})
         amount_ext_clean.index.name = "Groeperingsperiode"
     else:
@@ -205,6 +207,7 @@ drop_if_constant = ["WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
                     "WaardeBepalingsmethode.Code", "MeetApparaat.Code",
                     ]
 
+
 for current_station in station_list:
     if not retrieve_data:
         continue
@@ -214,9 +217,6 @@ for current_station in station_list:
         continue
     # skip MSL/NAP duplicate stations # TODO: avoid this
     if current_station in ["EURPFM", "LICHTELGRE"]:
-        continue
-    # skip missing ext stations
-    if current_station in ["MAASMSMPL","A12"]:
         continue
     
     # write to netcdf instead (including metadata)
@@ -231,9 +231,13 @@ for current_station in station_list:
     loc_meas_exttype_one = locs_meas_exttype.loc[bool_station_exttype]
 
     if len(loc_meas_ts_one)!=1:
-        raise ValueError(f"no or multiple stations present after station subsetting:\n{loc_meas_ts_one}")
-    if len(loc_meas_ext_one)!=1:
-        raise ValueError(f"no or multiple stations present after station subsetting:\n{loc_meas_ext_one}")
+        raise ValueError(f"no or multiple stations present after station subsetting for {current_station} (ts):\n{loc_meas_ts_one}")
+    
+    ext_available = True
+    if len(loc_meas_ext_one)==0:
+        ext_available = False
+    elif len(loc_meas_ext_one)!=1:
+        raise ValueError(f"no or multiple stations present after station subsetting for {current_station} (ext):\n{loc_meas_ext_one}")
     
     #retrieving waterlevels
     if os.path.exists(file_wl_nc):
@@ -247,6 +251,8 @@ for current_station in station_list:
     #retrieving measured extremes
     if os.path.exists(file_ext_nc):
         print(f'measext data for {current_station} already available in {os.path.basename(dir_meas)}')
+    elif not ext_available:
+        print(f'no measext data for {current_station}, skipping downloading')
     else:
         print(f'retrieving measext data from DDL for {current_station} to {os.path.basename(dir_meas)}')
         measurements_ext = ddlpy.measurements(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date)
