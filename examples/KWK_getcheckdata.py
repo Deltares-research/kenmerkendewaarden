@@ -244,7 +244,7 @@ for current_station in station_list:
         meta_dict_flat_ts = kw.get_flat_meta_from_dataset(ds_ts_meas)
         data_summary_row_ts.update(meta_dict_flat_ts)
         
-        ds_stats = kw.get_stats_from_dataset(ds_ts_meas)
+        ds_stats = kw.get_stats_from_dataset(ds_ts_meas, time_interest_start=time_interest_start, time_interest_stop=time_interest_stop)
         data_summary_row_ts.update(ds_stats)
         
         # calculate monthly/yearly mean for meas wl data
@@ -275,7 +275,7 @@ for current_station in station_list:
         meta_dict_flat_ext = kw.get_flat_meta_from_dataset(ds_ext_meas)
         data_summary_row_ext.update(meta_dict_flat_ext)
         
-        ds_stats = kw.get_stats_from_dataset(ds_ext_meas)
+        ds_stats = kw.get_stats_from_dataset(ds_ext_meas, time_interest_start=time_interest_start, time_interest_stop=time_interest_stop)
         data_summary_row_ext.update(ds_stats)
         
         #calculate monthly/yearly mean for meas ext data
