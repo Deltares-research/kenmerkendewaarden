@@ -31,7 +31,7 @@ except ModuleNotFoundError:
 # TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers. Create new issues if needed: https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: all TODOS in this script
 
-retrieve_meas_amount = True
+retrieve_meas_amount = False
 retrieve_data = False
 create_summary = False
 test = False
@@ -171,7 +171,7 @@ for current_station in station_list:
     amount_ts = ddlpy.measurements_amount(location=loc_meas_ts_one.iloc[0], start_date=start_date, end_date=end_date)
     amount_ts_clean = amount_ts.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
     if amount_ts_clean.index.duplicated().any():
-        # TODO: multiple 1993 in dataframe for BATH, maybe multiple waardebepalingsmethoden/meetapparaten or something? >> create ddlpy issue
+        # TODO: multiple 1993 in dataframe for BATH, maybe multiple waardebepalingsmethoden/meetapparaten or something? >> create ddlpy issue (also for BATH, CADZD, IJMDBTHVN, NIEUWSTZL, DENOVBTN, WESTKPLE)
         amount_ts_clean = amount_ts_clean.groupby(amount_ts_clean.index).sum()
     ts_amount_list.append(amount_ts_clean)
     
@@ -180,21 +180,30 @@ for current_station in station_list:
         amount_ext_clean = amount_ext.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
     except IndexError: # IndexError: single positional indexer is out-of-bounds
         print("ext no station available")
-        # TODO: no ext station available for ["MAASMSMPL","A12","AWGPFM","BAALHK","GATVBSLE","F16","F3PFM","K14PFM",
-        #                                     "L9PFM","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
+        # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
+        #                                     "L9PFM","MAASMSMPL","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
         amount_ext_clean = pd.DataFrame({current_station:[]})
         amount_ext_clean.index.name = "Groeperingsperiode"
+    if amount_ext_clean.index.duplicated().any():
+        # TODO: see ts above
+        amount_ext_clean = amount_ext_clean.groupby(amount_ext_clean.index).sum()
     ext_amount_list.append(amount_ext_clean)
 
 if retrieve_meas_amount:
     print(f'write measurement amount csvs to {os.path.basename(dir_meas)}')
-    df_amount_ts = pd.concat(ts_amount_list, axis=1)
-    df_amount_ext = pd.concat(ext_amount_list, axis=1)
+    df_amount_ts = pd.concat(ts_amount_list, axis=1).sort_index()
+    df_amount_ts = df_amount_ts.fillna(0).astype(int)
+    df_amount_ext = pd.concat(ext_amount_list, axis=1).sort_index()
     df_amount_ext = df_amount_ext.fillna(0).astype(int)
     file_csv_amount_ts = os.path.join(dir_meas, "data_amount_ts_PREVENTOVERWRITE.csv")
     file_csv_amount_ext = os.path.join(dir_meas, "data_amount_ext_PREVENTOVERWRITE.csv")
     df_amount_ts.to_csv(file_csv_amount_ts)
     df_amount_ext.to_csv(file_csv_amount_ext)
+    
+    fig, ax = kw.df_amount_boxplot(df_amount_ts)
+    fig.savefig(file_csv_amount_ts.replace(".csv",""), dpi=200)
+    fig, ax = kw.df_amount_boxplot(df_amount_ext)
+    fig.savefig(file_csv_amount_ext.replace(".csv",""), dpi=200)
 
 
 

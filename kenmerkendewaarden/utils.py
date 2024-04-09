@@ -6,6 +6,7 @@ Created on Tue Apr  9 09:39:32 2024
 """
 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def xarray_to_hatyan(ds):
@@ -20,6 +21,7 @@ def xarray_to_hatyan(ds):
     # remove timezone label (timestamps are still UTC+1 in fact)
     df.index = df.index.tz_localize(None)
     return df
+
 
 def get_flat_meta_from_dataset(ds):
     list_relevantmetadata = ['WaarnemingMetadata.StatuswaardeLijst', 
@@ -43,6 +45,7 @@ def get_flat_meta_from_dataset(ds):
         else:
             meta_dict_flat[key] = ds.attrs[key]
     return meta_dict_flat
+
 
 def get_stats_from_dataset(ds, time_interest_start=None, time_interest_stop=None):
     ds_stats = {}
@@ -95,3 +98,15 @@ def get_stats_from_dataset(ds, time_interest_start=None, time_interest_stop=None
             ds_stats['aggers'] = False
         
     return ds_stats
+
+
+def df_amount_boxplot(df):
+    df = df.copy()
+    df.index = pd.to_datetime(df.index)
+    import numpy as np
+    df[df==0] = np.nan
+    fig, ax = plt.subplots(figsize=(14,8))
+    df.plot.box(ax=ax, rot=90, grid=True)
+    ax.set_ylabel("amount of measurements per year (0 excluded)")
+    fig.tight_layout()
+    return fig, ax
