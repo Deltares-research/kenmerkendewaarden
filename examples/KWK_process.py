@@ -14,7 +14,6 @@ import hatyan # available via `pip install hatyan` or at https://github.com/Delt
 import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-research/kenmerkendewaarden
 import xarray as xr
 
-# TODO: convert from pickle to netcdf
 # TODO: not in M2phasediff textfile (in hatyan): ['LICHTELGRE','EURPFM']
 # TODO: HW/LW numbers not always increasing (old comment): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
 

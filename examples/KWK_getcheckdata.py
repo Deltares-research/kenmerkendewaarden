@@ -11,7 +11,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 plt.close('all')
 import ddlpy
-import hatyan
+import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num() # TODO: not released yet
 import xarray as xr
 from pyproj import Transformer # dependency of hatyan
 import kenmerkendewaarden as kw
@@ -27,16 +27,14 @@ try:
 except ModuleNotFoundError:
     dfmt_available = False
 
-
+# TODO: report wl/ext missings/duplicates/outliers in recent period 2000-2021 (based on data_summary and data_amount csv's)
 # TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers. Create new issues if needed: https://github.com/Deltares-research/kenmerkendewaarden/issues/4
-# TODO: check prints, some should be errors (or converted to issues)
-# TODO: consider rerunning all with clean_df=False to check which datasets have duplicates or wrong order
-# TODO: no ext station available: ['MAASMSMPL','A12']
+# TODO: all TODOS in this script
 
-
+retrieve_meas_amount = False
 retrieve_data = True
-create_summary = True
-test = True
+create_summary = False
+test = False
 
 
 start_date = "1870-01-01"
@@ -100,9 +98,9 @@ station_list_tk = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BR
 station_list_valid2011 = ['BAALHK','BATH','BERGSDSWT','BRESKVHVN','CADZD','DELFZL','DENHDR','DENOVBTN','EEMSHVN','GATVBSLE','HANSWT','HARLGN','HARVT10','HOEKVHLD','IJMDBTHVN','KATSBTN','KORNWDZBTN','KRAMMSZWT','LAUWOG','OUDSD','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','STAVNSE','STELLDBTN','TERNZN','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN']
 
 # station_list = station_list_kw2013
-# station_list = station_list_tk
+station_list = station_list_tk
 # station_list = station_list_valid2011
-station_list = ['HOEKVHLD','HARVT10','VLISSGN']
+# station_list = ['BATH','EURPFM','VLISSGN']
 
 for station_name in station_list:
     bool_isstation = locs_meas_ts.index == station_name
@@ -152,6 +150,45 @@ NES   Nes              10309               NAP
 """
 
 
+# TODO: report stations with duplicates/nodata based on resulting csv file. Many are not retrieved since we use clean_df for ddlpy
+### RETRIEVE MEASUREMENTS AMOUNT
+ts_amount_list = []
+ext_amount_list = []
+for current_station in station_list:
+    if not retrieve_meas_amount:
+        continue
+    print(f'retrieving measurement amount from DDL for {current_station}')
+    
+    # write to netcdf instead (including metadata)
+    file_wl_nc = os.path.join(dir_meas,f"{current_station}_measwl.nc")
+    file_ext_nc = os.path.join(dir_meas,f"{current_station}_measext.nc")
+    
+    bool_station_ts = locs_meas_ts.index.isin([current_station])
+    bool_station_ext = locs_meas_ext.index.isin([current_station])
+    loc_meas_ts_one = locs_meas_ts.loc[bool_station_ts]
+    loc_meas_ext_one = locs_meas_ext.loc[bool_station_ext]
+    
+    amount_ts = ddlpy.measurements_amount(location=loc_meas_ts_one.iloc[0], start_date=start_date, end_date=end_date)
+    ts_amount_list.append(amount_ts.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station}))
+    if len(loc_meas_ext_one)==0: #TODO: no ext station available for ['MAASMSMPL','A12']. also AWGPFM?
+        amount_ext_clean = pd.DataFrame({current_station:[]})
+        amount_ext_clean.index.name = "Groeperingsperiode"
+    else:
+        amount_ext = ddlpy.measurements_amount(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date)
+        amount_ext_clean = amount_ext.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
+    ext_amount_list.append(amount_ext_clean)
+
+if retrieve_meas_amount:
+    print(f'write measurement amount csvs to {os.path.basename(dir_meas)}')
+    df_amount_ts = pd.concat(ts_amount_list, axis=1)
+    df_amount_ext = pd.concat(ext_amount_list, axis=1)
+    df_amount_ext = df_amount_ext.fillna(0).astype(int)
+    file_csv_amount_ts = os.path.join(dir_meas, "data_amount_ts_PREVENTOVERWRITE.csv")
+    file_csv_amount_ext = os.path.join(dir_meas, "data_amount_ext_PREVENTOVERWRITE.csv")
+    df_amount_ts.to_csv(file_csv_amount_ts)
+    df_amount_ext.to_csv(file_csv_amount_ext)
+
+
 
 ### RETRIEVE DATA FROM DDL AND WRITE TO PICKLE
 drop_if_constant = ["WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
@@ -166,6 +203,16 @@ drop_if_constant = ["WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
 
 for current_station in station_list:
     if not retrieve_data:
+        continue
+    
+    # skip duplicate code stations (hist/realtime) # TODO: avoid this
+    if current_station in ["BATH", "D15", "J6", "NES"]:
+        continue
+    # skip MSL/NAP duplicate stations # TODO: avoid this
+    if current_station in ["EURPFM", "LICHTELGRE"]:
+        continue
+    # skip missing ext stations
+    if current_station in ["MAASMSMPL","A12"]:
         continue
     
     # write to netcdf instead (including metadata)
