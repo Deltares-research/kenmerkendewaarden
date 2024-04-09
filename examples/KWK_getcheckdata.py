@@ -31,14 +31,14 @@ except ModuleNotFoundError:
 # TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers. Create new issues if needed: https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: all TODOS in this script
 
-retrieve_meas_amount = False
-retrieve_data = True
+retrieve_meas_amount = True
+retrieve_data = False
 create_summary = False
 test = False
 
 
 start_date = "1870-01-01"
-end_date = "2023-01-01"
+end_date = "2024-01-01"
 if test:
     start_date = "2021-12-01"
     end_date = "2022-02-01"
@@ -149,8 +149,8 @@ NES   Nes               5391               NAP
 NES   Nes              10309               NAP
 """
 
-
 # TODO: report stations with duplicates/nodata based on resulting csv file. Many are not retrieved since we use clean_df for ddlpy
+# TODO: some stations are now realtime instead of hist
 ### RETRIEVE MEASUREMENTS AMOUNT
 ts_amount_list = []
 ext_amount_list = []
@@ -169,7 +169,11 @@ for current_station in station_list:
     loc_meas_ext_one = locs_meas_ext.loc[bool_station_ext]
     
     amount_ts = ddlpy.measurements_amount(location=loc_meas_ts_one.iloc[0], start_date=start_date, end_date=end_date)
-    ts_amount_list.append(amount_ts.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station}))
+    amount_ts_clean = amount_ts.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
+    if amount_ts_clean.index.duplicated().any():
+        # TODO: this happens for BATH 1993, probably multiple waardebepalingsmethoden? >> create ddlpy issue
+        amount_ts_clean = amount_ts_clean.groupby(amount_ts_clean.index).sum()
+    ts_amount_list.append(amount_ts_clean)
     if len(loc_meas_ext_one)==0: #TODO: no ext station available for ['MAASMSMPL','A12']. also AWGPFM?
         amount_ext_clean = pd.DataFrame({current_station:[]})
         amount_ext_clean.index.name = "Groeperingsperiode"
