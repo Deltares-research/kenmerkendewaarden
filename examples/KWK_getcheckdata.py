@@ -38,9 +38,6 @@ test = False
 
 
 start_date = "1870-01-01"
-if retrieve_meas_amount:
-    assert retrieve_data == False
-    start_date = "1980-01-01" # TODO: not possible to get measurements_amount for entire period, raises "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
 end_date = "2024-01-01"
 if test:
     start_date = "2021-12-01"
@@ -174,17 +171,19 @@ for current_station in station_list:
     amount_ts = ddlpy.measurements_amount(location=loc_meas_ts_one.iloc[0], start_date=start_date, end_date=end_date)
     amount_ts_clean = amount_ts.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
     if amount_ts_clean.index.duplicated().any():
-        # TODO: this happens for BATH 1993, probably multiple waardebepalingsmethoden? >> create ddlpy issue
+        # TODO: multiple 1993 in dataframe for BATH, maybe multiple waardebepalingsmethoden/meetapparaten or something? >> create ddlpy issue
         amount_ts_clean = amount_ts_clean.groupby(amount_ts_clean.index).sum()
     ts_amount_list.append(amount_ts_clean)
-    if len(loc_meas_ext_one)==0: 
+    
+    try:
+        amount_ext = ddlpy.measurements_amount(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date)
+        amount_ext_clean = amount_ext.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
+    except IndexError: # IndexError: single positional indexer is out-of-bounds
+        print("ext no station available")
         # TODO: no ext station available for ["MAASMSMPL","A12","AWGPFM","BAALHK","GATVBSLE","F16","F3PFM","K14PFM",
         #                                     "L9PFM","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
         amount_ext_clean = pd.DataFrame({current_station:[]})
         amount_ext_clean.index.name = "Groeperingsperiode"
-    else:
-        amount_ext = ddlpy.measurements_amount(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date)
-        amount_ext_clean = amount_ext.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
     ext_amount_list.append(amount_ext_clean)
 
 if retrieve_meas_amount:
