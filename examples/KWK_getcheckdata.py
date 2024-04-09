@@ -26,7 +26,7 @@ try:
     dfmt_available = True
 except ModuleNotFoundError:
     dfmt_available = False
-    
+
 
 # TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers. Create new issues if needed: https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: check prints, some should be errors (or converted to issues)
@@ -43,6 +43,8 @@ start_date = "1870-01-01"
 end_date = "2023-01-01"
 if test:
     start_date = "2021-12-01"
+    end_date = "2022-02-01"
+    start_date = "2010-12-01"
     end_date = "2022-02-01"
 fig_alltimes_xlim = [dt.datetime.strptime(start_date,'%Y-%m-%d'), dt.datetime.strptime(end_date,'%Y-%m-%d')]
 
