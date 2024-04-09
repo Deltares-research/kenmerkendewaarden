@@ -39,7 +39,8 @@ test = False
 
 start_date = "1870-01-01"
 if retrieve_meas_amount:
-    start_date = "1980-01-01"
+    assert retrieve_data == False
+    start_date = "1980-01-01" # TODO: not possible to get measurements_amount for entire period, raises "ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
 end_date = "2024-01-01"
 if test:
     start_date = "2021-12-01"
