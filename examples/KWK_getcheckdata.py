@@ -29,13 +29,7 @@ except ModuleNotFoundError:
 # TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers. Create new issues if needed: https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: check prints, some should be errors (or converted to issues)
 # TODO: consider rerunning all with clean_df=False to check which datasets have duplicates or wrong order
-
-# TODO: check these old comments
-"""
-not in M2phasediff textfile (in hatyan): ['LICHTELGRE','EURPFM']
-HW/LW numbers not always increasing: ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
-no ext station available: ['MAASMSMPL','A12']
-"""
+# TODO: no ext station available: ['MAASMSMPL','A12']
 
 # TODO: move to functions
 def xarray_to_hatyan(ds):
