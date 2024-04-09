@@ -31,13 +31,15 @@ except ModuleNotFoundError:
 # TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers. Create new issues if needed: https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: all TODOS in this script
 
-retrieve_meas_amount = False
-retrieve_data = True
+retrieve_meas_amount = True
+retrieve_data = False
 create_summary = False
 test = False
 
 
 start_date = "1870-01-01"
+if retrieve_meas_amount:
+    start_date = "1980-01-01"
 end_date = "2024-01-01"
 if test:
     start_date = "2021-12-01"
