@@ -27,7 +27,7 @@ try:
 except ModuleNotFoundError:
     dfmt_available = False
 
-# TODO: report wl/ext missings/duplicates/outliers in recent period 2000-2021 (based on data_summary and data_amount csv's)
+# TODO: report wl/ext missings/duplicates/outliers in recent period 2000-2021 (based on data_summary csv's)
 # TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers. Create new issues if needed: https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: all TODOS in this script
 
