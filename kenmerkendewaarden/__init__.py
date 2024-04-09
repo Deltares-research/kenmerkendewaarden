@@ -11,6 +11,7 @@ from kenmerkendewaarden.slotgemiddelden import *
 from kenmerkendewaarden.havengetallen import *
 from kenmerkendewaarden.gemiddeldgetij import *
 from kenmerkendewaarden.overschrijding import *
+from kenmerkendewaarden.utils import *
 
 import warnings
 warnings.filterwarnings(action='always', category=DeprecationWarning)
