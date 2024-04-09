@@ -28,6 +28,7 @@ except ModuleNotFoundError:
 
 # TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers. Create new issues if needed: https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: check prints, some should be errors (or converted to issues)
+# TODO: consider rerunning all with clean_df=False to check which datasets have duplicates or wrong order
 
 # TODO: check these old comments
 """
@@ -82,20 +83,25 @@ def get_stats_from_dataset(ds):
     #count #nans for duplicated times, happens at HARVT10/HUIBGT/STELLDBTN
     ds_stats['dupltimes_#nans'] = ds.sel(time=ds_times.duplicated(keep=False))['Meetwaarde.Waarde_Numeriek'].isnull().values.sum()
     
+    if '' in ds_ts_meas['WaarnemingMetadata.KwaliteitswaardecodeLijst']:
+        qc_none = True
+    else:
+        qc_none = False
+    ds_stats['qc_none'] = qc_none
+    
     #calc #nan-values in recent period
     # TODO: generalize interest period
     ds_2000to202102 = ds.sel(time=slice(time_interest_start,time_interest_stop))
     ts_timediff_2000to202102 = ds.time.to_pandas().index.diff()[1:]
     ds_stats['tstart2000'] = ds.time.to_pandas().min()<=time_interest_start
     ds_stats['tstop202102'] = ds.time.to_pandas().max()>=time_interest_stop
+    ds_stats['nvals_2000to202102'] = len(ds_2000to202102['Meetwaarde.Waarde_Numeriek'])
     ds_stats['#nans_2000to202102'] = ds_2000to202102['Meetwaarde.Waarde_Numeriek'].isnull().values.sum()
     ds_stats['mintimediff_2000to202102'] = str(ts_timediff_2000to202102.min())
     ds_stats['maxtimediff_2000to202102'] = str(ts_timediff_2000to202102.max())
     
     if "HWLWcode" in ds.data_vars:
-        if ts_timediff.min() < dt.timedelta(hours=4): #TODO: min timediff for e.g. BROUWHVSGT08 is 3 minutes: ts_meas_ext_pd.loc[dt.datetime(2015,1,1):dt.datetime(2015,1,2),['values', 'QC', 'Status']]. This should not happen and with new dataset should be converted to an error
-            print(f'WARNING: extreme data contains values that are too close ({ts_timediff.min()}), should be at least 4 hours difference')
-        
+        #TODO: should be based on 12 only, not 345 (HOEKVHLD now gives warning)
         if ts_timediff.min() < dt.timedelta(hours=4): #TODO: min timediff for e.g. BROUWHVSGT08 is 3 minutes: ts_meas_ext_pd.loc[dt.datetime(2015,1,1):dt.datetime(2015,1,2),['values', 'QC', 'Status']]. This should not happen and with new dataset should be converted to an error
             print(f'WARNING: extreme data contains values that are too close ({ts_timediff.min()}), should be at least 4 hours difference')
         
