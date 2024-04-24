@@ -27,14 +27,13 @@ try:
 except ModuleNotFoundError:
     dfmt_available = False
 
-# TODO: report wl/ext missings/duplicates/outliers in recent period 2000-2021 (based on data_summary csv's)
-# TODO: visually check availability (start/stop/gaps/aggers) of wl/ext, monthmean wl, outliers. Create new issues if needed: https://github.com/Deltares-research/kenmerkendewaarden/issues/4
+# TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: all TODOS in this script
 
 retrieve_meas_amount = False
-plot_meas_amount = True
+plot_meas_amount = False
 retrieve_data = False
-create_summary = False
+create_summary = True
 test = False
 
 
@@ -77,6 +76,7 @@ locations["RDx"], locations["RDy"] = transformer.transform(locations["X"], locat
 bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
 bool_groepering_ts = locations["Groepering.Code"].isin(["NVT"])
 bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2","GETETMSL2"]) # TODO: why distinction between MSL and NAP? This is already filtered via Hoedanigheid
+# TODO: for now we do not separately retrieve NAP and MSL, this results in arbitrary NAP or MSL data for LICHTELGRE/EURPFM/BORSLA, since both are available there: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
 # bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
 # bool_hoedanigheid_msl = locations["Hoedanigheid.Code"].isin(["MSL"])
 # TODO: we cannot subset Typering.Code==GETETTPE here (not present in dataframe), so we use Grootheid.Code==NVT: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
@@ -223,7 +223,7 @@ if plot_meas_amount:
 
 
 
-### RETRIEVE DATA FROM DDL AND WRITE TO PICKLE
+### RETRIEVE DATA FROM DDL AND WRITE TO NETCDF
 drop_if_constant = ["WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
                     "WaarnemingMetadata.BemonsteringshoogteLijst",
                     "WaarnemingMetadata.ReferentievlakLijst",
@@ -304,17 +304,16 @@ row_list_ext = []
 for current_station in station_list:
     if not create_summary:
         continue
+    
     print(f'checking data for {current_station}')
     data_summary_row_ts = {}
     data_summary_row_ext = {}
     
     # add location coordinates to data_summaries
     for sumrow in [data_summary_row_ts, data_summary_row_ext]:
-        sumrow['Code'] = locs_meas_ts.loc[current_station].name
+        sumrow['Code'] = current_station
         sumrow['RDx'] = locs_meas_ts.loc[current_station,'RDx']
         sumrow['RDy'] = locs_meas_ts.loc[current_station,'RDy']
-    time_interest_start = dt.datetime(2000,1,1)
-    time_interest_stop = dt.datetime(2021,2,1)
     
     #load measwl data
     file_wl_nc = os.path.join(dir_meas,f"{current_station}_measwl.nc")
@@ -330,7 +329,7 @@ for current_station in station_list:
         meta_dict_flat_ts = kw.get_flat_meta_from_dataset(ds_ts_meas)
         data_summary_row_ts.update(meta_dict_flat_ts)
         
-        ds_stats = kw.get_stats_from_dataset(ds_ts_meas, time_interest_start=time_interest_start, time_interest_stop=time_interest_stop)
+        ds_stats = kw.get_stats_from_dataset(ds_ts_meas)
         data_summary_row_ts.update(ds_stats)
         
         # calculate monthly/yearly mean for meas wl data
@@ -361,7 +360,8 @@ for current_station in station_list:
         meta_dict_flat_ext = kw.get_flat_meta_from_dataset(ds_ext_meas)
         data_summary_row_ext.update(meta_dict_flat_ext)
         
-        ds_stats = kw.get_stats_from_dataset(ds_ext_meas, time_interest_start=time_interest_start, time_interest_stop=time_interest_stop)
+        # TODO: warns about extremes being too close for BERGSDSWT, BROUWHVSGT02, BROUWHVSGT08, HOEKVHLD and probably more, due to aggers
+        ds_stats = kw.get_stats_from_dataset(ds_ext_meas)
         data_summary_row_ext.update(ds_stats)
         
         #calculate monthly/yearly mean for meas ext data
@@ -397,6 +397,9 @@ for current_station in station_list:
     file_wl_png = os.path.join(dir_meas,f'ts_{current_station}.png')
     # if os.path.exists(file_wl_png):
     #     continue #skip the plotting if there is already a png available
+    if not os.path.exists(file_wl_nc):
+        print("[NO DATA, skipping plot]")
+        continue
     if os.path.exists(file_ext_nc):
         fig,(ax1,ax2) = hatyan.plot_timeseries(ts=ts_meas_pd, ts_ext=ts_meas_ext_pd)
     else:
@@ -420,7 +423,7 @@ for current_station in station_list:
     ax2.set_ylim(-0.5,0.5)
     ax1.set_xlim(fig_alltimes_xlim) # entire period
     fig.savefig(file_wl_png.replace('.png','_alldata.png'))
-    ax1.set_xlim(dt.datetime(2000,1,1),dt.datetime(2022,1,1)) # period of interest
+    ax1.set_xlim(dt.datetime(2000,1,1),dt.datetime(2024,1,1)) # period of interest
     fig.savefig(file_wl_png)
     plt.close(fig)
     
@@ -434,11 +437,8 @@ if create_summary:
     data_summary_ext.to_csv(os.path.join(dir_meas,'data_summary_ext.csv'))
     
     #print and save data_summary
-    print(data_summary_ts[['data_wl','tstart','tstop','nvals','dupltimes','#nans','#nans_2000to202102']])
-    try:
-        print(data_summary_ext[['data_ext','dupltimes','#HWgaps_2000to202102']])
-    except KeyError:
-        print(data_summary_ext[['data_ext','dupltimes']])
+    print(data_summary_ts[['data_wl','tstart','tstop','nvals','dupltimes','#nans']])
+    print(data_summary_ext[['data_ext','dupltimes']])
     
     #make spatial plot of available/retrieved stations
     fig_map,ax_map = plt.subplots(figsize=(8,7))
