@@ -32,6 +32,7 @@ except ModuleNotFoundError:
 # TODO: all TODOS in this script
 
 retrieve_meas_amount = False
+plot_meas_amount = True
 retrieve_data = False
 create_summary = False
 test = False
@@ -49,7 +50,9 @@ fig_alltimes_xlim = [dt.datetime.strptime(start_date,'%Y-%m-%d'), dt.datetime.st
 # dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r"p:\11210325-005-kenmerkende-waarden\work"
 dir_meas = os.path.join(dir_base,f"measurements_wl_{start_date.replace('-','')}_{end_date.replace('-','')}")
+dir_meas_amount = os.path.join(dir_meas, "measurements_amount")
 os.makedirs(dir_meas, exist_ok=True)
+os.makedirs(dir_meas_amount, exist_ok=True)
 
 
 file_catalog_pkl = os.path.join(dir_base, 'DDL_catalog.pkl')
@@ -149,7 +152,7 @@ NES   Nes               5391               NAP
 NES   Nes              10309               NAP
 """
 
-# TODO: report stations with duplicates/nodata based on resulting csv file. Many are not retrieved since we use clean_df for ddlpy
+# TODO: missing/duplicate stations reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Many of these are not retrieved since we use clean_df for ddlpy
 # TODO: some stations are now realtime instead of hist
 ### RETRIEVE MEASUREMENTS AMOUNT
 ts_amount_list = []
@@ -159,10 +162,6 @@ for current_station in station_list:
         continue
     print(f'retrieving measurement amount from DDL for {current_station}')
     
-    # write to netcdf instead (including metadata)
-    file_wl_nc = os.path.join(dir_meas,f"{current_station}_measwl.nc")
-    file_ext_nc = os.path.join(dir_meas,f"{current_station}_measext.nc")
-    
     bool_station_ts = locs_meas_ts.index.isin([current_station])
     bool_station_ext = locs_meas_ext.index.isin([current_station])
     loc_meas_ts_one = locs_meas_ts.loc[bool_station_ts]
@@ -171,7 +170,7 @@ for current_station in station_list:
     amount_ts = ddlpy.measurements_amount(location=loc_meas_ts_one.iloc[0], start_date=start_date, end_date=end_date)
     amount_ts_clean = amount_ts.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
     if amount_ts_clean.index.duplicated().any():
-        # TODO: multiple 1993 in dataframe for BATH, maybe multiple waardebepalingsmethoden/meetapparaten or something? >> create ddlpy issue (also for BATH, CADZD, IJMDBTHVN, NIEUWSTZL, DENOVBTN, WESTKPLE)
+        # TODO: multiple 1993 in dataframe for BATH, because of multiple waardebepalingsmethoden/meetapparaten: https://github.com/Deltares/ddlpy/issues/92
         amount_ts_clean = amount_ts_clean.groupby(amount_ts_clean.index).sum()
     ts_amount_list.append(amount_ts_clean)
     
@@ -189,21 +188,38 @@ for current_station in station_list:
         amount_ext_clean = amount_ext_clean.groupby(amount_ext_clean.index).sum()
     ext_amount_list.append(amount_ext_clean)
 
+file_csv_amount_ts = os.path.join(dir_meas_amount, "data_amount_ts.csv")
+file_csv_amount_ext = os.path.join(dir_meas_amount, "data_amount_ext.csv")
 if retrieve_meas_amount:
     print(f'write measurement amount csvs to {os.path.basename(dir_meas)}')
     df_amount_ts = pd.concat(ts_amount_list, axis=1).sort_index()
     df_amount_ts = df_amount_ts.fillna(0).astype(int)
     df_amount_ext = pd.concat(ext_amount_list, axis=1).sort_index()
     df_amount_ext = df_amount_ext.fillna(0).astype(int)
-    file_csv_amount_ts = os.path.join(dir_meas, "data_amount_ts_PREVENTOVERWRITE.csv")
-    file_csv_amount_ext = os.path.join(dir_meas, "data_amount_ext_PREVENTOVERWRITE.csv")
-    df_amount_ts.to_csv(file_csv_amount_ts)
-    df_amount_ext.to_csv(file_csv_amount_ext)
+    df_amount_ts.to_csv(file_csv_amount_ts.replace(".csv","_PREVENTOVERWRITE.csv"))
+    df_amount_ext.to_csv(file_csv_amount_ext.replace(".csv","_PREVENTOVERWRITE.csv"))
+
+
+if plot_meas_amount:
+    df_amount_ts = pd.read_csv(file_csv_amount_ts)
+    df_amount_ts = df_amount_ts.set_index("Groeperingsperiode")
+    df_amount_ext = pd.read_csv(file_csv_amount_ext)
+    df_amount_ext = df_amount_ext.set_index("Groeperingsperiode")
     
+    fig, ax = kw.df_amount_pcolormesh(df_amount_ts, relative=False)
+    fig.savefig(file_csv_amount_ts.replace(".csv","_pcolormesh"), dpi=200)
+    fig, ax = kw.df_amount_pcolormesh(df_amount_ext, relative=False)
+    fig.savefig(file_csv_amount_ext.replace(".csv","_pcolormesh"), dpi=200)
+
+    fig, ax = kw.df_amount_pcolormesh(df_amount_ts, relative=True)
+    fig.savefig(file_csv_amount_ts.replace(".csv","_pcolormesh_relative"), dpi=200)
+    fig, ax = kw.df_amount_pcolormesh(df_amount_ext, relative=True)
+    fig.savefig(file_csv_amount_ext.replace(".csv","_pcolormesh_relative"), dpi=200)
+
     fig, ax = kw.df_amount_boxplot(df_amount_ts)
-    fig.savefig(file_csv_amount_ts.replace(".csv",""), dpi=200)
+    fig.savefig(file_csv_amount_ts.replace(".csv","_boxplot"), dpi=200)
     fig, ax = kw.df_amount_boxplot(df_amount_ext)
-    fig.savefig(file_csv_amount_ext.replace(".csv",""), dpi=200)
+    fig.savefig(file_csv_amount_ext.replace(".csv","_boxplot"), dpi=200)
 
 
 
