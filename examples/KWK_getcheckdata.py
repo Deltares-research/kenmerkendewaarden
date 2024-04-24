@@ -10,7 +10,7 @@ import pandas as pd
 import datetime as dt
 import matplotlib.pyplot as plt
 plt.close('all')
-import ddlpy
+import ddlpy # requires ddlpy>=0.5.0 for https://github.com/Deltares/ddlpy/issues/92 #TODO: not released yet
 import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num() # TODO: not released yet
 import xarray as xr
 from pyproj import Transformer # dependency of hatyan
@@ -30,14 +30,14 @@ except ModuleNotFoundError:
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: all TODOS in this script
 
-retrieve_meas_amount = False
+retrieve_meas_amount = True
 plot_meas_amount = False
 retrieve_data = False
-create_summary = True
+create_summary = False
 test = False
 
 
-start_date = "1870-01-01"
+start_date = "1870-01-01" # TODO: timezone of returned dataframe is not consistent with start/end_date: https://github.com/Deltares/ddlpy/issues
 end_date = "2024-01-01"
 if test:
     start_date = "2021-12-01"
@@ -161,7 +161,7 @@ stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
 
 
 # TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
-# TODO: some stations are now realtime instead of hist, these are skipped in actual data retrieval/statistics
+# TODO: some stations are now realtime instead of hist, these are manually skipped in actual data retrieval/statistics
 ### RETRIEVE MEASUREMENTS AMOUNT
 ts_amount_list = []
 ext_amount_list = []
@@ -176,25 +176,19 @@ for current_station in station_list:
     loc_meas_ext_one = locs_meas_ext.loc[bool_station_ext]
     
     amount_ts = ddlpy.measurements_amount(location=loc_meas_ts_one.iloc[0], start_date=start_date, end_date=end_date)
-    amount_ts_clean = amount_ts.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
-    if amount_ts_clean.index.duplicated().any():
-        # TODO: multiple 1993 in dataframe for BATH, because of multiple waardebepalingsmethoden/meetapparaten: https://github.com/Deltares/ddlpy/issues/92. This will also prevent the need for "set_index here"
-        amount_ts_clean = amount_ts_clean.groupby(amount_ts_clean.index).sum()
-    ts_amount_list.append(amount_ts_clean)
+    amount_ts = amount_ts.rename(columns={"AantalMetingen":current_station})
+    ts_amount_list.append(amount_ts)
     
     try:
         amount_ext = ddlpy.measurements_amount(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date)
-        amount_ext_clean = amount_ext.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
+        amount_ext = amount_ext.rename(columns={"AantalMetingen":current_station})
     except IndexError: # IndexError: single positional indexer is out-of-bounds
         print("ext no station available")
         # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
         #                                     "L9PFM","MAASMSMPL","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
-        amount_ext_clean = pd.DataFrame({current_station:[]})
-        amount_ext_clean.index.name = "Groeperingsperiode"
-    if amount_ext_clean.index.duplicated().any():
-        # TODO: see ts above
-        amount_ext_clean = amount_ext_clean.groupby(amount_ext_clean.index).sum()
-    ext_amount_list.append(amount_ext_clean)
+        amount_ext = pd.DataFrame({current_station:[]})
+        amount_ext.index.name = "Groeperingsperiode"
+    ext_amount_list.append(amount_ext)
 
 file_csv_amount_ts = os.path.join(dir_meas_amount, "data_amount_ts.csv")
 file_csv_amount_ext = os.path.join(dir_meas_amount, "data_amount_ext.csv")
