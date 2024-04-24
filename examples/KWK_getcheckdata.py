@@ -75,11 +75,11 @@ locations["RDx"], locations["RDy"] = transformer.transform(locations["X"], locat
 
 bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
 bool_groepering_ts = locations["Groepering.Code"].isin(["NVT"])
-bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2","GETETMSL2"]) # TODO: why distinction between MSL and NAP? This is already filtered via Hoedanigheid
+bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2","GETETMSL2"]) # TODO: why distinction between MSL and NAP? This is already filtered via Hoedanigheid >> maybe fixed in WADAR/aquostandard
 # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
 # bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
 # bool_hoedanigheid_msl = locations["Hoedanigheid.Code"].isin(["MSL"])
-# TODO: we cannot subset Typering.Code==GETETTPE here (not present in dataframe), so we use Grootheid.Code==NVT: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
+# TODO: we cannot subset Typering.Code==GETETTPE here (not present in dataframe), so we use Grootheid.Code==NVT: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19 >> maybe fixed in WADAR/aquostandard
 bool_grootheid_exttypes = locations['Grootheid.Code'].isin(['NVT'])
 
 # select locations on grootheid/groepering/exttypes
@@ -112,14 +112,8 @@ for station_name in station_list:
         print(f'{locs_meas_ts.loc[bool_isstation,["Naam","Locatie_MessageID","Hoedanigheid.Code"]]}')
         print()
 
-# skip duplicate code stations (hist/realtime) # TODO: avoid this
-stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
-# skip MSL/NAP duplicate stations # TODO: avoid this
-stations_nap_mls_dupl = ["EURPFM", "LICHTELGRE"]
-stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
 
-
-# TODO: fix multiple hits (two rows probably raises error in retrieve_data code below): https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12
+# TODO: fix multiple hits (two location rows raise errors in retrieve_data code below so are skipped)
 """
 # from station_list_tk
 station name BATH found 2 times, should be 1:
@@ -159,8 +153,15 @@ NES   Nes               5391               NAP
 NES   Nes              10309               NAP
 """
 
-# TODO: missing/duplicate stations reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Many of these are not retrieved since we use clean_df for ddlpy
-# TODO: some stations are now realtime instead of hist
+# skip duplicate code stations (hist/realtime) # TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12
+stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
+# skip MSL/NAP duplicate stations # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
+stations_nap_mls_dupl = ["EURPFM", "LICHTELGRE"]
+stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
+
+
+# TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
+# TODO: some stations are now realtime instead of hist, these are skipped in actual data retrieval/statistics
 ### RETRIEVE MEASUREMENTS AMOUNT
 ts_amount_list = []
 ext_amount_list = []
@@ -177,7 +178,7 @@ for current_station in station_list:
     amount_ts = ddlpy.measurements_amount(location=loc_meas_ts_one.iloc[0], start_date=start_date, end_date=end_date)
     amount_ts_clean = amount_ts.set_index("Groeperingsperiode").rename(columns={"AantalMetingen":current_station})
     if amount_ts_clean.index.duplicated().any():
-        # TODO: multiple 1993 in dataframe for BATH, because of multiple waardebepalingsmethoden/meetapparaten: https://github.com/Deltares/ddlpy/issues/92
+        # TODO: multiple 1993 in dataframe for BATH, because of multiple waardebepalingsmethoden/meetapparaten: https://github.com/Deltares/ddlpy/issues/92. This will also prevent the need for "set_index here"
         amount_ts_clean = amount_ts_clean.groupby(amount_ts_clean.index).sum()
     ts_amount_list.append(amount_ts_clean)
     
@@ -291,7 +292,7 @@ for current_station in station_list:
         meas_ext_ds = ddlpy.dataframe_to_xarray(measurements_ext, drop_if_constant)
         
         #convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
-        # TODO: simplify by retrieving the extreme value and type from ddl in a single request (not supported yet)
+        # TODO: simplify by retrieving the extreme value and type from ddl in a single request (not supported yet): https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
         ts_meas_extval_pd = hatyan.ddlpy_to_hatyan(measurements_ext)
         ts_meas_exttype_pd = hatyan.ddlpy_to_hatyan(measurements_exttyp)
         ts_meas_ext_pd = hatyan.convert_HWLWstr2num(ts_meas_extval_pd, ts_meas_exttype_pd)
@@ -365,12 +366,12 @@ for current_station in station_list:
         meta_dict_flat_ext = kw.get_flat_meta_from_dataset(ds_ext_meas)
         data_summary_row_ext.update(meta_dict_flat_ext)
         
-        # TODO: warns about extremes being too close for BERGSDSWT, BROUWHVSGT02, BROUWHVSGT08, HOEKVHLD and probably more, due to aggers
+        # TODO: warns about extremes being too close for BERGSDSWT, BROUWHVSGT02, BROUWHVSGT08, HOEKVHLD and probably more, probably due to aggers
         ds_stats = kw.get_stats_from_dataset(ds_ext_meas)
         data_summary_row_ext.update(ds_stats)
         
         #calculate monthly/yearly mean for meas ext data
-        #TODO: make kw function (exact or approximation?)
+        #TODO: make kw function (exact or approximation?), also for timeseries
         ts_meas_ext_pd = kw.xarray_to_hatyan(ds_ext_meas)
         if len(ts_meas_ext_pd['HWLWcode'].unique()) > 2:
             data_pd_HWLW_12 = hatyan.calc_HWLW12345to12(ts_meas_ext_pd) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater). TODO: currently, first/last values are skipped if LW
@@ -399,9 +400,6 @@ for current_station in station_list:
     row_list_ext.append(pd.Series(data_summary_row_ext))
 
     #plotting
-    file_wl_png = os.path.join(dir_meas,f'ts_{current_station}.png')
-    # if os.path.exists(file_wl_png):
-    #     continue #skip the plotting if there is already a png available
     if not os.path.exists(file_wl_nc):
         print("[NO DATA, skipping plot]")
         continue
@@ -410,23 +408,21 @@ for current_station in station_list:
     else:
         fig,(ax1,ax2) = hatyan.plot_timeseries(ts=ts_meas_pd)
     ax1.set_title(f'timeseries for {current_station}')
-    ax1_legendlabels = ax1.get_legend_handles_labels()[1]
-    ax2_legendlabels = ['zero']
-    ax1_legendlabels.insert(1,'zero') #legend for zero line was not displayed but will be now so it needs to be added
-    ax1_legendlabels[0] = 'measured waterlevels'
-    ax1_legendlabels[2] = 'mean'
-    ax1.plot(mean_peryearmonth_long,'c',linewidth=0.7); ax1_legendlabels.append('monthly mean')
-    ax1.plot(mean_peryear_long,'m',linewidth=0.7); ax1_legendlabels.append('yearly mean')
-    ax2.plot(mean_peryearmonth_long,'c',linewidth=0.7); ax2_legendlabels.append('monthly mean')
-    ax2.plot(mean_peryear_long,'m',linewidth=0.7); ax2_legendlabels.append('yearly mean')
+    ax1.plot(mean_peryearmonth_long,'c',linewidth=0.7, label='monthly mean')
+    ax1.plot(mean_peryear_long,'m',linewidth=0.7, label='yearly mean')
+    ax2.plot(mean_peryearmonth_long,'c',linewidth=0.7, label='monthly mean')
+    ax2.plot(mean_peryear_long,'m',linewidth=0.7, label='yearly mean')
+    if os.path.exists(file_ext_nc):
+        ax1.plot(HW_mean_peryear_long,'m',linewidth=0.7, label=None) #'yearly mean HW')
+        ax1.plot(LW_mean_peryear_long,'m',linewidth=0.7, label=None) #'yearly mean LW')
     ax1.set_ylim(-4,4)
-    ax1.legend(ax1_legendlabels,loc=4)
-    ax2.legend(ax2_legendlabels,loc=1)
-    if os.path.exists(file_ext_nc): #plot after legend creation, so these entries are not included
-        ax1.plot(HW_mean_peryear_long,'m',linewidth=0.7)#; ax1_legendlabels.append('yearly mean')
-        ax1.plot(LW_mean_peryear_long,'m',linewidth=0.7)#; ax1_legendlabels.append('yearly mean')
+    ax1.legend(loc=4)
+    ax2.legend(loc=1)
     ax2.set_ylim(-0.5,0.5)
     ax1.set_xlim(fig_alltimes_xlim) # entire period
+    
+    # save figure
+    file_wl_png = os.path.join(dir_meas,f'ts_{current_station}.png')
     fig.savefig(file_wl_png.replace('.png','_alldata.png'))
     ax1.set_xlim(dt.datetime(2000,1,1),dt.datetime(2024,1,1)) # period of interest
     fig.savefig(file_wl_png)
@@ -441,14 +437,11 @@ if create_summary:
     data_summary_ts.to_csv(os.path.join(dir_meas,'data_summary_ts.csv'))
     data_summary_ext.to_csv(os.path.join(dir_meas,'data_summary_ext.csv'))
     
-    #print and save data_summary
-    print(data_summary_ts[['data_wl','tstart','tstop','nvals','dupltimes','#nans']])
-    print(data_summary_ext[['data_ext','dupltimes']])
     
     #make spatial plot of available/retrieved stations
     fig_map,ax_map = plt.subplots(figsize=(8,7))
     
-    ax_map.plot(data_summary_ts['RDx'], data_summary_ts['RDy'],'xk')#,alpha=0.4) #all ext stations
+    ax_map.plot(data_summary_ext['RDx'], data_summary_ext['RDy'],'xk')#,alpha=0.4) #all ext stations
     ax_map.plot(data_summary_ext.loc[data_summary_ext['data_ext'],'RDx'], data_summary_ext.loc[data_summary_ext['data_ext'],'RDy'],'xr') # selected ext stations (stat_list)
     """
     for iR, row in data_summary_ts.iterrows():
