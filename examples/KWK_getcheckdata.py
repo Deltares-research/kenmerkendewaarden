@@ -76,7 +76,7 @@ locations["RDx"], locations["RDy"] = transformer.transform(locations["X"], locat
 bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
 bool_groepering_ts = locations["Groepering.Code"].isin(["NVT"])
 bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2","GETETMSL2"]) # TODO: why distinction between MSL and NAP? This is already filtered via Hoedanigheid
-# TODO: for now we do not separately retrieve NAP and MSL, this results in arbitrary NAP or MSL data for LICHTELGRE/EURPFM/BORSLA, since both are available there: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
+# TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
 # bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
 # bool_hoedanigheid_msl = locations["Hoedanigheid.Code"].isin(["MSL"])
 # TODO: we cannot subset Typering.Code==GETETTPE here (not present in dataframe), so we use Grootheid.Code==NVT: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
@@ -111,6 +111,13 @@ for station_name in station_list:
         print(f'station name {station_name} found {bool_isstation.sum()} times, should be 1:')
         print(f'{locs_meas_ts.loc[bool_isstation,["Naam","Locatie_MessageID","Hoedanigheid.Code"]]}')
         print()
+
+# skip duplicate code stations (hist/realtime) # TODO: avoid this
+stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
+# skip MSL/NAP duplicate stations # TODO: avoid this
+stations_nap_mls_dupl = ["EURPFM", "LICHTELGRE"]
+stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
+
 
 # TODO: fix multiple hits (two rows probably raises error in retrieve_data code below): https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12
 """
@@ -234,16 +241,11 @@ drop_if_constant = ["WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
                     "WaardeBepalingsmethode.Code", "MeetApparaat.Code",
                     ]
 
-
 for current_station in station_list:
     if not retrieve_data:
         continue
     
-    # skip duplicate code stations (hist/realtime) # TODO: avoid this
-    if current_station in ["BATH", "D15", "J6", "NES"]:
-        continue
-    # skip MSL/NAP duplicate stations # TODO: avoid this
-    if current_station in ["EURPFM", "LICHTELGRE"]:
+    if current_station in stations_dupl:
         continue
     
     # write to netcdf instead (including metadata)
@@ -305,13 +307,16 @@ for current_station in station_list:
     if not create_summary:
         continue
     
+    if current_station in stations_dupl:
+        continue
+    
     print(f'checking data for {current_station}')
     data_summary_row_ts = {}
     data_summary_row_ext = {}
     
     # add location coordinates to data_summaries
     for sumrow in [data_summary_row_ts, data_summary_row_ext]:
-        sumrow['Code'] = current_station
+        sumrow['Code'] = locs_meas_ts.loc[current_station].name
         sumrow['RDx'] = locs_meas_ts.loc[current_station,'RDx']
         sumrow['RDy'] = locs_meas_ts.loc[current_station,'RDy']
     
