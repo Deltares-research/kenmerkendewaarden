@@ -33,19 +33,18 @@ except ModuleNotFoundError:
 
 retrieve_meas_amount = False
 plot_meas_amount = False
-retrieve_data = True
-create_summary = False
+retrieve_data = False
+create_summary = True
 test = False
 
 
-start_date = "1870-01-01" # TODO: timezone of returned dataframe is not consistent with start/end_date: https://github.com/Deltares/ddlpy/issues
+start_date = "1870-01-01" # TODO: add timezone to start/stop date? (and re-retrieve all data)
 end_date = "2024-01-01"
 if test:
     start_date = "2021-12-01"
     end_date = "2022-02-01"
     start_date = "2010-12-01"
     end_date = "2022-02-01"
-fig_alltimes_xlim = [dt.datetime.strptime(start_date,'%Y-%m-%d'), dt.datetime.strptime(end_date,'%Y-%m-%d')]
 
 # dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r"p:\11210325-005-kenmerkende-waarden\work"
@@ -344,6 +343,7 @@ for current_station in station_list:
         data_summary_row_ts['yearmean_std'] = mean_peryear_long.std()
         
         ts_meas_pd = kw.xarray_to_hatyan(ds_ts_meas)
+        del ds_ts_meas
         
 
     #load measext data
@@ -414,13 +414,13 @@ for current_station in station_list:
     ax1.legend(loc=4)
     ax2.legend(loc=1)
     ax2.set_ylim(-0.5,0.5)
-    ax1.set_xlim(fig_alltimes_xlim) # entire period
     
     # save figure
     file_wl_png = os.path.join(dir_meas,f'ts_{current_station}.png')
+    ax1.set_xlim(pd.Timestamp(start_date), pd.Timestamp(end_date)) # entire period
     fig.savefig(file_wl_png.replace('.png','_alldata.png'))
     ax1.set_xlim(dt.datetime(2000,1,1),dt.datetime(2024,1,1)) # period of interest
-    fig.savefig(file_wl_png)
+    fig.savefig(file_wl_png.replace('.png','_2000_2024.png'))
     plt.close(fig)
     
 
