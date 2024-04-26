@@ -10,7 +10,8 @@ import pandas as pd
 import datetime as dt
 import matplotlib.pyplot as plt
 plt.close('all')
-import ddlpy # requires ddlpy>=0.5.0 for https://github.com/Deltares/ddlpy/issues/92 #TODO: not released yet
+import ddlpy # requires ddlpy>=0.5.0
+import dateutil
 import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num() # TODO: not released yet
 import xarray as xr
 from pyproj import Transformer # dependency of hatyan
@@ -30,9 +31,9 @@ except ModuleNotFoundError:
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: all TODOS in this script
 
-retrieve_meas_amount = True
+retrieve_meas_amount = False
 plot_meas_amount = False
-retrieve_data = False
+retrieve_data = True
 create_summary = False
 test = False
 
@@ -279,10 +280,10 @@ for current_station in station_list:
         print(f'no measext data for {current_station}, skipping downloading')
     else:
         print(f'retrieving measext data from DDL for {current_station} to {os.path.basename(dir_meas)}')
-        measurements_ext = ddlpy.measurements(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date)
+        measurements_ext = ddlpy.measurements(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date, freq=dateutil.rrule.YEARLY)
         if measurements_ext.empty:
             raise ValueError("[NO DATA]")
-        measurements_exttyp = ddlpy.measurements(location=loc_meas_exttype_one.iloc[0], start_date=start_date, end_date=end_date)
+        measurements_exttyp = ddlpy.measurements(location=loc_meas_exttype_one.iloc[0], start_date=start_date, end_date=end_date, freq=dateutil.rrule.YEARLY)
         meas_ext_ds = ddlpy.dataframe_to_xarray(measurements_ext, drop_if_constant)
         
         #convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
