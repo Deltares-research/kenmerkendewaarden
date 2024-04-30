@@ -36,6 +36,7 @@ print(f'LAT:\n{lat_vallist_allstats}\nHAT:\n{hat_vallist_allstats}')
 
 
 
+# TODO: decide on hat/lat method
 # An alternative (pragmatic) method to compute LAT is to retrieve a long astro timeseries from the DDL and to compute its minimum.
 # A faster method would be to retrieve only the astro extremes, if they are all available.
 # It is also not sure if all astro timeseries values are available for this entire period, which is why the nvalues column is added to the dataframe:
