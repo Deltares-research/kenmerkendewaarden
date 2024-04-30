@@ -10,8 +10,9 @@ import numpy as np
 import statsmodels.api as sm
 import pandas as pd
 import datetime as dt
-from hatyan.timeseries import calc_HWLW12345to12
+from hatyan.timeseries import calc_HWLW12345to12, calc_HWLWnumbering
 from hatyan.analysis_prediction import HatyanSettings, prediction #PydanticConfig
+
 #from pydantic import validate_arguments #TODO: enable validator (first add pydantic as dependency, plus how to validate comp df (columns A/phi, then maybe classed should be used instead)
 
 
@@ -127,8 +128,21 @@ def calc_wltidalindicators(data_wl_pd, tresh_yearlywlcount=None):
     return dict_wltidalindicators
 
 
+def calc_HWLWtidalrange(ts_ext):
+    """
+    creates column 'tidalrange' in ts_ext dataframe
+    """
+    ts_ext = calc_HWLWnumbering(ts_ext=ts_ext)
+    ts_ext['times_backup'] = ts_ext.index
+    ts_ext_idxHWLWno = ts_ext.set_index('HWLWno',drop=False)
+    ts_ext_idxHWLWno['tidalrange'] = ts_ext_idxHWLWno.loc[ts_ext_idxHWLWno['HWLWcode']==1,'values'] - ts_ext_idxHWLWno.loc[ts_ext_idxHWLWno['HWLWcode']==2,'values']
+    ts_ext = ts_ext_idxHWLWno.set_index('times_backup')
+    ts_ext.index.name = 'times'
+    return ts_ext
+
+
 #@validate_arguments(config=PydanticConfig)
-def calc_HAT_LAT_fromcomponents(comp: pd.DataFrame, hatyan_settings: HatyanSettings = None) -> tuple:
+def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     """
     Derive highest and lowest astronomical tide (HAT/LAT) from a component set.
     The component set is used to make a tidal prediction for an arbitrary period of 19 years with a 1 minute interval. The max/min values of the predictions of all years are the HAT/LAT values.
@@ -139,8 +153,6 @@ def calc_HAT_LAT_fromcomponents(comp: pd.DataFrame, hatyan_settings: HatyanSetti
     ----------
     comp : pd.DataFrame
         DESCRIPTION.
-    hatyan_settings : TYPE, optional
-        DESCRIPTION. The default is None.
 
     Returns
     -------
@@ -148,6 +160,9 @@ def calc_HAT_LAT_fromcomponents(comp: pd.DataFrame, hatyan_settings: HatyanSetti
         DESCRIPTION.
 
     """
+    
+    xfac = comp.attrs['xfac']
+    hatyan_settings = HatyanSettings(nodalfactors=True, xfac=xfac, fu_alltimes=False)
     
     min_vallist_allyears = pd.Series(dtype=float)
     max_vallist_allyears = pd.Series(dtype=float)
@@ -157,12 +172,10 @@ def calc_HAT_LAT_fromcomponents(comp: pd.DataFrame, hatyan_settings: HatyanSetti
         
         min_vallist_allyears.loc[year] = ts_prediction['values'].min()
         max_vallist_allyears.loc[year] = ts_prediction['values'].max()
-    #vallist_allyears.plot()
-    #print(vallist_allyears)
-    #vallist_allyears.to_csv('LAT_HAT_indication_19Y_%s.csv'%(current_station))
-    HAT = max_vallist_allyears.max()
-    LAT = min_vallist_allyears.min()
-    return HAT, LAT
+    
+    hat = max_vallist_allyears.max()
+    lat = min_vallist_allyears.min()
+    return hat, lat
 
 
 def fit_models(mean_array_todate: pd.Series) -> pd.DataFrame:
