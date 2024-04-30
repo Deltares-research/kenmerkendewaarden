@@ -9,7 +9,9 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 from hatyan.astrog import astrog_culminations
-from hatyan.timeseries import calc_HWLWnumbering, calc_HWLWtidalrange
+from hatyan.timeseries import calc_HWLWnumbering
+from kenmerkendewaarden.slotgemiddelden import calc_HWLWtidalrange
+
 
 def get_moonculm_idxHWLWno(tstart,tstop):
     data_pd_moonculm = astrog_culminations(tFirst=tstart,tLast=tstop) # in UTC, which is important since data_pd_HWLW['culm_hr']=range(12) hourvalues should be in UTC since that relates to the relation dateline/sun
