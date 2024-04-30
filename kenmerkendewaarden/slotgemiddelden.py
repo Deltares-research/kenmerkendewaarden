@@ -10,8 +10,9 @@ import numpy as np
 import statsmodels.api as sm
 import pandas as pd
 import datetime as dt
-from hatyan.timeseries import calc_HWLW12345to12
+from hatyan.timeseries import calc_HWLW12345to12, calc_HWLWnumbering
 from hatyan.analysis_prediction import HatyanSettings, prediction #PydanticConfig
+
 #from pydantic import validate_arguments #TODO: enable validator (first add pydantic as dependency, plus how to validate comp df (columns A/phi, then maybe classed should be used instead)
 
 
@@ -125,6 +126,19 @@ def calc_wltidalindicators(data_wl_pd, tresh_yearlywlcount=None):
         dict_wltidalindicators[key].index = dict_wltidalindicators[key].index.to_timestamp()
         
     return dict_wltidalindicators
+
+
+def calc_HWLWtidalrange(ts_ext):
+    """
+    creates column 'tidalrange' in ts_ext dataframe
+    """
+    ts_ext = calc_HWLWnumbering(ts_ext=ts_ext)
+    ts_ext['times_backup'] = ts_ext.index
+    ts_ext_idxHWLWno = ts_ext.set_index('HWLWno',drop=False)
+    ts_ext_idxHWLWno['tidalrange'] = ts_ext_idxHWLWno.loc[ts_ext_idxHWLWno['HWLWcode']==1,'values'] - ts_ext_idxHWLWno.loc[ts_ext_idxHWLWno['HWLWcode']==2,'values']
+    ts_ext = ts_ext_idxHWLWno.set_index('times_backup')
+    ts_ext.index.name = 'times'
+    return ts_ext
 
 
 #@validate_arguments(config=PydanticConfig)
