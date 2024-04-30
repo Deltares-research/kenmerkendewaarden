@@ -186,6 +186,7 @@ for current_station in station_list:
         print("ext no station available")
         # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
         #                                     "L9PFM","MAASMSMPL","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
+        # https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
         amount_ext = pd.DataFrame({current_station:[]})
         amount_ext.index.name = "Groeperingsperiode"
     ext_amount_list.append(amount_ext)
