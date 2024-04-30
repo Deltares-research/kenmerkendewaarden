@@ -128,7 +128,7 @@ def calc_wltidalindicators(data_wl_pd, tresh_yearlywlcount=None):
 
 
 #@validate_arguments(config=PydanticConfig)
-def calc_HAT_LAT_fromcomponents(comp: pd.DataFrame, hatyan_settings: HatyanSettings = None) -> tuple:
+def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     """
     Derive highest and lowest astronomical tide (HAT/LAT) from a component set.
     The component set is used to make a tidal prediction for an arbitrary period of 19 years with a 1 minute interval. The max/min values of the predictions of all years are the HAT/LAT values.
@@ -139,8 +139,6 @@ def calc_HAT_LAT_fromcomponents(comp: pd.DataFrame, hatyan_settings: HatyanSetti
     ----------
     comp : pd.DataFrame
         DESCRIPTION.
-    hatyan_settings : TYPE, optional
-        DESCRIPTION. The default is None.
 
     Returns
     -------
@@ -148,6 +146,9 @@ def calc_HAT_LAT_fromcomponents(comp: pd.DataFrame, hatyan_settings: HatyanSetti
         DESCRIPTION.
 
     """
+    
+    xfac = comp.attrs['xfac']
+    hatyan_settings = HatyanSettings(nodalfactors=True, xfac=xfac, fu_alltimes=False)
     
     min_vallist_allyears = pd.Series(dtype=float)
     max_vallist_allyears = pd.Series(dtype=float)
@@ -157,12 +158,10 @@ def calc_HAT_LAT_fromcomponents(comp: pd.DataFrame, hatyan_settings: HatyanSetti
         
         min_vallist_allyears.loc[year] = ts_prediction['values'].min()
         max_vallist_allyears.loc[year] = ts_prediction['values'].max()
-    #vallist_allyears.plot()
-    #print(vallist_allyears)
-    #vallist_allyears.to_csv('LAT_HAT_indication_19Y_%s.csv'%(current_station))
-    HAT = max_vallist_allyears.max()
-    LAT = min_vallist_allyears.min()
-    return HAT, LAT
+    
+    hat = max_vallist_allyears.max()
+    lat = min_vallist_allyears.min()
+    return hat, lat
 
 
 def fit_models(mean_array_todate: pd.Series) -> pd.DataFrame:
