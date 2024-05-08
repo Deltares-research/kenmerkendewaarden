@@ -24,9 +24,10 @@ dependencies = [
 	"xarray>=2023.4.0",
 	#rws-ddlpy<0.5.0 supports timezones for input dates and yearly freq
 	"rws-ddlpy>=0.5.0",
-	#hatyan<2.8.0 has old ddlpy_helpers functions # TODO: we temporarily require 2.7.1 (main branch)
-	"hatyan>=2.7.1",
-	#"hatyan@git+https://github.com/Deltares/hatyan",
+	#hatyan<2.8.0 has old ddlpy_helpers functions and this version had many updates
+	"hatyan>=2.8.0",
+	#statsmodels<0.13.2 has no support for pandas 2.0.0
+	"statsmodels>=0.13.2",
 ]
 classifiers = [
 	"Development Status :: 2 - Pre-Alpha",
