@@ -7,17 +7,15 @@ Created on Fri Dec 16 16:35:26 2022
 
 import numpy as np
 import pandas as pd
-from hatyan.hatyan_core import get_const_list_hatyan
-from hatyan.analysis_prediction import analysis
-from hatyan import HatyanSettings
+import hatyan
 
 def get_gemgetij_components(data_pd_meas):
     # =============================================================================
     # Hatyan analyse voor 10 jaar (alle componenten voor gemiddelde getijcyclus) #TODO: maybe use original 4y period/componentfile instead? SA/SM should come from 19y analysis
     # =============================================================================
-    const_list = get_const_list_hatyan('year') #components should not be reduced, since higher harmonics are necessary
-    hatyan_settings_ana = HatyanSettings(nodalfactors=True, fu_alltimes=False, xfac=True, analysis_perperiod='Y', return_allperiods=True) #RWS-default settings
-    comp_frommeasurements_avg, comp_frommeasurements_allyears = analysis(data_pd_meas, const_list=const_list, hatyan_settings=hatyan_settings_ana)
+    const_list = hatyan.get_const_list_hatyan('year') #components should not be reduced, since higher harmonics are necessary
+    hatyan_settings_ana = dict(nodalfactors=True, fu_alltimes=False, xfac=True, analysis_perperiod='Y', return_allperiods=True) #RWS-default settings
+    comp_frommeasurements_avg, comp_frommeasurements_allyears = hatyan.analysis(data_pd_meas, const_list=const_list, **hatyan_settings_ana)
     
     # #check if all years are available
     # comp_years = comp_frommeasurements_allyears['A'].columns

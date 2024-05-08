@@ -152,7 +152,7 @@ for current_station in stat_list:
         station_name_dict = {'HOEKVHLD':'hoek',
                              'HARVT10':'ha10'}
         if current_station in station_name_dict.keys():
-            dir_meas_gemHWLWwlAB = r'p:\11208031-010-kenmerkende-waarden-k\work\data_KW-RMM'
+            dir_meas_gemHWLWwlAB = r'p:\archivedprojects\11208031-010-kenmerkende-waarden-k\work\data_KW-RMM'
             file_yearmeanHW = os.path.join(dir_meas_gemHWLWwlAB,f'{station_name_dict[current_station]}_hw.txt')
             file_yearmeanLW = os.path.join(dir_meas_gemHWLWwlAB,f'{station_name_dict[current_station]}_lw.txt')
             file_yearmeanwl = os.path.join(dir_meas_gemHWLWwlAB,f'{station_name_dict[current_station]}_Z.txt')
@@ -263,10 +263,9 @@ for current_station in stat_list:
         comp_frommeasurements_avg, comp_av = kw.get_gemgetij_components(data_pd_meas_10y)
         
         times_pred_1mnth = pd.date_range(start=dt.datetime(tstop_dt.year,1,1,0,0)-dt.timedelta(hours=12), end=dt.datetime(tstop_dt.year,2,1,0,0), freq=f'{pred_freq_sec} S') #start 12 hours in advance, to assure also corrected values on desired tstart
-        comp_av.attrs['nodalfactors'] = False
+        comp_av.attrs['nodalfactors'] = False #nodalfactors=False to guarantee repetative signal
         comp_av.attrs['fu_alltimes'] = True # TODO: this is not true, but this setting is the default
-        station_xfac = comp_av.attrs['xfac']
-        prediction_av = hatyan.prediction(comp_av, times=times_pred_1mnth, nodalfactors=False, xfac=station_xfac) #nodalfactors=False to guarantee repetative signal
+        prediction_av = hatyan.prediction(comp_av, times=times_pred_1mnth)
         prediction_av_ext = hatyan.calc_HWLW(ts=prediction_av, calc_HWLW345=False)
         
         time_firstHW = prediction_av_ext.loc[prediction_av_ext['HWLWcode']==1].index[0] #time of first HW
@@ -302,15 +301,14 @@ for current_station in stat_list:
         
         #make prediction with springneap components with nodalfactors=False (alternative for choosing a year with a neutral nodal factor). Using 1yr instead of 1month does not make a difference in min/max tidal range and shape, also because of nodalfactors=False. (when using more components, there is a slight difference)
         comp_frommeasurements_avg_sncomp = comp_frommeasurements_avg.loc[components_sn]
-        comp_frommeasurements_avg_sncomp.attrs['nodalfactors'] = False
+        comp_frommeasurements_avg_sncomp.attrs['nodalfactors'] = False #nodalfactors=False to make independent on chosen year
         comp_frommeasurements_avg_sncomp.attrs['fu_alltimes'] = True # TODO: this is not true, but this setting is the default
-        station_xfac = comp_frommeasurements_avg_sncomp.attrs['xfac']
-        prediction_sn = hatyan.prediction(comp_frommeasurements_avg_sncomp, times=times_pred_1mnth, nodalfactors=False, xfac=station_xfac) #nodalfactors=False to make independent on chosen year
+        prediction_sn = hatyan.prediction(comp_frommeasurements_avg_sncomp, times=times_pred_1mnth)
         
         prediction_sn_ext = hatyan.calc_HWLW(ts=prediction_sn, calc_HWLW345=False)
         
         #selecteer getijslag met minimale tidalrange en maximale tidalrange (werd geselecteerd adhv havengetallen in 1991.0 doc)
-        prediction_sn_ext = hatyan.calc_HWLWtidalrange(prediction_sn_ext)
+        prediction_sn_ext = kw.calc_HWLWtidalrange(prediction_sn_ext)
         
         time_TRmax = prediction_sn_ext.loc[prediction_sn_ext['HWLWcode']==1,'tidalrange'].idxmax()
         is1 = prediction_sn_ext.loc[time_TRmax:].index[0]

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 plt.close('all')
 import ddlpy # requires ddlpy>=0.5.0
 import dateutil
-import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num() # TODO: not released yet
+import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num()
 import xarray as xr
 from pyproj import Transformer # dependency of hatyan
 import kenmerkendewaarden as kw
@@ -288,10 +288,8 @@ for current_station in station_list:
         
         #convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
         # TODO: simplify by retrieving the extreme value and type from ddl in a single request (not supported yet): https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
-        ts_meas_extval_pd = hatyan.ddlpy_to_hatyan(measurements_ext)
-        ts_meas_exttype_pd = hatyan.ddlpy_to_hatyan(measurements_exttyp)
-        ts_meas_ext_pd = hatyan.convert_HWLWstr2num(ts_meas_extval_pd, ts_meas_exttype_pd)
-        meas_ext_ds["extreme_type"] = xr.DataArray(ts_meas_exttype_pd['values'].values, dims="time")
+        ts_meas_ext_pd = hatyan.ddlpy_to_hatyan(measurements_ext, measurements_exttyp)
+        meas_ext_ds["extreme_type"] = xr.DataArray(ts_meas_ext_pd['values'].values, dims="time")
         meas_ext_ds["HWLWcode"] = xr.DataArray(ts_meas_ext_pd['HWLWcode'].values, dims="time")
         meas_ext_ds.to_netcdf(file_ext_nc)
 
