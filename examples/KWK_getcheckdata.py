@@ -28,17 +28,17 @@ try:
 except ModuleNotFoundError:
     dfmt_available = False
 
+# TODO: overview of data improvements: https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
-# TODO: all TODOS in this script
 
 retrieve_meas_amount = False
 plot_meas_amount = False
 retrieve_data = False
-create_summary = True
+create_summary = False
 test = False
 
 
-start_date = "1870-01-01" # TODO: add timezone to start/stop date? (and re-retrieve all data)
+start_date = "1870-01-01" # TODO: add timezone to start/stop date? (and re-retrieve all data): https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 end_date = "2024-01-01"
 if test:
     start_date = "2021-12-01"
@@ -57,8 +57,11 @@ os.makedirs(dir_meas_amount, exist_ok=True)
 file_catalog_pkl = os.path.join(dir_base, 'DDL_catalog.pkl')
 if not os.path.exists(file_catalog_pkl):
     print('retrieving DDL locations catalog with ddlpy')
-    locations_full = ddlpy.locations()
+    # include Typeringen in locations catalog
+    catalog_filter = ['Eenheden','Grootheden','Hoedanigheden','Groeperingen','Parameters','Compartimenten','Typeringen']
+    locations_full = ddlpy.locations(catalog_filter=catalog_filter)
     drop_columns = [x for x in locations_full.columns if x.endswith(".Omschrijving")]
+    drop_columns.append("Parameter_Wat_Omschrijving")
     locations = locations_full.drop(columns=drop_columns)
     pd.to_pickle(locations, file_catalog_pkl)
 else:
@@ -75,17 +78,16 @@ locations["RDx"], locations["RDy"] = transformer.transform(locations["X"], locat
 
 bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
 bool_groepering_ts = locations["Groepering.Code"].isin(["NVT"])
-bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2","GETETMSL2"]) # TODO: why distinction between MSL and NAP? This is already filtered via Hoedanigheid >> maybe fixed in WADAR/aquostandard
+bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2","GETETMSL2"])
 # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
 # bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
 # bool_hoedanigheid_msl = locations["Hoedanigheid.Code"].isin(["MSL"])
-# TODO: we cannot subset Typering.Code==GETETTPE here (not present in dataframe), so we use Grootheid.Code==NVT: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19 >> maybe fixed in WADAR/aquostandard
-bool_grootheid_exttypes = locations['Grootheid.Code'].isin(['NVT'])
+bool_typering_exttypes = locations['Typering.Code'].isin(['GETETTPE'])
 
 # select locations on grootheid/groepering/exttypes
 locs_meas_ts = locations.loc[bool_grootheid & bool_groepering_ts]
 locs_meas_ext = locations.loc[bool_grootheid & bool_groepering_ext]
-locs_meas_exttype = locations.loc[bool_grootheid_exttypes & bool_groepering_ext]
+locs_meas_exttype = locations.loc[bool_typering_exttypes & bool_groepering_ext]
 
 # station lists
 # "KW kust en GR Dillingh 2013" en "KW getijgebied RWS 2011.0", aangevuld met 3 stations AB, aangevuld met BOI wensen, aangevuld met dialijst ABCT
@@ -113,7 +115,8 @@ for station_name in station_list:
         print()
 
 
-# TODO: fix multiple hits (two location rows raise errors in retrieve_data code below so are skipped)
+# skip duplicate code stations (hist/realtime) # TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12
+stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
 """
 # from station_list_tk
 station name BATH found 2 times, should be 1:
@@ -128,23 +131,11 @@ Code
 D15     D15 platform               6876               MSL
 D15   Platform D15-A              10968               MSL
 
-station name EURPFM found 2 times, should be 1:
-                 Naam  Locatie_MessageID Hoedanigheid.Code
-Code                                                      
-EURPFM  Euro platform              10946               MSL
-EURPFM  Euro platform              10946               NAP
-
 station name J6 found 2 times, should be 1:
              Naam  Locatie_MessageID Hoedanigheid.Code
 Code                                                  
 J6    J6 platform               5377               MSL
 J6    Platform J6              10982               MSL
-
-station name LICHTELGRE found 2 times, should be 1:
-                          Naam  Locatie_MessageID Hoedanigheid.Code
-Code                                                               
-LICHTELGRE  Lichteiland Goeree              10953               MSL
-LICHTELGRE  Lichteiland Goeree              10953               NAP
 
 station name NES found 2 times, should be 1:
      Naam  Locatie_MessageID Hoedanigheid.Code
@@ -153,15 +144,28 @@ NES   Nes               5391               NAP
 NES   Nes              10309               NAP
 """
 
-# skip duplicate code stations (hist/realtime) # TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12
-stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
 # skip MSL/NAP duplicate stations # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
 stations_nap_mls_dupl = ["EURPFM", "LICHTELGRE"]
+"""
+# from station_list_tk
+station name EURPFM found 2 times, should be 1:
+                 Naam  Locatie_MessageID Hoedanigheid.Code
+Code                                                      
+EURPFM  Euro platform              10946               MSL
+EURPFM  Euro platform              10946               NAP
+
+station name LICHTELGRE found 2 times, should be 1:
+                          Naam  Locatie_MessageID Hoedanigheid.Code
+Code                                                               
+LICHTELGRE  Lichteiland Goeree              10953               MSL
+LICHTELGRE  Lichteiland Goeree              10953               NAP
+"""
+
 stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
 
 
 # TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
-# TODO: some stations are now realtime instead of hist, these are manually skipped in actual data retrieval/statistics
+# TODO: some stations are now realtime instead of hist (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20), these are manually skipped in actual data retrieval/statistics
 ### RETRIEVE MEASUREMENTS AMOUNT
 ts_amount_list = []
 ext_amount_list = []
@@ -179,16 +183,16 @@ for current_station in station_list:
     amount_ts = amount_ts.rename(columns={"AantalMetingen":current_station})
     ts_amount_list.append(amount_ts)
     
-    try:
-        amount_ext = ddlpy.measurements_amount(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date)
-        amount_ext = amount_ext.rename(columns={"AantalMetingen":current_station})
-    except IndexError: # IndexError: single positional indexer is out-of-bounds
-        print("ext no station available")
+    if len(loc_meas_ext_one) == 0:
+        print("ext: no station available")
         # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
         #                                     "L9PFM","MAASMSMPL","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
         # https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
         amount_ext = pd.DataFrame({current_station:[]})
         amount_ext.index.name = "Groeperingsperiode"
+    else:
+        amount_ext = ddlpy.measurements_amount(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date)
+        amount_ext = amount_ext.rename(columns={"AantalMetingen":current_station})
     ext_amount_list.append(amount_ext)
 
 file_csv_amount_ts = os.path.join(dir_meas_amount, "data_amount_ts.csv")
@@ -287,7 +291,7 @@ for current_station in station_list:
         meas_ext_ds = ddlpy.dataframe_to_xarray(measurements_ext, drop_if_constant)
         
         #convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
-        # TODO: simplify by retrieving the extreme value and type from ddl in a single request (not supported yet): https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
+        # TODO: simplify by retrieving the extreme value and type from ddl in a single request: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
         ts_meas_ext_pd = hatyan.ddlpy_to_hatyan(measurements_ext, measurements_exttyp)
         meas_ext_ds["extreme_type"] = xr.DataArray(ts_meas_ext_pd['values'].values, dims="time")
         meas_ext_ds["HWLWcode"] = xr.DataArray(ts_meas_ext_pd['HWLWcode'].values, dims="time")
@@ -332,7 +336,7 @@ for current_station in station_list:
         data_summary_row_ts.update(ds_stats)
         
         # calculate monthly/yearly mean for meas wl data
-        # TODO: use kw.calc_wltidalindicators() instead (with threshold of eg 2900 like slotgem)
+        # TODOTODO: use kw.calc_wltidalindicators() instead (with threshold of eg 2900 like slotgem)
         df_meas_values = ds_ts_meas['Meetwaarde.Waarde_Numeriek'].to_pandas()/100
         mean_peryearmonth_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="M")).mean()
         data_summary_row_ts['monthmean_mean'] = mean_peryearmonth_long.mean()
@@ -360,20 +364,21 @@ for current_station in station_list:
         meta_dict_flat_ext = kw.get_flat_meta_from_dataset(ds_ext_meas)
         data_summary_row_ext.update(meta_dict_flat_ext)
         
-        # TODO: warns about extremes being too close for BERGSDSWT, BROUWHVSGT02, BROUWHVSGT08, HOEKVHLD and probably more, probably due to aggers
+        # TODOTODO: warns about extremes being too close for BERGSDSWT, BROUWHVSGT02, BROUWHVSGT08, HOEKVHLD and probably more, probably due to aggers
         ds_stats = kw.get_stats_from_dataset(ds_ext_meas)
         data_summary_row_ext.update(ds_stats)
         
         #calculate monthly/yearly mean for meas ext data
-        #TODO: make kw function (exact or approximation?), also for timeseries
+        # TODOTODO: make kw function (exact or approximation?), also for timeseries
         ts_meas_ext_pd = kw.xarray_to_hatyan(ds_ext_meas)
         if len(ts_meas_ext_pd['HWLWcode'].unique()) > 2:
-            data_pd_HWLW_12 = hatyan.calc_HWLW12345to12(ts_meas_ext_pd) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater). TODO: currently, first/last values are skipped if LW
+            data_pd_HWLW_12 = hatyan.calc_HWLW12345to12(ts_meas_ext_pd) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater).
+            # TODOTODO: currently, first/last values are skipped if LW
         else:
             data_pd_HWLW_12 = ts_meas_ext_pd.copy()
         data_pd_HW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==1]
         data_pd_LW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==2]
-        HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))['values'].mean() #TODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
+        HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))['values'].mean() #TODOTODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
         LW_mean_peryear_long = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="y"))['values'].mean()
     
         # # replace 345 HWLWcode with 2, simple approximation of actual LW
@@ -384,7 +389,7 @@ for current_station in station_list:
         # ds_ext_meas_12only = ds_ext_meas_12only.sel(time=~bool_hwlw_45)
         
         # #calculate monthly/yearly mean for meas ext data
-        # #TODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
+        # # TODOTODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
         # data_pd_HW = ds_ext_meas_12only.sel(time=ds_ext_meas_12only['HWLWcode'].isin([1])).to_pandas()['Meetwaarde.Waarde_Numeriek']/100
         # data_pd_LW = ds_ext_meas_12only.sel(time=ds_ext_meas_12only['HWLWcode'].isin([2])).to_pandas()['Meetwaarde.Waarde_Numeriek']/100
         # HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y")).mean()
