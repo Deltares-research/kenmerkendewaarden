@@ -34,7 +34,7 @@ except ModuleNotFoundError:
 retrieve_meas_amount = False
 plot_meas_amount = False
 retrieve_data = False
-create_summary = False
+create_summary = True
 test = False
 
 
@@ -364,7 +364,9 @@ for current_station in station_list:
         meta_dict_flat_ext = kw.get_flat_meta_from_dataset(ds_ext_meas)
         data_summary_row_ext.update(meta_dict_flat_ext)
         
-        # TODOTODO: warns about extremes being too close for BERGSDSWT, BROUWHVSGT02, BROUWHVSGT08, HOEKVHLD and probably more, probably due to aggers
+        # TODO: warns about extremes being too close for BERGSDSWT, BROUWHVSGT02, BROUWHVSGT08, HOEKVHLD and more
+        # TODOTODO: this is partly due to aggers so first convert to 1/2 instead of 1/2/3/4/5
+        # TODO: but also due to incorrect data: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/43
         ds_stats = kw.get_stats_from_dataset(ds_ext_meas)
         data_summary_row_ext.update(ds_stats)
         
