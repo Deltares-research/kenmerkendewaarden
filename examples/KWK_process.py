@@ -34,17 +34,13 @@ dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
 dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
 
 dir_havget = os.path.join(dir_base,f'out_havengetallen_{year_slotgem}')
-if not os.path.exists(dir_havget):
-    os.mkdir(dir_havget)
 dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
-if not os.path.exists(dir_slotgem):
-    os.mkdir(dir_slotgem)
 dir_gemgetij = os.path.join(dir_base,f'out_gemgetij_{year_slotgem}')
-if not os.path.exists(dir_gemgetij):
-    os.mkdir(dir_gemgetij)
 dir_overschrijding = os.path.join(dir_base,f'out_overschrijding_{year_slotgem}')
-if not os.path.exists(dir_overschrijding):
-    os.mkdir(dir_overschrijding)
+os.makedirs(dir_havget, exist_ok=True)
+os.makedirs(dir_slotgem, exist_ok=True)
+os.makedirs(dir_gemgetij, exist_ok=True)
+os.makedirs(dir_overschrijding, exist_ok=True)
 
 fig_alltimes_ext = [dt.datetime.strptime(x,'%Y%m%d') for x in os.path.basename(dir_meas).split('_')[2:4]]
 
