@@ -10,12 +10,15 @@ import pandas as pd
 import datetime as dt
 import matplotlib.pyplot as plt
 plt.close('all')
-import ddlpy # requires ddlpy>=0.5.0
-import dateutil
 import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num()
 import xarray as xr
-from pyproj import Transformer # dependency of hatyan
 import kenmerkendewaarden as kw
+
+# set logging level to INFO to get log messages
+# calling basicConfig is essential to set logging level of single module, format is optional
+import logging
+logging.basicConfig(format='%(message)s')
+logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 try:
     import contextily as ctx # pip install contextily
@@ -31,8 +34,7 @@ except ModuleNotFoundError:
 # TODO: overview of data improvements: https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 
-retrieve_meas_amount = False
-plot_meas_amount = False
+meas_amount = True
 retrieve_data = False
 create_summary = True
 test = False
@@ -48,46 +50,12 @@ if test:
 
 # dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r"p:\11210325-005-kenmerkende-waarden\work"
-dir_meas = os.path.join(dir_base,f"measurements_wl_{start_date.replace('-','')}_{end_date.replace('-','')}")
-dir_meas_amount = os.path.join(dir_meas, "measurements_amount")
+dir_meas = os.path.join(dir_base, f"measurements_wl_{start_date.replace('-','')}_{end_date.replace('-','')}")
 os.makedirs(dir_meas, exist_ok=True)
+dir_meas_amount = os.path.join(dir_base, f"measurements_amount_wl_{start_date.replace('-','')}_{end_date.replace('-','')}")
 os.makedirs(dir_meas_amount, exist_ok=True)
 
 
-file_catalog_pkl = os.path.join(dir_base, 'DDL_catalog.pkl')
-if not os.path.exists(file_catalog_pkl):
-    print('retrieving DDL locations catalog with ddlpy')
-    # include Typeringen in locations catalog
-    catalog_filter = ['Eenheden','Grootheden','Hoedanigheden','Groeperingen','Parameters','Compartimenten','Typeringen']
-    locations_full = ddlpy.locations(catalog_filter=catalog_filter)
-    drop_columns = [x for x in locations_full.columns if x.endswith(".Omschrijving")]
-    drop_columns.append("Parameter_Wat_Omschrijving")
-    locations = locations_full.drop(columns=drop_columns)
-    pd.to_pickle(locations, file_catalog_pkl)
-else:
-    print('loading DDL locations catalog from pickle')
-    locations = pd.read_pickle(file_catalog_pkl)
-print('...done')
-
-# convert coordinates to RD
-crs = 28992
-assert len(locations["Coordinatenstelsel"].drop_duplicates()) == 1
-epsg_in = locations["Coordinatenstelsel"].iloc[0]
-transformer = Transformer.from_crs(f'epsg:{epsg_in}', f'epsg:{crs}', always_xy=True)
-locations["RDx"], locations["RDy"] = transformer.transform(locations["X"], locations["Y"])
-
-bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
-bool_groepering_ts = locations["Groepering.Code"].isin(["NVT"])
-bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2","GETETMSL2"])
-# TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
-# bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
-# bool_hoedanigheid_msl = locations["Hoedanigheid.Code"].isin(["MSL"])
-bool_typering_exttypes = locations['Typering.Code'].isin(['GETETTPE'])
-
-# select locations on grootheid/groepering/exttypes
-locs_meas_ts = locations.loc[bool_grootheid & bool_groepering_ts]
-locs_meas_ext = locations.loc[bool_grootheid & bool_groepering_ext]
-locs_meas_exttype = locations.loc[bool_typering_exttypes & bool_groepering_ext]
 
 # station lists
 # "KW kust en GR Dillingh 2013" en "KW getijgebied RWS 2011.0", aangevuld met 3 stations AB, aangevuld met BOI wensen, aangevuld met dialijst ABCT
@@ -107,6 +75,7 @@ station_list = station_list_tk
 # station_list = station_list_valid2011
 # station_list = ['BATH','EURPFM','VLISSGN']
 
+locs_meas_ts, _, _ = kw.retrieve_catalog()
 for station_name in station_list:
     bool_isstation = locs_meas_ts.index == station_name
     if bool_isstation.sum()!=1:
@@ -167,79 +136,27 @@ stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
 # TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
 # TODO: some stations are now realtime instead of hist (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20), these are manually skipped in actual data retrieval/statistics
 ### RETRIEVE MEASUREMENTS AMOUNT
-ts_amount_list = []
-ext_amount_list = []
-for current_station in station_list:
-    if not retrieve_meas_amount:
-        continue
-    print(f'retrieving measurement amount from DDL for {current_station}')
-    
-    bool_station_ts = locs_meas_ts.index.isin([current_station])
-    bool_station_ext = locs_meas_ext.index.isin([current_station])
-    loc_meas_ts_one = locs_meas_ts.loc[bool_station_ts]
-    loc_meas_ext_one = locs_meas_ext.loc[bool_station_ext]
-    
-    amount_ts = ddlpy.measurements_amount(location=loc_meas_ts_one.iloc[0], start_date=start_date, end_date=end_date)
-    amount_ts = amount_ts.rename(columns={"AantalMetingen":current_station})
-    ts_amount_list.append(amount_ts)
-    
-    if len(loc_meas_ext_one) == 0:
-        print("ext: no station available")
-        # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
-        #                                     "L9PFM","MAASMSMPL","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
-        # https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-        amount_ext = pd.DataFrame({current_station:[]})
-        amount_ext.index.name = "Groeperingsperiode"
-    else:
-        amount_ext = ddlpy.measurements_amount(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date)
-        amount_ext = amount_ext.rename(columns={"AantalMetingen":current_station})
-    ext_amount_list.append(amount_ext)
 
-file_csv_amount_ts = os.path.join(dir_meas_amount, "data_amount_ts.csv")
-file_csv_amount_ext = os.path.join(dir_meas_amount, "data_amount_ext.csv")
-if retrieve_meas_amount:
-    print(f'write measurement amount csvs to {os.path.basename(dir_meas)}')
-    df_amount_ts = pd.concat(ts_amount_list, axis=1).sort_index()
-    df_amount_ts = df_amount_ts.fillna(0).astype(int)
-    df_amount_ext = pd.concat(ext_amount_list, axis=1).sort_index()
-    df_amount_ext = df_amount_ext.fillna(0).astype(int)
-    df_amount_ts.to_csv(file_csv_amount_ts.replace(".csv","_PREVENTOVERWRITE.csv"))
-    df_amount_ext.to_csv(file_csv_amount_ext.replace(".csv","_PREVENTOVERWRITE.csv"))
-
-
-if plot_meas_amount:
-    df_amount_ts = pd.read_csv(file_csv_amount_ts)
-    df_amount_ts = df_amount_ts.set_index("Groeperingsperiode")
-    df_amount_ext = pd.read_csv(file_csv_amount_ext)
-    df_amount_ext = df_amount_ext.set_index("Groeperingsperiode")
+if meas_amount:
+    # TODOTODO: introduce kw.retrieve_measurements_amount() somewhere, maybe make modular with station_list
     
-    fig, ax = kw.df_amount_pcolormesh(df_amount_ts, relative=False)
-    fig.savefig(file_csv_amount_ts.replace(".csv","_pcolormesh"), dpi=200)
-    fig, ax = kw.df_amount_pcolormesh(df_amount_ext, relative=False)
-    fig.savefig(file_csv_amount_ext.replace(".csv","_pcolormesh"), dpi=200)
-
+    df_amount_ts, df_amount_ext = kw.read_measurements_amount(dir_output=dir_meas_amount)
+    
+    file_plot = os.path.join(dir_meas_amount, "data_amount")
+    
     fig, ax = kw.df_amount_pcolormesh(df_amount_ts, relative=True)
-    fig.savefig(file_csv_amount_ts.replace(".csv","_pcolormesh_relative"), dpi=200)
+    fig.savefig(file_plot + "_ts_pcolormesh_relative", dpi=200)
     fig, ax = kw.df_amount_pcolormesh(df_amount_ext, relative=True)
-    fig.savefig(file_csv_amount_ext.replace(".csv","_pcolormesh_relative"), dpi=200)
-
+    fig.savefig(file_plot + "_ext_pcolormesh_relative", dpi=200)
+    
     fig, ax = kw.df_amount_boxplot(df_amount_ts)
-    fig.savefig(file_csv_amount_ts.replace(".csv","_boxplot"), dpi=200)
+    fig.savefig(file_plot + "_ts_boxplot", dpi=200)
     fig, ax = kw.df_amount_boxplot(df_amount_ext)
-    fig.savefig(file_csv_amount_ext.replace(".csv","_boxplot"), dpi=200)
+    fig.savefig(file_plot + "_ext_boxplot", dpi=200)
 
 
 
 ### RETRIEVE DATA FROM DDL AND WRITE TO NETCDF
-drop_if_constant = ["WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
-                    "WaarnemingMetadata.BemonsteringshoogteLijst",
-                    "WaarnemingMetadata.ReferentievlakLijst",
-                    "AquoMetadata_MessageID", 
-                    "BioTaxonType", 
-                    "BemonsteringsSoort.Code", 
-                    "Compartiment.Code", "Eenheid.Code", "Grootheid.Code", "Hoedanigheid.Code",
-                    "WaardeBepalingsmethode.Code", "MeetApparaat.Code",
-                    ]
 
 for current_station in station_list:
     if not retrieve_data:
@@ -248,54 +165,13 @@ for current_station in station_list:
     if current_station in stations_dupl:
         continue
     
-    # write to netcdf instead (including metadata)
-    file_wl_nc = os.path.join(dir_meas,f"{current_station}_measwl.nc")
-    file_ext_nc = os.path.join(dir_meas,f"{current_station}_measext.nc")
+    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
+                             start_date=start_date, end_date=end_date)
+    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=True,
+                             start_date=start_date, end_date=end_date)
     
-    bool_station_ts = locs_meas_ts.index.isin([current_station])
-    bool_station_ext = locs_meas_ext.index.isin([current_station])
-    bool_station_exttype = locs_meas_exttype.index.isin([current_station])
-    loc_meas_ts_one = locs_meas_ts.loc[bool_station_ts]
-    loc_meas_ext_one = locs_meas_ext.loc[bool_station_ext]
-    loc_meas_exttype_one = locs_meas_exttype.loc[bool_station_exttype]
 
-    if len(loc_meas_ts_one)!=1:
-        raise ValueError(f"no or multiple stations present after station subsetting for {current_station} (ts):\n{loc_meas_ts_one}")
-    
-    ext_available = True
-    if len(loc_meas_ext_one)==0:
-        ext_available = False
-    elif len(loc_meas_ext_one)!=1:
-        raise ValueError(f"no or multiple stations present after station subsetting for {current_station} (ext):\n{loc_meas_ext_one}")
-    
-    #retrieving waterlevels
-    if os.path.exists(file_wl_nc):
-        print(f'measwl data for {current_station} already available in {os.path.basename(dir_meas)}')
-    else:
-        print(f'retrieving measwl data from DDL for {current_station} to {os.path.basename(dir_meas)}')
-        measurements_ts = ddlpy.measurements(location=loc_meas_ts_one.iloc[0], start_date=start_date, end_date=end_date)
-        meas_ts_ds = ddlpy.dataframe_to_xarray(measurements_ts, drop_if_constant)
-        meas_ts_ds.to_netcdf(file_wl_nc)
-    
-    #retrieving measured extremes
-    if os.path.exists(file_ext_nc):
-        print(f'measext data for {current_station} already available in {os.path.basename(dir_meas)}')
-    elif not ext_available:
-        print(f'no measext data for {current_station}, skipping downloading')
-    else:
-        print(f'retrieving measext data from DDL for {current_station} to {os.path.basename(dir_meas)}')
-        measurements_ext = ddlpy.measurements(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date, freq=dateutil.rrule.YEARLY)
-        if measurements_ext.empty:
-            raise ValueError("[NO DATA]")
-        measurements_exttyp = ddlpy.measurements(location=loc_meas_exttype_one.iloc[0], start_date=start_date, end_date=end_date, freq=dateutil.rrule.YEARLY)
-        meas_ext_ds = ddlpy.dataframe_to_xarray(measurements_ext, drop_if_constant)
-        
-        #convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
-        # TODO: simplify by retrieving the extreme value and type from ddl in a single request: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
-        ts_meas_ext_pd = hatyan.ddlpy_to_hatyan(measurements_ext, measurements_exttyp)
-        meas_ext_ds["extreme_type"] = xr.DataArray(ts_meas_ext_pd['values'].values, dims="time")
-        meas_ext_ds["HWLWcode"] = xr.DataArray(ts_meas_ext_pd['HWLWcode'].values, dims="time")
-        meas_ext_ds.to_netcdf(file_ext_nc)
+
 
 
 
@@ -324,7 +200,6 @@ for current_station in station_list:
         ts_available = False
     else:
         ts_available = True
-    data_summary_row_ts['data_wl'] = ts_available
     
     if ts_available:
         ds_ts_meas = xr.open_dataset(file_wl_nc)
@@ -339,15 +214,11 @@ for current_station in station_list:
         # TODOTODO: use kw.calc_wltidalindicators() instead (with threshold of eg 2900 like slotgem)
         df_meas_values = ds_ts_meas['Meetwaarde.Waarde_Numeriek'].to_pandas()/100
         mean_peryearmonth_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="M")).mean()
-        data_summary_row_ts['monthmean_mean'] = mean_peryearmonth_long.mean()
-        data_summary_row_ts['monthmean_std'] = mean_peryearmonth_long.std()
         mean_peryear_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="Y")).mean()
-        data_summary_row_ts['yearmean_mean'] = mean_peryear_long.mean()
-        data_summary_row_ts['yearmean_std'] = mean_peryear_long.std()
         
         ts_meas_pd = kw.xarray_to_hatyan(ds_ts_meas)
         del ds_ts_meas
-        
+    
 
     #load measext data
     file_ext_nc = os.path.join(dir_meas,f"{current_station}_measext.nc")
@@ -355,12 +226,10 @@ for current_station in station_list:
         ext_available = False
     else:
         ext_available = True
-    data_summary_row_ext['data_ext'] = ext_available
     
     if ext_available:
-        data_summary_row_ext['data_ext'] = True
         ds_ext_meas = xr.open_dataset(file_ext_nc)
-
+        
         meta_dict_flat_ext = kw.get_flat_meta_from_dataset(ds_ext_meas)
         data_summary_row_ext.update(meta_dict_flat_ext)
         
@@ -380,7 +249,8 @@ for current_station in station_list:
             data_pd_HWLW_12 = ts_meas_ext_pd.copy()
         data_pd_HW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==1]
         data_pd_LW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==2]
-        HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))['values'].mean() #TODOTODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
+        #TODOTODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
+        HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))['values'].mean()
         LW_mean_peryear_long = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="y"))['values'].mean()
     
         # # replace 345 HWLWcode with 2, simple approximation of actual LW
