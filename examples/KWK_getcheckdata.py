@@ -36,7 +36,7 @@ retrieve_meas_amount = False
 plot_meas_amount = False
 retrieve_meas = False
 plot_meas = False
-plot_stations = False
+plot_stations = True
 create_summary = False
 test = False
 
@@ -199,8 +199,8 @@ if plot_stations:
     locs_ext_sel = locs_meas_ext.loc[locs_meas_ext.index.isin(station_list)]
     
     fig_map,ax_map = plt.subplots(figsize=(8,8))
-    ax_map.plot(locs_ts_sel['X'], locs_ts_sel['Y'],'xk', label="timeseries")#,alpha=0.4) #all ext stations
-    ax_map.plot(locs_ext_sel['X'], locs_ext_sel['Y'],'xr', label="extremes") # selected ext stations (stat_list)
+    ax_map.plot(locs_ts_sel['X'], locs_ts_sel['Y'],'xk', label="timeseries")
+    ax_map.plot(locs_ext_sel['X'], locs_ext_sel['Y'],'xr', label="extremes")
     ax_map.legend()
     
     """
@@ -209,7 +209,7 @@ if plot_stations:
     """
     ax_map.set_xlim(-50000,300000) # RD
     ax_map.set_ylim(350000,850000) # RD
-    ax_map.set_title('overview of stations with GETETM2 data')
+    ax_map.set_title('stations with timeseries/extremes data')
     ax_map.set_aspect('equal')
     ax_map.set_xlabel(f'X (EPSG:{crs})')
     ax_map.set_ylabel(f'Y (EPSG:{crs})')
