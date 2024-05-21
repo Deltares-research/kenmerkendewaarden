@@ -20,13 +20,13 @@ __all = [
     "retrieve_measurements_amount",
     "read_measurements_amount",
     "retrieve_measurements",
-    # "read_measurements",
+    "read_measurements",
     ]
 
 logger = logging.getLogger(__name__)
 
 
-def retrieve_catalog(overwrite=False):
+def retrieve_catalog(overwrite=False, crs:int = None):
     # create cache dir %USERPROFILE%/AppData/Local/kenmerkendewaarden/kenmerkendewaarden/Cache
     dir_cache = str(pooch.os_cache('kenmerkendewaarden'))
     os.makedirs(dir_cache, exist_ok=True)
@@ -45,12 +45,13 @@ def retrieve_catalog(overwrite=False):
         locations = locations_full.drop(columns=drop_columns)
         pd.to_pickle(locations, file_catalog_pkl)
     
-    # convert coordinates to RD
-    crs = 28992
-    assert len(locations["Coordinatenstelsel"].drop_duplicates()) == 1
-    epsg_in = locations["Coordinatenstelsel"].iloc[0]
-    transformer = Transformer.from_crs(f'epsg:{epsg_in}', f'epsg:{crs}', always_xy=True)
-    locations["RDx"], locations["RDy"] = transformer.transform(locations["X"], locations["Y"])
+    # convert coordinates to new crs
+    if crs is not None:
+        assert len(locations["Coordinatenstelsel"].drop_duplicates()) == 1
+        epsg_in = locations["Coordinatenstelsel"].iloc[0]
+        transformer = Transformer.from_crs(f'epsg:{epsg_in}', f'epsg:{crs}', always_xy=True)
+        locations["X"], locations["Y"] = transformer.transform(locations["X"], locations["Y"])
+        locations["Coordinatenstelsel"] = str(crs)
     
     bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
     bool_groepering_ts = locations["Groepering.Code"].isin(["NVT"])
@@ -195,13 +196,15 @@ def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date
     ds_meas.to_netcdf(file_nc)
 
 
-# def read_measurements(dir_output:str, station:str, extremes:bool):
-#     current_station = station
-    
-#     if extremes:
-#         file_nc = os.path.join(dir_output,f"{current_station}_measext.nc")
-#     else:
-#         file_nc = os.path.join(dir_output,f"{current_station}_measwl.nc")
+def read_measurements(dir_output:str, station:str, extremes:bool):
 
-#     ds_meas = xr.open_dataset(file_nc)
-#     return ds_meas
+    if extremes:
+        file_nc = os.path.join(dir_output,f"{station}_measext.nc")
+    else:
+        file_nc = os.path.join(dir_output,f"{station}_measwl.nc")
+
+    if os.path.exists(file_nc):
+        ds_meas = xr.open_dataset(file_nc)
+    else:
+        ds_meas = None
+    return ds_meas

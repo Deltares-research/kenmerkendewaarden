@@ -8,10 +8,13 @@ Created on Mon May 20 11:23:46 2024
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from kenmerkendewaarden.utils import xarray_to_hatyan
+import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num()
 
 __all = [
     "df_amount_boxplot",
     "df_amount_pcolormesh",
+    "plot_measurements",
     ]
 
 
@@ -48,3 +51,64 @@ def df_amount_pcolormesh(df, relative=False):
         cbar.set_label("measurements per year (0 excluded) [-]")
     fig.tight_layout()
     return fig, ax
+
+
+def plot_measurements(ds, ds_ext=None):
+    
+    station_ds = ds.attrs["Code"]
+    ts_meas_pd = xarray_to_hatyan(ds)
+    if ds_ext is not None:
+        station_ds_ext = ds_ext.attrs["Code"]
+        assert station_ds == station_ds_ext
+        ts_meas_ext_pd = xarray_to_hatyan(ds_ext)
+        fig,(ax1,ax2) = hatyan.plot_timeseries(ts=ts_meas_pd, ts_ext=ts_meas_ext_pd)
+    else:
+        fig,(ax1,ax2) = hatyan.plot_timeseries(ts=ts_meas_pd)
+    ax1.set_title(f'timeseries for {station_ds}')
+    
+    # calculate monthly/yearly mean for meas wl data
+    # TODOTODO: use kw.calc_wltidalindicators() instead (with threshold of eg 2900 like slotgem)
+    df_meas_values = ds['Meetwaarde.Waarde_Numeriek'].to_pandas()/100
+    mean_peryearmonth_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="M")).mean()
+    mean_peryear_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="Y")).mean()
+        
+    ax1.plot(mean_peryearmonth_long,'c',linewidth=0.7, label='monthly mean')
+    ax1.plot(mean_peryear_long,'m',linewidth=0.7, label='yearly mean')
+    ax2.plot(mean_peryearmonth_long,'c',linewidth=0.7, label='monthly mean')
+    ax2.plot(mean_peryear_long,'m',linewidth=0.7, label='yearly mean')
+    if ds_ext is not None:
+        #calculate monthly/yearly mean for meas ext data
+        # TODOTODO: make kw function (exact or approximation?), also for timeseries
+        if len(ts_meas_ext_pd['HWLWcode'].unique()) > 2:
+            data_pd_HWLW_12 = hatyan.calc_HWLW12345to12(ts_meas_ext_pd) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater).
+            # TODOTODO: currently, first/last values are skipped if LW
+        else:
+            data_pd_HWLW_12 = ts_meas_ext_pd.copy()
+        data_pd_HW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==1]
+        data_pd_LW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==2]
+        #TODOTODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
+        HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))['values'].mean()
+        LW_mean_peryear_long = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="y"))['values'].mean()
+        
+        # # replace 345 HWLWcode with 2, simple approximation of actual LW
+        # bool_hwlw_3 = ds_ext_meas['HWLWcode'].isin([3])
+        # bool_hwlw_45 = ds_ext_meas['HWLWcode'].isin([4,5])
+        # ds_ext_meas_12only = ds_ext_meas.copy()
+        # ds_ext_meas_12only['HWLWcode'][bool_hwlw_3] = 2
+        # ds_ext_meas_12only = ds_ext_meas_12only.sel(time=~bool_hwlw_45)
+        
+        # #calculate monthly/yearly mean for meas ext data
+        # # TODOTODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
+        # data_pd_HW = ds_ext_meas_12only.sel(time=ds_ext_meas_12only['HWLWcode'].isin([1])).to_pandas()['Meetwaarde.Waarde_Numeriek']/100
+        # data_pd_LW = ds_ext_meas_12only.sel(time=ds_ext_meas_12only['HWLWcode'].isin([2])).to_pandas()['Meetwaarde.Waarde_Numeriek']/100
+        # HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y")).mean()
+        # LW_mean_peryear_long = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="y")).mean()
+
+        ax1.plot(HW_mean_peryear_long,'m',linewidth=0.7, label=None) #'yearly mean HW')
+        ax1.plot(LW_mean_peryear_long,'m',linewidth=0.7, label=None) #'yearly mean LW')
+    ax1.set_ylim(-4,4)
+    ax1.legend(loc=4)
+    ax2.legend(loc=1)
+    ax2.set_ylim(-0.5,0.5)
+    
+    return fig, (ax1,ax2)
