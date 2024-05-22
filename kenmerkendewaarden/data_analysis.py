@@ -188,7 +188,7 @@ def create_statistics_csv(dir_output, station_list, extremes):
     if extremes:
         file_csv = os.path.join(dir_output,'data_summary_ext.csv')
     else:
-        file_csv = os.path.join(dir_output,'data_summary_ext.csv')
+        file_csv = os.path.join(dir_output,'data_summary_ts.csv')
     
     if os.path.exists(file_csv):
         raise FileExistsError(f"file {file_csv} already exists, delete file or change dir_output")

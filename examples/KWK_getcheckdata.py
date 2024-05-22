@@ -27,7 +27,7 @@ plot_meas_amount = False
 retrieve_meas = False
 plot_meas = False
 plot_stations = False
-create_statistics_csv = True
+create_statistics_csv = False
 test = False
 
 # TODO: add timezone to start/stop date? (and re-retrieve all data): https://github.com/Deltares-research/kenmerkendewaarden/issues/29
