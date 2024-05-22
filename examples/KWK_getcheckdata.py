@@ -26,8 +26,8 @@ retrieve_meas_amount = False
 plot_meas_amount = False
 retrieve_meas = False
 plot_meas = False
-plot_stations = True
-create_summary = False
+plot_stations = False
+create_statistics_csv = True
 test = False
 
 # TODO: add timezone to start/stop date? (and re-retrieve all data): https://github.com/Deltares-research/kenmerkendewaarden/issues/29
@@ -55,7 +55,7 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
                 'ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE',
                 'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
-# station_list = ['BATH','EURPFM','VLISSGN']
+station_list = ['BERGSDSWT','HOEKVHLD']
 
 locs_meas_ts, _, _ = kw.retrieve_catalog()
 for station_name in station_list:
@@ -155,7 +155,16 @@ for current_station in station_list:
                              start_date=start_date, end_date=end_date)
     kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=True,
                              start_date=start_date, end_date=end_date)
-    
+
+
+
+### CREATE SUMMARY
+if create_statistics_csv:
+    kw.create_statistics_csv(dir_output=dir_meas, station_list=station_list, extremes=False)
+    kw.create_statistics_csv(dir_output=dir_meas, station_list=station_list, extremes=True)
+
+
+
 ### PLOT TIMESERIES DATA
 for current_station in station_list:
     if not plot_meas:
@@ -163,16 +172,14 @@ for current_station in station_list:
     
     if current_station in stations_dupl:
         continue
-    
     print(f'plotting timeseries data for {current_station}')
     
     #load data
     ds_ts_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False)
     ds_ext_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True)
     
+    # create and save figure
     fig,(ax1, ax2) = kw.plot_measurements(ds=ds_ts_meas, ds_ext=ds_ext_meas)
-    
-    # save figure
     file_wl_png = os.path.join(dir_meas,f'ts_{current_station}.png')
     ax1.set_xlim(pd.Timestamp(start_date), pd.Timestamp(end_date)) # entire period
     fig.savefig(file_wl_png.replace('.png','_alldata.png'))
@@ -181,8 +188,9 @@ for current_station in station_list:
     plt.close(fig)
 
 
+
+### PLOT SELECTION OF AVAILABLE STATIONS ON MAP
 if plot_stations:
-    #make spatial plot of available/retrieved stations
     crs = 28992
     locs_meas_ts, locs_meas_ext, _ = kw.retrieve_catalog(crs=crs)
     locs_ts_sel = locs_meas_ts.loc[locs_meas_ts.index.isin(station_list)]
@@ -220,67 +228,3 @@ if plot_stations:
     fig_map.savefig(os.path.join(dir_base,'stations_map.png'), dpi=200)
 
 
-
-### CREATE SUMMARY
-row_list_ts = []
-row_list_ext = []
-for current_station in station_list:
-    if not create_summary:
-        continue
-    
-    if current_station in stations_dupl:
-        continue
-    
-    print(f'checking data for {current_station}')
-    data_summary_row_ts = {}
-    data_summary_row_ext = {}
-    
-    #load measwl data
-    # file_wl_nc = os.path.join(dir_meas,f"{current_station}_measwl.nc")
-    # if os.path.exists(file_wl_nc):
-    ds_ts_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False)
-    if ds_ts_meas is not None:
-        
-        meta_dict_flat_ts = kw.get_flat_meta_from_dataset(ds_ts_meas)
-        data_summary_row_ts.update(meta_dict_flat_ts)
-        
-        ds_stats = kw.get_stats_from_dataset(ds_ts_meas)
-        data_summary_row_ts.update(ds_stats)
-        
-        del ds_ts_meas
-    
-
-    #load measext data
-    # file_ext_nc = os.path.join(dir_meas,f"{current_station}_measext.nc")
-    # if os.path.exists(file_ext_nc):
-    ds_ext_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True)
-    if ds_ext_meas is not None:
-        
-        meta_dict_flat_ext = kw.get_flat_meta_from_dataset(ds_ext_meas)
-        data_summary_row_ext.update(meta_dict_flat_ext)
-        
-        # TODO: warns about extremes being too close for BERGSDSWT, BROUWHVSGT02, BROUWHVSGT08, HOEKVHLD and more
-        # TODOTODO: this is partly due to aggers so first convert to 1/2 instead of 1/2/3/4/5
-        # TODO: but also due to incorrect data: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/43
-        ds_stats = kw.get_stats_from_dataset(ds_ext_meas)
-        data_summary_row_ext.update(ds_stats)
-        
-    
-    row_list_ts.append(pd.Series(data_summary_row_ts))
-    row_list_ext.append(pd.Series(data_summary_row_ext))
-
-if create_summary:
-    data_summary_ts = pd.concat(row_list_ts, axis=1).T
-    data_summary_ts = data_summary_ts.set_index('Code').sort_index()
-    data_summary_ext = pd.concat(row_list_ext, axis=1).T
-    data_summary_ext = data_summary_ext.set_index('Code').sort_index()
-    data_summary_ts.to_csv(os.path.join(dir_meas,'data_summary_ts.csv'))
-    data_summary_ext.to_csv(os.path.join(dir_meas,'data_summary_ext.csv'))
-    
-
-
-
- 
-
-
-    

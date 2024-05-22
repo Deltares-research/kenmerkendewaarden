@@ -75,6 +75,10 @@ def retrieve_measurements_amount(dir_output, station_list, start_date, end_date)
     
     file_csv_amount_ts = os.path.join(dir_output, "data_amount_ts.csv")
     file_csv_amount_ext = os.path.join(dir_output, "data_amount_ext.csv")
+    if os.path.exists(file_csv_amount_ts):
+        raise FileExistsError(f"{file_csv_amount_ts} already exists, delete file or change dir_output")
+    if os.path.exists(file_csv_amount_ext):
+        raise FileExistsError(f"{file_csv_amount_ext} already exists, delete file or change dir_output")
     
     # if csv file(s) do not exist, get the measurement amount from the DDL
     ts_amount_list = []
