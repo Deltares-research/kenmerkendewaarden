@@ -18,16 +18,6 @@ import logging
 logging.basicConfig(format='%(message)s')
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-try:
-    import contextily as ctx # pip install contextily
-    ctx_available = True
-except ModuleNotFoundError:
-    ctx_available = False
-try:
-    import dfm_tools as dfmt # pip install dfm_tools
-    dfmt_available = True
-except ModuleNotFoundError:
-    dfmt_available = False
 
 # TODO: overview of data improvements: https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
@@ -216,10 +206,15 @@ if plot_stations:
     ax_map.grid(alpha=0.5)
     
     # optionally add basemap/coastlines
-    if dfmt_available:
+    try:
+        import dfm_tools as dfmt # pip install dfm_tools
         dfmt.plot_coastlines(ax=ax_map, crs=crs)
-    elif ctx_available:
-        ctx.add_basemap(ax_map, source=ctx.providers.Esri.WorldImagery, crs=crs, attribution=False)
+    except ModuleNotFoundError:
+        try:
+            import contextily as ctx # pip install contextily
+            ctx.add_basemap(ax_map, source=ctx.providers.Esri.WorldImagery, crs=crs, attribution=False)
+        except ModuleNotFoundError:
+            pass
     
     fig_map.tight_layout()
     fig_map.savefig(os.path.join(dir_base,'stations_map.png'), dpi=200)
