@@ -7,6 +7,9 @@ Created on Tue Apr  9 09:39:32 2024
 
 import pandas as pd
 
+__all__ = []
+
+
 def xarray_to_hatyan(ds):
     df = pd.DataFrame({"values":ds["Meetwaarde.Waarde_Numeriek"].to_pandas()/100,
                        "QC": ds["WaarnemingMetadata.KwaliteitswaardecodeLijst"].to_pandas(),

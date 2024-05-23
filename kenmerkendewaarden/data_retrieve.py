@@ -16,7 +16,7 @@ import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.c
 import xarray as xr
 
 __all = [
-    "retrieve_catalog",
+    # "retrieve_catalog",
     "retrieve_measurements_amount",
     "read_measurements_amount",
     "retrieve_measurements",
@@ -24,6 +24,12 @@ __all = [
     ]
 
 logger = logging.getLogger(__name__)
+
+DICT_FNAMES = {"meas_ts":"{station}_measwl.nc",
+               "meas_ext":"{station}_measext.nc",
+               "amount_ts":"data_amount_ts.csv",
+               "amount_ext":"data_amount_ext.csv",
+               }
 
 
 def retrieve_catalog(overwrite=False, crs:int = None):
@@ -70,78 +76,69 @@ def retrieve_catalog(overwrite=False, crs:int = None):
     return locs_meas_ts, locs_meas_ext, locs_meas_exttype
 
 
-def retrieve_measurements_amount(dir_output, station_list, start_date, end_date):
+def retrieve_measurements_amount(dir_output, station_list, extremes:bool, start_date, end_date):
     locs_meas_ts, locs_meas_ext, locs_meas_exttype = retrieve_catalog()
     
-    file_csv_amount_ts = os.path.join(dir_output, "data_amount_ts.csv")
-    file_csv_amount_ext = os.path.join(dir_output, "data_amount_ext.csv")
-    if os.path.exists(file_csv_amount_ts):
-        raise FileExistsError(f"{file_csv_amount_ts} already exists, delete file or change dir_output")
-    if os.path.exists(file_csv_amount_ext):
-        raise FileExistsError(f"{file_csv_amount_ext} already exists, delete file or change dir_output")
+    if extremes:
+        fname = DICT_FNAMES['amount_ext']
+        locs_meas = locs_meas_ext
+    else:
+        fname = DICT_FNAMES['amount_ts']
+        locs_meas = locs_meas_ts
+    file_csv_amount = os.path.join(dir_output,fname)
+    
+    if os.path.exists(file_csv_amount):
+        raise FileExistsError(f"{file_csv_amount} already exists, delete file or change dir_output")
     
     # if csv file(s) do not exist, get the measurement amount from the DDL
-    ts_amount_list = []
-    ext_amount_list = []
+    amount_list = []
     for current_station in station_list:
         logger.info(f'retrieving measurement amount from DDL for {current_station}')
         
-        bool_station_ts = locs_meas_ts.index.isin([current_station])
-        bool_station_ext = locs_meas_ext.index.isin([current_station])
-        loc_meas_ts_one = locs_meas_ts.loc[bool_station_ts]
-        loc_meas_ext_one = locs_meas_ext.loc[bool_station_ext]
+        bool_station = locs_meas.index.isin([current_station])
+        loc_meas_one = locs_meas.loc[bool_station]
         
-        amount_ts = ddlpy.measurements_amount(location=loc_meas_ts_one.iloc[0], start_date=start_date, end_date=end_date)
-        amount_ts = amount_ts.rename(columns={"AantalMetingen":current_station})
-        ts_amount_list.append(amount_ts)
-        
-        if len(loc_meas_ext_one) == 0:
-            logger.info("ext: no station available")
+        if len(loc_meas_one) == 0:
+            logger.info(f"no station available (extremes={extremes})")
             # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
             #                                     "L9PFM","MAASMSMPL","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
             # https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
             amount_ext = pd.DataFrame({current_station:[]})
             amount_ext.index.name = "Groeperingsperiode"
         else:
-            amount_ext = ddlpy.measurements_amount(location=loc_meas_ext_one.iloc[0], start_date=start_date, end_date=end_date)
-            amount_ext = amount_ext.rename(columns={"AantalMetingen":current_station})
+            amount_meas = ddlpy.measurements_amount(location=loc_meas_one.iloc[0], start_date=start_date, end_date=end_date)
+            amount_meas = amount_meas.rename(columns={"AantalMetingen":current_station})
         
-        ext_amount_list.append(amount_ext)
+        amount_list.append(amount_meas)
     
     logger.info(f'write measurement amount csvs to {os.path.basename(dir_output)}')
     with warnings.catch_warnings(action="ignore", category=FutureWarning):
         # to suppress "FutureWarning: The behavior of array concatenation with empty entries is deprecated. In a future version, this will no longer exclude empty items when determining the result dtype. "
-        df_amount_ts = pd.concat(ts_amount_list, axis=1).sort_index()
-        df_amount_ext = pd.concat(ext_amount_list, axis=1).sort_index()
-    df_amount_ts = df_amount_ts.fillna(0).astype(int)
-    df_amount_ext = df_amount_ext.fillna(0).astype(int)
+        df_amount = pd.concat(amount_list, axis=1).sort_index()
+    df_amount = df_amount.fillna(0).astype(int)
     
-    df_amount_ts.to_csv(file_csv_amount_ts)
-    df_amount_ext.to_csv(file_csv_amount_ext)
-
-
-def read_measurements_amount(dir_output):
-    file_csv_amount_ts = os.path.join(dir_output, "data_amount_ts.csv")
-    file_csv_amount_ext = os.path.join(dir_output, "data_amount_ext.csv")
+    df_amount.to_csv(file_csv_amount)
     
-    if not os.path.exists(file_csv_amount_ts):
-        raise FileNotFoundError(f"{file_csv_amount_ts} does not exist")
-    if not os.path.exists(file_csv_amount_ext):
-        raise FileNotFoundError(f"{file_csv_amount_ext} does not exist")
+
+def read_measurements_amount(dir_output, extremes:bool):
+    if extremes:
+        fname = DICT_FNAMES['amount_ext']
+    else:
+        fname = DICT_FNAMES['amount_ts']
+    file_csv_amount = os.path.join(dir_output,fname)
+    
+    if not os.path.exists(file_csv_amount):
+        raise FileNotFoundError(f"{file_csv_amount} does not exist")
         
     logger.info("found existing data amount csv files, loading with pandas")
-    df_amount_ts = pd.read_csv(file_csv_amount_ts)
-    df_amount_ts = df_amount_ts.set_index("Groeperingsperiode")
-    df_amount_ext = pd.read_csv(file_csv_amount_ext)
-    df_amount_ext = df_amount_ext.set_index("Groeperingsperiode")
-    return df_amount_ts, df_amount_ext
+    df_amount = pd.read_csv(file_csv_amount)
+    df_amount = df_amount.set_index("Groeperingsperiode")
+    return df_amount
 
 
 def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date, end_date, drop_if_constant=None):
     
     locs_meas_ts, locs_meas_ext, locs_meas_exttype = retrieve_catalog()
-    
-    current_station = station
     
     if drop_if_constant is None:
         drop_if_constant = ["WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
@@ -154,36 +151,37 @@ def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date
                             "WaardeBepalingsmethode.Code", "MeetApparaat.Code",
                             ]
             
-    bool_station_ts = locs_meas_ts.index.isin([current_station])
-    bool_station_ext = locs_meas_ext.index.isin([current_station])
-    bool_station_exttype = locs_meas_exttype.index.isin([current_station])
+    bool_station_ts = locs_meas_ts.index.isin([station])
+    bool_station_ext = locs_meas_ext.index.isin([station])
+    bool_station_exttype = locs_meas_exttype.index.isin([station])
     loc_meas_ts_one = locs_meas_ts.loc[bool_station_ts]
     loc_meas_ext_one = locs_meas_ext.loc[bool_station_ext]
     loc_meas_exttype_one = locs_meas_exttype.loc[bool_station_exttype]
 
     if extremes:
-        file_nc = os.path.join(dir_output,f"{current_station}_measext.nc")
+        fname = DICT_FNAMES["meas_ext"].format(station=station)
         type_str = "ext"
         loc_meas_one = loc_meas_ext_one
         freq = dateutil.rrule.YEARLY
     else:
-        file_nc = os.path.join(dir_output,f"{current_station}_measwl.nc")
+        fname = DICT_FNAMES["meas_ts"].format(station=station)
         type_str = "ts"
         loc_meas_one = loc_meas_ts_one
         freq = None
+    file_nc = os.path.join(dir_output,fname)
     
     #retrieving waterlevel extremes or timeseries
     if os.path.exists(file_nc):
-        logger.info(f'meas data ({type_str}) for {current_station} already available in {os.path.basename(dir_output)}, skipping station')
+        logger.info(f'meas data ({type_str}) for {station} already available in {os.path.basename(dir_output)}, skipping station')
         return
         
     if len(loc_meas_one)==0:
-        logger.info(f"no stations present after station subsetting for {current_station} ({type_str}), skipping station:\n{loc_meas_one}")
+        logger.info(f"no stations present after station subsetting for {station} ({type_str}), skipping station:\n{loc_meas_one}")
         return
     elif len(loc_meas_one)!=1:
-        raise ValueError(f"no or multiple stations present after station subsetting for {current_station} ({type_str}):\n{loc_meas_one}")
+        raise ValueError(f"no or multiple stations present after station subsetting for {station} ({type_str}):\n{loc_meas_one}")
     
-    logger.info(f'retrieving meas data ({type_str}) from DDL for {current_station} to {os.path.basename(dir_output)}')
+    logger.info(f'retrieving meas data ({type_str}) from DDL for {station} to {os.path.basename(dir_output)}')
     measurements = ddlpy.measurements(location=loc_meas_one.iloc[0], start_date=start_date, end_date=end_date, freq=freq)
     if measurements.empty:
         raise ValueError("[NO DATA]")
@@ -203,9 +201,10 @@ def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date
 def read_measurements(dir_output:str, station:str, extremes:bool):
 
     if extremes:
-        file_nc = os.path.join(dir_output,f"{station}_measext.nc")
+        fname = DICT_FNAMES["meas_ext"].format(station=station)
     else:
-        file_nc = os.path.join(dir_output,f"{station}_measwl.nc")
+        fname = DICT_FNAMES["meas_ts"].format(station=station)
+    file_nc = os.path.join(dir_output,fname)
 
     if os.path.exists(file_nc):
         ds_meas = xr.open_dataset(file_nc)

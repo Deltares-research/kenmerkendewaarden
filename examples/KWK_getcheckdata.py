@@ -25,17 +25,17 @@ logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 retrieve_meas_amount = False
 plot_meas_amount = False
 retrieve_meas = False
-plot_meas = False
-plot_stations = False
 create_statistics_csv = False
-test = False
+plot_meas = False
+plot_stations = True
+test = True
 
 # TODO: add timezone to start/stop date? (and re-retrieve all data): https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 start_date = "1870-01-01"
 end_date = "2024-01-01"
 if test:
-    start_date = "2021-12-01"
-    end_date = "2022-02-01"
+    # start_date = "2021-12-01"
+    # end_date = "2022-02-01"
     start_date = "2010-12-01"
     end_date = "2022-02-01"
 
@@ -55,7 +55,7 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
                 'ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE',
                 'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
-station_list = ['BERGSDSWT','HOEKVHLD']
+# station_list = ['A12','BERGSDSWT','HOEKVHLD']
 
 locs_meas_ts, _, _ = kw.retrieve_catalog()
 for station_name in station_list:
@@ -121,13 +121,18 @@ stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
 ### RETRIEVE MEASUREMENTS AMOUNT
 if retrieve_meas_amount:
     kw.retrieve_measurements_amount(dir_output=dir_meas_amount, station_list=station_list, 
-                                    start_date=start_date, end_date=end_date)
+                                    start_date=start_date, end_date=end_date,
+                                    extremes=False)
+    kw.retrieve_measurements_amount(dir_output=dir_meas_amount, station_list=station_list, 
+                                    start_date=start_date, end_date=end_date,
+                                    extremes=True)
 
 
 ### PLOT MEASUREMENTS AMOUNT
 if plot_meas_amount:
     
-    df_amount_ts, df_amount_ext = kw.read_measurements_amount(dir_output=dir_meas_amount)
+    df_amount_ts = kw.read_measurements_amount(dir_output=dir_meas_amount, extremes=False)
+    df_amount_ext = kw.read_measurements_amount(dir_output=dir_meas_amount, extremes=True)
     
     file_plot = os.path.join(dir_meas_amount, "data_amount")
     
@@ -193,7 +198,7 @@ for current_station in station_list:
 if plot_stations:
     crs = 28992
     locs_meas_ts, locs_meas_ext, _ = kw.retrieve_catalog(crs=crs)
-    locs_ts_sel = locs_meas_ts.loc[locs_meas_ts.index.isin(station_list)]
+    locs_ts_sel = locs_meas_ts.loc[station_list]
     locs_ext_sel = locs_meas_ext.loc[locs_meas_ext.index.isin(station_list)]
     
     fig_map,ax_map = plt.subplots(figsize=(8,8))
@@ -217,6 +222,7 @@ if plot_stations:
     try:
         import dfm_tools as dfmt # pip install dfm_tools
         dfmt.plot_coastlines(ax=ax_map, crs=crs)
+        dfmt.plot_borders(ax=ax_map, crs=crs)
     except ModuleNotFoundError:
         try:
             import contextily as ctx # pip install contextily

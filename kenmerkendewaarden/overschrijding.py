@@ -15,6 +15,9 @@ from typing import Union, List
 import datetime as dt
 import os
 
+__all__ = []
+
+
 #wrapper
 def compute_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
     
