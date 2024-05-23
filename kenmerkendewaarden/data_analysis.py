@@ -73,7 +73,7 @@ def plot_measurements(ds, ds_ext=None):
     ax1.set_title(f'timeseries for {station_ds}')
     
     # calculate monthly/yearly mean for meas wl data
-    # TODOTODO: use kw.calc_wltidalindicators() instead (with threshold of eg 2900 like slotgem)
+    # TODO: use kw.calc_wltidalindicators() instead (with threshold of eg 2900 like slotgem)
     df_meas_values = ds['Meetwaarde.Waarde_Numeriek'].to_pandas()/100
     mean_peryearmonth_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="M")).mean()
     mean_peryear_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="Y")).mean()
@@ -84,15 +84,15 @@ def plot_measurements(ds, ds_ext=None):
     ax2.plot(mean_peryear_long,'m',linewidth=0.7, label='yearly mean')
     if ds_ext is not None:
         #calculate monthly/yearly mean for meas ext data
-        # TODOTODO: make kw function (exact or approximation?), also for timeseries
+        # TODO: make kw function (exact or approximation?), also for timeseries
         if len(ts_meas_ext_pd['HWLWcode'].unique()) > 2:
             data_pd_HWLW_12 = hatyan.calc_HWLW12345to12(ts_meas_ext_pd) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater).
-            # TODOTODO: currently, first/last values are skipped if LW
+            # TODO: currently, first/last values are skipped if LW
         else:
             data_pd_HWLW_12 = ts_meas_ext_pd.copy()
         data_pd_HW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==1]
         data_pd_LW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==2]
-        #TODOTODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
+        #TODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
         HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))['values'].mean()
         LW_mean_peryear_long = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="y"))['values'].mean()
         
@@ -104,7 +104,7 @@ def plot_measurements(ds, ds_ext=None):
         # ds_ext_meas_12only = ds_ext_meas_12only.sel(time=~bool_hwlw_45)
         
         # #calculate monthly/yearly mean for meas ext data
-        # # TODOTODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
+        # # TODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
         # data_pd_HW = ds_ext_meas_12only.sel(time=ds_ext_meas_12only['HWLWcode'].isin([1])).to_pandas()['Meetwaarde.Waarde_Numeriek']/100
         # data_pd_LW = ds_ext_meas_12only.sel(time=ds_ext_meas_12only['HWLWcode'].isin([2])).to_pandas()['Meetwaarde.Waarde_Numeriek']/100
         # HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y")).mean()
@@ -172,10 +172,13 @@ def get_stats_from_dataset(ds):
     ds_stats['qc_none'] = qc_none
             
     if "HWLWcode" in ds.data_vars:
-        #TODO: should be based on 12 only, not 345 (HOEKVHLD now gives warning)
-        if ts_timediff.min() < pd.Timedelta(hours=4): #TODO: min timediff for e.g. BROUWHVSGT08 is 3 minutes: ts_meas_ext_pd.loc[dt.datetime(2015,1,1):dt.datetime(2015,1,2),['values', 'QC', 'Status']]. This should not happen and with new dataset should be converted to an error
-            print(f'WARNING: extreme data contains values that are too close ({ts_timediff.min()}), should be at least 4 hours difference')
+        # count the number of too small time differences (<4hr), could be because of aggers
+        mintimediff_hr = 4
+        bool_timediff_toosmall = ts_timediff < pd.Timedelta(hours=mintimediff_hr)
+        if bool_timediff_toosmall.sum() > 0:
+            ds_stats[f'timediff<{mintimediff_hr}hr'] = bool_timediff_toosmall.sum()
         
+        # check whether there are aggers present
         if len(ds['HWLWcode'].to_pandas().unique()) > 2:
             ds_stats['aggers'] = True
         else:
@@ -184,15 +187,7 @@ def get_stats_from_dataset(ds):
     return ds_stats
 
 
-def create_statistics_csv(dir_output, station_list, extremes):
-    if extremes:
-        file_csv = os.path.join(dir_output,'data_summary_ext.csv')
-    else:
-        file_csv = os.path.join(dir_output,'data_summary_ts.csv')
-    
-    if os.path.exists(file_csv):
-        raise FileExistsError(f"file {file_csv} already exists, delete file or change dir_output")
-    
+def derive_statistics(dir_output, station_list, extremes):
     row_list = []
     for current_station in station_list:
         logger.info(f'deriving statistics for {current_station} (extremes={extremes})')
@@ -203,10 +198,6 @@ def create_statistics_csv(dir_output, station_list, extremes):
         if ds_meas is not None:
             meta_dict_flat_ts = get_flat_meta_from_dataset(ds_meas)
             data_summary_row.update(meta_dict_flat_ts)
-            
-            # TODO: kw.get_stats_from_dataset() warns about extremes being too close for 
-            # BERGSDSWT, BROUWHVSGT02, BROUWHVSGT08, HOEKVHLD and more
-            # this is partly due to aggers but also due to incorrect data: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/43
             ds_stats = get_stats_from_dataset(ds_meas)
             data_summary_row.update(ds_stats)
             del ds_meas
@@ -216,5 +207,5 @@ def create_statistics_csv(dir_output, station_list, extremes):
     logger.info("writing statistics to csv file")
     data_summary = pd.concat(row_list, axis=1).T
     data_summary = data_summary.set_index('Code').sort_index()
-    data_summary.to_csv(file_csv)
+    return data_summary
     

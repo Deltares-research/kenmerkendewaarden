@@ -92,10 +92,10 @@ def retrieve_measurements_amount(dir_output, station_list, extremes:bool, start_
     
     # if csv file(s) do not exist, get the measurement amount from the DDL
     amount_list = []
-    for current_station in station_list:
-        logger.info(f'retrieving measurement amount from DDL for {current_station}')
+    for station in station_list:
+        logger.info(f'retrieving measurement amount from DDL for {station}')
         
-        bool_station = locs_meas.index.isin([current_station])
+        bool_station = locs_meas.index.isin([station])
         loc_meas_one = locs_meas.loc[bool_station]
         
         if len(loc_meas_one) == 0:
@@ -103,11 +103,11 @@ def retrieve_measurements_amount(dir_output, station_list, extremes:bool, start_
             # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
             #                                     "L9PFM","MAASMSMPL","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
             # https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-            amount_ext = pd.DataFrame({current_station:[]})
+            amount_ext = pd.DataFrame({station:[]})
             amount_ext.index.name = "Groeperingsperiode"
         else:
             amount_meas = ddlpy.measurements_amount(location=loc_meas_one.iloc[0], start_date=start_date, end_date=end_date)
-            amount_meas = amount_meas.rename(columns={"AantalMetingen":current_station})
+            amount_meas = amount_meas.rename(columns={"AantalMetingen":station})
         
         amount_list.append(amount_meas)
     
@@ -160,28 +160,26 @@ def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date
 
     if extremes:
         fname = DICT_FNAMES["meas_ext"].format(station=station)
-        type_str = "ext"
         loc_meas_one = loc_meas_ext_one
         freq = dateutil.rrule.YEARLY
     else:
         fname = DICT_FNAMES["meas_ts"].format(station=station)
-        type_str = "ts"
         loc_meas_one = loc_meas_ts_one
         freq = None
     file_nc = os.path.join(dir_output,fname)
     
     #retrieving waterlevel extremes or timeseries
     if os.path.exists(file_nc):
-        logger.info(f'meas data ({type_str}) for {station} already available in {os.path.basename(dir_output)}, skipping station')
+        logger.info(f'meas data (extremes={extremes}) for {station} already available in {os.path.basename(dir_output)}, skipping station')
         return
         
     if len(loc_meas_one)==0:
-        logger.info(f"no stations present after station subsetting for {station} ({type_str}), skipping station:\n{loc_meas_one}")
+        logger.info(f"no stations present after station subsetting for {station} (extremes={extremes}), skipping station:\n{loc_meas_one}")
         return
     elif len(loc_meas_one)!=1:
-        raise ValueError(f"no or multiple stations present after station subsetting for {station} ({type_str}):\n{loc_meas_one}")
+        raise ValueError(f"no or multiple stations present after station subsetting for {station} (extremes={extremes}):\n{loc_meas_one}")
     
-    logger.info(f'retrieving meas data ({type_str}) from DDL for {station} to {os.path.basename(dir_output)}')
+    logger.info(f'retrieving meas data (extremes={extremes}) from DDL for {station} to {os.path.basename(dir_output)}')
     measurements = ddlpy.measurements(location=loc_meas_one.iloc[0], start_date=start_date, end_date=end_date, freq=freq)
     if measurements.empty:
         raise ValueError("[NO DATA]")
@@ -196,6 +194,7 @@ def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date
 
     # write to netcdf (including metadata)
     ds_meas.to_netcdf(file_nc)
+    ds_meas.close()
 
 
 def read_measurements(dir_output:str, station:str, extremes:bool):

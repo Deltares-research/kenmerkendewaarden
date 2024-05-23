@@ -21,14 +21,15 @@ logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 # TODO: overview of data improvements: https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
+# TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
 
 retrieve_meas_amount = False
 plot_meas_amount = False
 retrieve_meas = False
-create_statistics_csv = False
+derive_statistics = False
 plot_meas = False
 plot_stations = True
-test = True
+test = False
 
 # TODO: add timezone to start/stop date? (and re-retrieve all data): https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 start_date = "1870-01-01"
@@ -57,66 +58,12 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
 # station_list = ['A12','BERGSDSWT','HOEKVHLD']
 
-locs_meas_ts, _, _ = kw.retrieve_catalog()
-for station_name in station_list:
-    bool_isstation = locs_meas_ts.index == station_name
-    if bool_isstation.sum()!=1:
-        print(f'station name {station_name} found {bool_isstation.sum()} times, should be 1:')
-        print(f'{locs_meas_ts.loc[bool_isstation,["Naam","Locatie_MessageID","Hoedanigheid.Code"]]}')
-        print()
-
-
-# skip duplicate code stations (hist/realtime) # TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12
+# skip duplicate code stations from station_list_tk (hist/realtime) # TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
 stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
-"""
-# from station_list_tk
-station name BATH found 2 times, should be 1:
-      Naam  Locatie_MessageID Hoedanigheid.Code
-Code                                           
-BATH  Bath              10518               NAP
-BATH  Bath              13615               NAP
-
-station name D15 found 2 times, should be 1:
-                Naam  Locatie_MessageID Hoedanigheid.Code
-Code                                                     
-D15     D15 platform               6876               MSL
-D15   Platform D15-A              10968               MSL
-
-station name J6 found 2 times, should be 1:
-             Naam  Locatie_MessageID Hoedanigheid.Code
-Code                                                  
-J6    J6 platform               5377               MSL
-J6    Platform J6              10982               MSL
-
-station name NES found 2 times, should be 1:
-     Naam  Locatie_MessageID Hoedanigheid.Code
-Code                                          
-NES   Nes               5391               NAP
-NES   Nes              10309               NAP
-"""
-
-# skip MSL/NAP duplicate stations # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
+# skip MSL/NAP duplicate stations from station_list_tk # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
 stations_nap_mls_dupl = ["EURPFM", "LICHTELGRE"]
-"""
-# from station_list_tk
-station name EURPFM found 2 times, should be 1:
-                 Naam  Locatie_MessageID Hoedanigheid.Code
-Code                                                      
-EURPFM  Euro platform              10946               MSL
-EURPFM  Euro platform              10946               NAP
-
-station name LICHTELGRE found 2 times, should be 1:
-                          Naam  Locatie_MessageID Hoedanigheid.Code
-Code                                                               
-LICHTELGRE  Lichteiland Goeree              10953               MSL
-LICHTELGRE  Lichteiland Goeree              10953               NAP
-"""
-
 stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
 
-
-# TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
-# TODO: some stations are now realtime instead of hist (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20), these are manually skipped in actual data retrieval/statistics
 
 ### RETRIEVE MEASUREMENTS AMOUNT
 if retrieve_meas_amount:
@@ -130,7 +77,6 @@ if retrieve_meas_amount:
 
 ### PLOT MEASUREMENTS AMOUNT
 if plot_meas_amount:
-    
     df_amount_ts = kw.read_measurements_amount(dir_output=dir_meas_amount, extremes=False)
     df_amount_ext = kw.read_measurements_amount(dir_output=dir_meas_amount, extremes=True)
     
@@ -164,9 +110,12 @@ for current_station in station_list:
 
 
 ### CREATE SUMMARY
-if create_statistics_csv:
-    kw.create_statistics_csv(dir_output=dir_meas, station_list=station_list, extremes=False)
-    kw.create_statistics_csv(dir_output=dir_meas, station_list=station_list, extremes=True)
+if derive_statistics:
+    # TODO: also shows extremes being too close for several stations (sometimes due to aggers): https://github.com/Rijkswaterstaat/wm-ws-dl/issues/43
+    stats_ts = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, extremes=False)
+    stats_ext = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, extremes=True)
+    stats_ts.to_csv(os.path.join(dir_meas,'data_summary_ts.csv'))
+    stats_ext.to_csv(os.path.join(dir_meas,'data_summary_ext.csv'))
 
 
 
