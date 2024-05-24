@@ -15,7 +15,7 @@ import dateutil
 import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num()
 import xarray as xr
 
-__all = [
+__all__ = [
     # "retrieve_catalog",
     "retrieve_measurements_amount",
     "read_measurements_amount",

@@ -4,6 +4,7 @@ Created on Fri Dec 16 14:12:54 2022
 
 @author: veenstra
 """
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

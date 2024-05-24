@@ -25,11 +25,11 @@ logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 retrieve_meas_amount = False
 plot_meas_amount = False
-retrieve_meas = True
-derive_statistics = True
+retrieve_meas = False
+derive_statistics = False
 plot_meas = False
 plot_stations = False
-test = True
+test = False
 
 # TODO: add timezone to start/stop date? (and re-retrieve all data): https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 start_date = "1870-01-01"
@@ -56,7 +56,7 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
                 'ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE',
                 'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
-station_list = ['HOEKVHLD']
+# station_list = ['HOEKVHLD']
 
 # skip duplicate code stations from station_list_tk (hist/realtime) # TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
 stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
@@ -146,7 +146,7 @@ for current_station in station_list:
 ### PLOT SELECTION OF AVAILABLE STATIONS ON MAP
 if plot_stations:
     crs = 28992
-    locs_meas_ts, locs_meas_ext, _ = kw.retrieve_catalog(crs=crs)
+    locs_meas_ts, locs_meas_ext, _ = kw.data_retrieve.retrieve_catalog(crs=crs)
     locs_ts_sel = locs_meas_ts.loc[station_list]
     locs_ext_sel = locs_meas_ext.loc[locs_meas_ext.index.isin(station_list)]
     
