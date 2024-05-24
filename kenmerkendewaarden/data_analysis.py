@@ -60,7 +60,6 @@ def df_amount_pcolormesh(df, relative=False):
 
 
 def plot_measurements(ds, ds_ext=None):
-    
     station_ds = ds.attrs["Code"]
     ts_meas_pd = xarray_to_hatyan(ds)
     if ds_ext is not None:
@@ -73,45 +72,26 @@ def plot_measurements(ds, ds_ext=None):
     ax1.set_title(f'timeseries for {station_ds}')
     
     # calculate monthly/yearly mean for meas wl data
-    # TODO: use kw.calc_wltidalindicators() instead (with threshold of eg 2900 like slotgem)
     df_meas_values = ds['Meetwaarde.Waarde_Numeriek'].to_pandas()/100
     mean_peryearmonth_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="M")).mean()
     mean_peryear_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="Y")).mean()
-        
+    
     ax1.plot(mean_peryearmonth_long,'c',linewidth=0.7, label='monthly mean')
     ax1.plot(mean_peryear_long,'m',linewidth=0.7, label='yearly mean')
     ax2.plot(mean_peryearmonth_long,'c',linewidth=0.7, label='monthly mean')
     ax2.plot(mean_peryear_long,'m',linewidth=0.7, label='yearly mean')
     if ds_ext is not None:
-        #calculate monthly/yearly mean for meas ext data
-        # TODO: make kw function (exact or approximation?), also for timeseries
-        if len(ts_meas_ext_pd['HWLWcode'].unique()) > 2:
-            data_pd_HWLW_12 = hatyan.calc_HWLW12345to12(ts_meas_ext_pd) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater).
-            # TODO: currently, first/last values are skipped if LW
-        else:
-            data_pd_HWLW_12 = ts_meas_ext_pd.copy()
-        data_pd_HW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==1]
-        data_pd_LW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==2]
-        #TODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
+        # select all hoogwater
+        data_pd_HW = ts_meas_ext_pd.loc[ts_meas_ext_pd['HWLWcode'].isin([1])]
+        # select all laagwater, laagwater1, laagwater2 (so approximation in case of aggers)
+        data_pd_LW = ts_meas_ext_pd.loc[ts_meas_ext_pd['HWLWcode'].isin([2,3,5])]
+        
+        # calculate monthly/yearly mean for meas ext data
         HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))['values'].mean()
         LW_mean_peryear_long = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="y"))['values'].mean()
         
-        # # replace 345 HWLWcode with 2, simple approximation of actual LW
-        # bool_hwlw_3 = ds_ext_meas['HWLWcode'].isin([3])
-        # bool_hwlw_45 = ds_ext_meas['HWLWcode'].isin([4,5])
-        # ds_ext_meas_12only = ds_ext_meas.copy()
-        # ds_ext_meas_12only['HWLWcode'][bool_hwlw_3] = 2
-        # ds_ext_meas_12only = ds_ext_meas_12only.sel(time=~bool_hwlw_45)
-        
-        # #calculate monthly/yearly mean for meas ext data
-        # # TODO: use kw.calc_HWLWtidalindicators() instead (with threshold of eg 1400 like slotgem)
-        # data_pd_HW = ds_ext_meas_12only.sel(time=ds_ext_meas_12only['HWLWcode'].isin([1])).to_pandas()['Meetwaarde.Waarde_Numeriek']/100
-        # data_pd_LW = ds_ext_meas_12only.sel(time=ds_ext_meas_12only['HWLWcode'].isin([2])).to_pandas()['Meetwaarde.Waarde_Numeriek']/100
-        # HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y")).mean()
-        # LW_mean_peryear_long = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="y")).mean()
-
-        ax1.plot(HW_mean_peryear_long,'m',linewidth=0.7, label=None) #'yearly mean HW')
-        ax1.plot(LW_mean_peryear_long,'m',linewidth=0.7, label=None) #'yearly mean LW')
+        ax1.plot(HW_mean_peryear_long,'m',linewidth=0.7, label=None)
+        ax1.plot(LW_mean_peryear_long,'m',linewidth=0.7, label=None)
     ax1.set_ylim(-4,4)
     ax1.legend(loc=4)
     ax2.legend(loc=1)
@@ -172,7 +152,7 @@ def get_stats_from_dataset(ds):
     ds_stats['qc_none'] = qc_none
             
     if "HWLWcode" in ds.data_vars:
-        # count the number of too small time differences (<4hr), could be because of aggers
+        # count the number of too small time differences (<4hr), sometimes happens because of aggers
         mintimediff_hr = 4
         bool_timediff_toosmall = ts_timediff < pd.Timedelta(hours=mintimediff_hr)
         if bool_timediff_toosmall.sum() > 0:
