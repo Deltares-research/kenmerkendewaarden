@@ -5,7 +5,6 @@ Created on Mon May 20 11:23:46 2024
 @author: veenstra
 """
 
-import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -14,11 +13,11 @@ from kenmerkendewaarden.data_retrieve import read_measurements
 import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num()
 import logging
 
-__all = [
+__all__ = [
     "df_amount_boxplot",
     "df_amount_pcolormesh",
     "plot_measurements",
-    "create_statistics_csv",
+    "derive_statistics",
     ]
 
 logger = logging.getLogger(__name__)
