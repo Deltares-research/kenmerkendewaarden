@@ -111,7 +111,6 @@ for current_station in station_list:
 
 ### CREATE SUMMARY
 if derive_stats:
-    # TODO: also shows extremes being too close for several stations (sometimes due to aggers): https://github.com/Rijkswaterstaat/wm-ws-dl/issues/43
     stats_ts = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, extremes=False)
     stats_ext = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, extremes=True)
     stats_ts.to_csv(os.path.join(dir_meas,'data_summary_ts.csv'))
