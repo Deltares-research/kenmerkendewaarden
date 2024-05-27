@@ -120,42 +120,40 @@ def get_flat_meta_from_dataset(ds):
 
 
 def get_stats_from_dataset(ds):
+    df = xarray_to_hatyan(ds)
+    df_times = df.index
+    ts_dupltimes = df_times.duplicated()
+    ts_timediff = df_times.diff()[1:]
+    
     ds_stats = {}
-    
-    # TODO: beware on timezones
-    ds_times = ds.time.to_pandas().index.tz_localize("UTC").tz_convert("Etc/GMT-1")
-    ts_dupltimes = ds_times.duplicated()
-    ts_timediff = ds_times.diff()[1:]
-    
-    ds_stats['tstart'] = ds_times.min()
-    ds_stats['tstop'] = ds_times.max()
+    ds_stats['tstart'] = df_times.min()
+    ds_stats['tstop'] = df_times.max()
     ds_stats['timediff_min'] = ts_timediff.min()
     ds_stats['timediff_max'] = ts_timediff.max()
-    ds_stats['nvals'] = len(ds['Meetwaarde.Waarde_Numeriek'])
-    ds_stats['#nans'] = ds['Meetwaarde.Waarde_Numeriek'].isnull().values.sum()
-    ds_stats['min'] = ds['Meetwaarde.Waarde_Numeriek'].min().values
-    ds_stats['max'] = ds['Meetwaarde.Waarde_Numeriek'].max().values
-    ds_stats['std'] = ds['Meetwaarde.Waarde_Numeriek'].std().values
-    ds_stats['mean'] = ds['Meetwaarde.Waarde_Numeriek'].mean().values
+    ds_stats['nvals'] = len(df['values'])
+    ds_stats['#nans'] = df['values'].isnull().sum()
+    ds_stats['min'] = df['values'].min()
+    ds_stats['max'] = df['values'].max()
+    ds_stats['std'] = df['values'].std()
+    ds_stats['mean'] = df['values'].mean()
     ds_stats['dupltimes'] = ts_dupltimes.sum()
     #count #nans for duplicated times, happens at HARVT10/HUIBGT/STELLDBTN
-    ds_stats['dupltimes_#nans'] = ds.sel(time=ds_times.duplicated(keep=False))['Meetwaarde.Waarde_Numeriek'].isnull().values.sum()
+    ds_stats['dupltimes_#nans'] = df.loc[df_times.duplicated(keep=False)]['values'].isnull().sum()
     
-    if '' in ds['WaarnemingMetadata.KwaliteitswaardecodeLijst']:
-        qc_none = True
+    if '' in df['QC']: #TODO: this is probably already None or np.nan
+        ds_stats['qc_none'] = True
     else:
-        qc_none = False
-    ds_stats['qc_none'] = qc_none
+        ds_stats['qc_none'] = False
             
-    if "HWLWcode" in ds.data_vars:
+    if "HWLWcode" in df.columns:
+        # TODO: after converting from ds to df, do we still get HWLW toosmall in stats?
         # count the number of too small time differences (<4hr), sometimes happens because of aggers
         mintimediff_hr = 4
         bool_timediff_toosmall = ts_timediff < pd.Timedelta(hours=mintimediff_hr)
-        if bool_timediff_toosmall.sum() > 0:
-            ds_stats[f'timediff<{mintimediff_hr}hr'] = bool_timediff_toosmall.sum()
+        ds_stats[f'timediff<{mintimediff_hr}hr'] = bool_timediff_toosmall.sum()
         
         # check whether there are aggers present
-        if len(ds['HWLWcode'].to_pandas().unique()) > 2:
+        if len(df['HWLWcode'].unique()) > 2:
             ds_stats['aggers'] = True
         else:
             ds_stats['aggers'] = False
@@ -170,7 +168,7 @@ def derive_statistics(dir_output, station_list, extremes):
         data_summary_row = {}
         
         # load measwl data
-        ds_meas = read_measurements(dir_output=dir_output, station=current_station, extremes=extremes)
+        ds_meas = read_measurements(dir_output=dir_output, station=current_station, extremes=extremes, return_xarray=True)
         if ds_meas is not None:
             meta_dict_flat_ts = get_flat_meta_from_dataset(ds_meas)
             data_summary_row.update(meta_dict_flat_ts)
