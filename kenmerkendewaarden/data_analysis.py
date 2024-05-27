@@ -119,8 +119,7 @@ def get_flat_meta_from_dataset(ds):
     return meta_dict_flat
 
 
-def get_stats_from_dataset(ds):
-    df = xarray_to_hatyan(ds)
+def get_stats_from_dataframe(df):
     df_times = df.index
     ts_dupltimes = df_times.duplicated()
     ts_timediff = df_times.diff()[1:]
@@ -172,8 +171,10 @@ def derive_statistics(dir_output, station_list, extremes):
         if ds_meas is not None:
             meta_dict_flat_ts = get_flat_meta_from_dataset(ds_meas)
             data_summary_row.update(meta_dict_flat_ts)
-            ds_stats = get_stats_from_dataset(ds_meas)
-            data_summary_row.update(ds_stats)
+            
+            df_meas = xarray_to_hatyan(ds_meas)
+            df_stats = get_stats_from_dataframe(df_meas)
+            data_summary_row.update(df_stats)
             del ds_meas
         data_summary_row["Code"] = current_station
         row_list.append(pd.Series(data_summary_row))
