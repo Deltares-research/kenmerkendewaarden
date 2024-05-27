@@ -129,11 +129,11 @@ for current_station in station_list:
     print(f'plotting timeseries data for {current_station}')
     
     # load data
-    ds_ts_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False)
-    ds_ext_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True)
+    df_ts_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False)
+    df_ext_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True)
     
     # create and save figure
-    fig,(ax1, ax2) = kw.plot_measurements(ds=ds_ts_meas, ds_ext=ds_ext_meas)
+    fig,(ax1, ax2) = kw.plot_measurements(df=df_ts_meas, df_ext=df_ext_meas)
     file_wl_png = os.path.join(dir_meas,f'ts_{current_station}.png')
     ax1.set_xlim(pd.Timestamp(start_date), pd.Timestamp(end_date)) # entire period
     fig.savefig(file_wl_png.replace('.png','_alldata.png'))

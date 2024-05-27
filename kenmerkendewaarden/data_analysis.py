@@ -57,21 +57,18 @@ def df_amount_pcolormesh(df, relative=False):
     return fig, ax
 
 
-def plot_measurements(ds, ds_ext=None):
-    station_ds = ds.attrs["Code"]
-    # TODO: beware on timezones
-    ts_meas_pd = xarray_to_hatyan(ds)
-    if ds_ext is not None:
-        station_ds_ext = ds_ext.attrs["Code"]
-        assert station_ds == station_ds_ext
-        ts_meas_ext_pd = xarray_to_hatyan(ds_ext)
-        fig,(ax1,ax2) = hatyan.plot_timeseries(ts=ts_meas_pd, ts_ext=ts_meas_ext_pd)
+def plot_measurements(df, df_ext=None):
+    station_df = df.attrs["station"]
+    if df_ext is not None:
+        station_df_ext = df_ext.attrs["station"]
+        assert station_df == station_df_ext
+        fig,(ax1,ax2) = hatyan.plot_timeseries(ts=df, ts_ext=df_ext)
     else:
-        fig,(ax1,ax2) = hatyan.plot_timeseries(ts=ts_meas_pd)
-    ax1.set_title(f'timeseries for {station_ds}')
+        fig,(ax1,ax2) = hatyan.plot_timeseries(ts=df)
+    ax1.set_title(f'timeseries for {station_df}')
     
     # calculate monthly/yearly mean for meas wl data
-    df_meas_values = ds['Meetwaarde.Waarde_Numeriek'].to_pandas()/100
+    df_meas_values = df['values']
     mean_peryearmonth_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="M")).mean()
     mean_peryear_long = df_meas_values.groupby(pd.PeriodIndex(df_meas_values.index, freq="Y")).mean()
     
@@ -79,11 +76,11 @@ def plot_measurements(ds, ds_ext=None):
     ax1.plot(mean_peryear_long,'m',linewidth=0.7, label='yearly mean')
     ax2.plot(mean_peryearmonth_long,'c',linewidth=0.7, label='monthly mean')
     ax2.plot(mean_peryear_long,'m',linewidth=0.7, label='yearly mean')
-    if ds_ext is not None:
+    if df_ext is not None:
         # select all hoogwater
-        data_pd_HW = ts_meas_ext_pd.loc[ts_meas_ext_pd['HWLWcode'].isin([1])]
+        data_pd_HW = df_ext.loc[df_ext['HWLWcode'].isin([1])]
         # select all laagwater, laagwater1, laagwater2 (so approximation in case of aggers)
-        data_pd_LW = ts_meas_ext_pd.loc[ts_meas_ext_pd['HWLWcode'].isin([2,3,5])]
+        data_pd_LW = df_ext.loc[df_ext['HWLWcode'].isin([2,3,5])]
         
         # calculate monthly/yearly mean for meas ext data
         HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))['values'].mean()
