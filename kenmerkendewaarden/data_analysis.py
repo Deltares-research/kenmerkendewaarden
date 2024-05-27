@@ -139,13 +139,14 @@ def get_stats_from_dataframe(df):
     #count #nans for duplicated times, happens at HARVT10/HUIBGT/STELLDBTN
     ds_stats['dupltimes_#nans'] = df.loc[df_times.duplicated(keep=False)]['values'].isnull().sum()
     
-    if '' in df['QC']: #TODO: this is probably already None or np.nan
+    # None in kwaliteitswaardecodelijst: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/14
+    # TODO: add test to see if '' is indeed the missing value (or None or np.nan)
+    if '' in df['qualitycode'].values:
         ds_stats['qc_none'] = True
     else:
         ds_stats['qc_none'] = False
-            
+    
     if "HWLWcode" in df.columns:
-        # TODO: after converting from ds to df, do we still get HWLW toosmall in stats?
         # count the number of too small time differences (<4hr), sometimes happens because of aggers
         mintimediff_hr = 4
         bool_timediff_toosmall = ts_timediff < pd.Timedelta(hours=mintimediff_hr)

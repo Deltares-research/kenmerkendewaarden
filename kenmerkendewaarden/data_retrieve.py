@@ -205,8 +205,8 @@ def xarray_to_hatyan(ds):
     in the kenmerkendewaarden code when passing it to hatyan.
     """
     df = pd.DataFrame({"values":ds["Meetwaarde.Waarde_Numeriek"].to_pandas()/100,
-                       "QC": ds["WaarnemingMetadata.KwaliteitswaardecodeLijst"].to_pandas(),
-                       "Status": ds["WaarnemingMetadata.StatuswaardeLijst"].to_pandas(),
+                       "qualitycode": ds["WaarnemingMetadata.KwaliteitswaardecodeLijst"].to_pandas(),
+                       "status": ds["WaarnemingMetadata.StatuswaardeLijst"].to_pandas(),
                        })
     if "HWLWcode" in ds.data_vars:
         df["HWLWcode"] = ds["HWLWcode"]
@@ -228,7 +228,7 @@ def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=
     file_nc = os.path.join(dir_output,fname)
 
     if not os.path.exists(file_nc):
-        # return None if not exists
+        # return None if file does not exist
         return
     
     ds_meas = xr.open_dataset(file_nc)
