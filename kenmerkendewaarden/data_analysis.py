@@ -148,6 +148,7 @@ def get_stats_from_dataframe(df):
     
     if "HWLWcode" in df.columns:
         # count the number of too small time differences (<4hr), sometimes happens because of aggers
+        # but sometimes due to incorrect data: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/43
         mintimediff_hr = 4
         bool_timediff_toosmall = ts_timediff < pd.Timedelta(hours=mintimediff_hr)
         ds_stats[f'timediff<{mintimediff_hr}hr'] = bool_timediff_toosmall.sum()
