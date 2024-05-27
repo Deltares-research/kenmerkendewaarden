@@ -27,7 +27,7 @@ retrieve_meas_amount = False
 plot_meas_amount = False
 retrieve_meas = False
 derive_statistics = False
-plot_meas = False
+plot_meas = True
 plot_stations = False
 test = False
 
@@ -56,7 +56,7 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
                 'ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE',
                 'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
-# station_list = ['HOEKVHLD']
+station_list = ['BERGSDSWT']
 
 # skip duplicate code stations from station_list_tk (hist/realtime) # TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
 stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
@@ -128,7 +128,7 @@ for current_station in station_list:
         continue
     print(f'plotting timeseries data for {current_station}')
     
-    #load data
+    # load data
     ds_ts_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False)
     ds_ext_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True)
     

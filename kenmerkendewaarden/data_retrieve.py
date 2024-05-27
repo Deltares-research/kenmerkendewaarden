@@ -197,7 +197,29 @@ def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date
     ds_meas.close()
 
 
-def read_measurements(dir_output:str, station:str, extremes:bool):
+def xarray_to_hatyan(ds):
+    """
+    converting the xarray dataset in the format of the 
+    kenmerkendewaarden netcdf files to a hatyan dataframe.
+    This saves memory and prevents converting it multiple times 
+    in the kenmerkendewaarden code when passing it to hatyan.
+    """
+    df = pd.DataFrame({"values":ds["Meetwaarde.Waarde_Numeriek"].to_pandas()/100,
+                       "QC": ds["WaarnemingMetadata.KwaliteitswaardecodeLijst"].to_pandas(),
+                       "Status": ds["WaarnemingMetadata.StatuswaardeLijst"].to_pandas(),
+                       })
+    if "HWLWcode" in ds.data_vars:
+        df["HWLWcode"] = ds["HWLWcode"]
+    
+    # convert timezone back to UTC+1 # TODO: add testcase
+    df.index = df.index.tz_localize("UTC").tz_convert("Etc/GMT-1")
+    
+    # add attrs
+    df.attrs["station"] = ds.attrs["Code"]
+    return df
+
+
+def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=False):
 
     if extremes:
         fname = DICT_FNAMES["meas_ext"].format(station=station)
@@ -205,8 +227,13 @@ def read_measurements(dir_output:str, station:str, extremes:bool):
         fname = DICT_FNAMES["meas_ts"].format(station=station)
     file_nc = os.path.join(dir_output,fname)
 
-    if os.path.exists(file_nc):
-        ds_meas = xr.open_dataset(file_nc)
-    else:
-        ds_meas = None
-    return ds_meas
+    if not os.path.exists(file_nc):
+        # return None if not exists
+        return
+    
+    ds_meas = xr.open_dataset(file_nc)
+    if return_xarray:
+        return ds_meas
+    
+    df_meas = xarray_to_hatyan(ds_meas)
+    return df_meas

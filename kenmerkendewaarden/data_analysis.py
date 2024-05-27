@@ -8,8 +8,7 @@ Created on Mon May 20 11:23:46 2024
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from kenmerkendewaarden.utils import xarray_to_hatyan
-from kenmerkendewaarden.data_retrieve import read_measurements
+from kenmerkendewaarden.data_retrieve import read_measurements, xarray_to_hatyan
 import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num()
 import logging
 
@@ -60,6 +59,7 @@ def df_amount_pcolormesh(df, relative=False):
 
 def plot_measurements(ds, ds_ext=None):
     station_ds = ds.attrs["Code"]
+    # TODO: beware on timezones
     ts_meas_pd = xarray_to_hatyan(ds)
     if ds_ext is not None:
         station_ds_ext = ds_ext.attrs["Code"]
