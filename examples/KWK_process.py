@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 plt.close('all')
 import hatyan # available via `pip install hatyan` or at https://github.com/Deltares/hatyan
 import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-research/kenmerkendewaarden
-import xarray as xr
 
 # TODO: not in M2phasediff textfile (in hatyan): ['LICHTELGRE','EURPFM']
 # TODO: HW/LW numbers not always increasing (old comment): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
@@ -44,8 +43,14 @@ os.makedirs(dir_overschrijding, exist_ok=True)
 
 fig_alltimes_ext = [dt.datetime.strptime(x,'%Y%m%d') for x in os.path.basename(dir_meas).split('_')[2:4]]
 
-# stat_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUWHVSGT08','GATVBSLE','BRESKVHVN','CADZD','D15','DELFZL','DENHDR','EEMSHVN','EURPFM','F16','F3PFM','HARVT10','HANSWT','HARLGN','HOEKVHLD','HOLWD','HUIBGT','IJMDBTHVN','IJMDSMPL','J6','K13APFM','K14PFM','KATSBTN','KORNWDZBTN','KRAMMSZWT','L9PFM','LAUWOG','LICHTELGRE','MARLGT','NES','NIEUWSTZL','NORTHCMRT','DENOVBTN','OOSTSDE04','OOSTSDE11','OOSTSDE14','OUDSD','OVLVHWT','Q1','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE'] #all stations from TK
-# stat_list = ['BAALHK','BATH','BERGSDSWT','BRESKVHVN','CADZD','DELFZL','DENHDR','DENOVBTN','EEMSHVN','GATVBSLE','HANSWT','HARLGN','HARVT10','HOEKVHLD','IJMDBTHVN','KATSBTN','KORNWDZBTN','KRAMMSZWT','LAUWOG','OUDSD','ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','STAVNSE','STELLDBTN','TERNZN','VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN'] #all files with valid data for 2010 to 2021
+# all stations from TK (dataTKdia)
+station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUWHVSGT08','GATVBSLE','BRESKVHVN','CADZD',
+                'D15','DELFZL','DENHDR','EEMSHVN','EURPFM','F16','F3PFM','HARVT10','HANSWT','HARLGN','HOEKVHLD','HOLWD','HUIBGT',
+                'IJMDBTHVN','IJMDSMPL','J6','K13APFM','K14PFM','KATSBTN','KORNWDZBTN','KRAMMSZWT','L9PFM','LAUWOG','LICHTELGRE',
+                'MARLGT','NES','NIEUWSTZL','NORTHCMRT','DENOVBTN','OOSTSDE04','OOSTSDE11','OOSTSDE14','OUDSD','OVLVHWT','Q1',
+                'ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE',
+                'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
+# TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
 stat_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
 
 
@@ -89,19 +94,17 @@ for current_station in stat_list:
     plt.close('all')
     
     print(f'loading data for {current_station}')
-    file_wl_nc = os.path.join(dir_meas,f"{current_station}_measwl.nc")
-    if os.path.exists(file_wl_nc): #for slotgemiddelden, gemgetijkrommen (needs slotgem+havget)
-        ds_ts_meas = xr.open_dataset(file_wl_nc)
-        data_pd_meas_all = kw.xarray_to_hatyan(ds_ts_meas)
+    # timeseries are used for slotgemiddelden, gemgetijkrommen (needs slotgem+havget)
+    data_pd_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False)
+    if data_pd_meas_all is not None:
         if NAP2005correction:
             data_pd_meas_all = nap2005_correction(data_pd_meas_all,current_station)
         #crop measurement data
         data_pd_meas_10y = hatyan.crop_timeseries(data_pd_meas_all, times=slice(tstart_dt,tstop_dt-dt.timedelta(minutes=10)))#,onlyfull=False)
     
-    file_ext_nc = os.path.join(dir_meas,f"{current_station}_measext.nc")
-    if os.path.exists(file_ext_nc): #for slotgemiddelden, havengetallen, overschrijding
-        ds_ext_meas = xr.open_dataset(file_ext_nc)
-        data_pd_HWLW_all = kw.xarray_to_hatyan(ds_ext_meas)
+    # extremes are used for slotgemiddelden, havengetallen, overschrijding
+    data_pd_HWLW_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True)
+    if data_pd_HWLW_all is not None:
         if NAP2005correction:
             data_pd_HWLW_all = nap2005_correction(data_pd_HWLW_all,current_station)
         if compute_slotgem or compute_havengetallen or compute_overschrijding: #TODO: make calc_HWLW12345to12() faster
@@ -123,7 +126,7 @@ for current_station in stat_list:
     #### SLOTGEMIDDELDEN
     #TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
     #TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
-    if compute_slotgem and os.path.exists(file_wl_nc):
+    if compute_slotgem and data_pd_meas_all is not None:
         print(f'slotgemiddelden for {current_station}')
         
         #calculate yearly mean
@@ -133,7 +136,7 @@ for current_station in stat_list:
         wl_mean_peryear_valid = dict_wltidalindicators_valid['wl_mean_peryear']
         
         #derive tidal indicators like yearmean HWLW from HWLW values
-        if os.path.exists(file_ext_nc):
+        if data_pd_HWLW_all is not None:
             dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12)
             HW_mean_peryear = dict_HWLWtidalindicators['HW_mean_peryear']
             LW_mean_peryear = dict_HWLWtidalindicators['LW_mean_peryear']
@@ -160,7 +163,7 @@ for current_station in stat_list:
             ax1.plot(yearmeanwl['values'],'+g',label='yearmean validation')
         
         #plot values
-        if os.path.exists(file_ext_nc):
+        if data_pd_HWLW_all is not None:
             ax1.plot(HW_mean_peryear,'x',color='grey')
             ax1.plot(LW_mean_peryear,'x',color='grey')
             ax1.plot(HW_mean_peryear_valid,'xr')
@@ -189,7 +192,7 @@ for current_station in stat_list:
         pred_slotgem.to_csv(os.path.join(dir_slotgem,f'slotgem_value_{current_station}.txt'))
         ax1.legend(loc=2)
         
-        if os.path.exists(file_ext_nc):
+        if data_pd_HWLW_all is not None:
             HW_mean_array_todate = HW_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt] #remove all values after tstop_dt (is year_slotgem)
             pred_pd_HW = kw.fit_models(HW_mean_array_todate)
             ax1.plot(pred_pd_HW, ".-", label=pred_pd_HW.columns)
@@ -206,7 +209,7 @@ for current_station in stat_list:
     
     
     ### HAVENGETALLEN 
-    if compute_havengetallen and os.path.exists(file_ext_nc):
+    if compute_havengetallen and data_pd_HWLW_all is not None:
         
         print(f'havengetallen for {current_station}')
         
@@ -238,7 +241,7 @@ for current_station in stat_list:
     
     
     ##### GEMIDDELDE GETIJKROMMEN
-    if compute_gemgetij and os.path.exists(file_wl_nc):
+    if compute_gemgetij and data_pd_meas_all is not None:
         
         print(f'gem getijkrommen for {current_station}')
         pred_freq_sec = 10 #TODO: frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
@@ -433,7 +436,7 @@ for current_station in stat_list:
     Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200, #overschrijdingsfreqs
                          1/500, 1/1000, 1/2000, 1/4000, 1/5000, 1/10000] #TODO: which frequencies are realistic with n years of data? probably remove this entire row >> met 40 jaar data kun je in principe tot 1/40 gaan, maar met weibull kun je extrapoleren en in theorie >> dit is voor tabel die je eruit wil hebben
     
-    if compute_overschrijding and os.path.exists(file_ext_nc):
+    if compute_overschrijding and data_pd_HWLW_all is not None:
     
         print(f'overschrijdingsfrequenties for {current_station}')
         
