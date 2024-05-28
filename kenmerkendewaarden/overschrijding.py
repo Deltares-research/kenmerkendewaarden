@@ -15,7 +15,10 @@ from typing import Union, List
 import datetime as dt
 import os
 
-__all__ = []
+__all__ = ["compute_overschrijding",
+           "interpolate_interested_Tfreqs",
+           "plot_distributions",
+           ]
 
 
 #wrapper

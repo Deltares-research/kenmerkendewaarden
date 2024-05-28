@@ -11,9 +11,13 @@ import pandas as pd
 import datetime as dt
 from hatyan.astrog import astrog_culminations
 from hatyan.timeseries import calc_HWLWnumbering
-from kenmerkendewaarden.slotgemiddelden import calc_HWLWtidalrange
+from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
 
-__all__ = []
+__all__ = ["calc_HWLW_moonculm_combi",
+           "calc_HWLW_culmhr_summary",
+           "plot_HWLW_pertimeclass",
+           "plot_aardappelgrafiek",
+           ]
 
 
 def get_moonculm_idxHWLWno(tstart,tstop):

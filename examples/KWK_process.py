@@ -18,8 +18,9 @@ import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-re
 
 NAP2005correction = False #True #TODO: define for all stations
 
-tstart_dt = dt.datetime(2011,1,1)
-tstop_dt = dt.datetime(2021,1,1)
+tstart_dt = pd.Timestamp(2011,1,1, tz="UTC+01:00")
+tstop_dt = pd.Timestamp(2021,1,1, tz="UTC+01:00")
+tstop_dt_naive = tstop_dt.tz_localize(None)
 if ((tstop_dt.year-tstart_dt.year)==10) & (tstop_dt.month==tstop_dt.day==tstart_dt.month==tstart_dt.day==1):
     year_slotgem = tstop_dt.year
 else:
@@ -182,23 +183,23 @@ for current_station in stat_list:
             tstart_dt_trend = None
         
         #fit linear models over yearly mean values
-        wl_mean_array_todate = wl_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt] #remove all values after tstop_dt (is year_slotgem)
+        wl_mean_array_todate = wl_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
         pred_pd_wl = kw.fit_models(wl_mean_array_todate)
         ax1.plot(pred_pd_wl, ".-", label=pred_pd_wl.columns)
         ax1.set_prop_cycle(None) #reset matplotlib colors
         #2021.0 value (and future)
-        ax1.plot(pred_pd_wl.loc[tstop_dt:,'pred_linear_winodal'], ".k", label=f'pred_linear from {year_slotgem}')
-        pred_slotgem = pred_pd_wl.loc[[tstop_dt],['pred_linear_winodal']]
+        ax1.plot(pred_pd_wl.loc[tstop_dt_naive:,'pred_linear_winodal'], ".k", label=f'pred_linear from {year_slotgem}')
+        pred_slotgem = pred_pd_wl.loc[[tstop_dt_naive],['pred_linear_winodal']]
         pred_slotgem.to_csv(os.path.join(dir_slotgem,f'slotgem_value_{current_station}.txt'))
         ax1.legend(loc=2)
         
         if data_pd_HWLW_all is not None:
-            HW_mean_array_todate = HW_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt] #remove all values after tstop_dt (is year_slotgem)
+            HW_mean_array_todate = HW_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
             pred_pd_HW = kw.fit_models(HW_mean_array_todate)
             ax1.plot(pred_pd_HW, ".-", label=pred_pd_HW.columns)
             ax1.set_prop_cycle(None) #reset matplotlib colors
             
-            LW_mean_array_todate = LW_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt] #remove all values after tstop_dt (is year_slotgem)
+            LW_mean_array_todate = LW_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
             pred_pd_LW = kw.fit_models(LW_mean_array_todate)
             ax1.plot(pred_pd_LW, ".-", label=pred_pd_LW.columns)
             ax1.set_prop_cycle(None) #reset matplotlib colors
@@ -216,7 +217,8 @@ for current_station in stat_list:
         #TODO: move calc_HWLW_moonculm_combi() to top since it is the same for all stations
         culm_addtime = 4*dt.timedelta(hours=12,minutes=25)+dt.timedelta(hours=1)-dt.timedelta(minutes=20) # 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek: HW is 2 days after culmination (so 4x25min difference between length of avg moonculm and length of 2 days), 1 hour (GMT to MET), 20 minutes (0 to 5 meridian)
         #TODO: check culm_addtime and HWLWno+4 offsets. culm_addtime could also be 2 days or 2days +1h GMT-MET correction. 20 minutes seems odd since moonculm is about tidal wave from ocean
-        data_pd_HWLW = kw.calc_HWLW_moonculm_combi(data_pd_HWLW_12=data_pd_HWLW_10y_12, culm_addtime=culm_addtime) #culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
+        # TODO: we added tz_convert an tz_localize on 28-5-2024 (https://github.com/Deltares-research/kenmerkendewaarden/issues/30), simplify this and check workings
+        data_pd_HWLW = kw.calc_HWLW_moonculm_combi(data_pd_HWLW_12=data_pd_HWLW_10y_12.tz_convert(None), culm_addtime=culm_addtime).tz_localize("UTC").tz_convert("UTC+01:00") #culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
         HWLW_culmhr_summary = kw.calc_HWLW_culmhr_summary(data_pd_HWLW) #TODO: maybe add tijverschil
         
         print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
@@ -441,7 +443,7 @@ for current_station in stat_list:
         print(f'overschrijdingsfrequenties for {current_station}')
         
         #clip data #TODO: do at top?
-        data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt] # only include data up to year_slotgem
+        data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt_naive] # only include data up to year_slotgem
         
         data_pd_HW = data_pd_measext.loc[data_pd_measext['HWLWcode']==1]
         data_pd_LW = data_pd_measext.loc[data_pd_measext['HWLWcode']!=1]
@@ -494,6 +496,4 @@ for current_station in stat_list:
         
         fig, ax = kw.plot_distributions(dist_dec, name=current_station, color_map='default')
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))
-
-
 

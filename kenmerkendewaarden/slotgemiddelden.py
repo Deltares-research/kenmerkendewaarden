@@ -10,7 +10,7 @@ import statsmodels.api as sm
 import pandas as pd
 import datetime as dt
 
-__all__ = []
+__all__ = ["fit_models"]
 
 
 def fit_models(mean_array_todate: pd.Series) -> pd.DataFrame:
