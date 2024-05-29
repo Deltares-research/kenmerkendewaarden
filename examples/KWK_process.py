@@ -13,8 +13,7 @@ plt.close('all')
 import hatyan # available via `pip install hatyan` or at https://github.com/Deltares/hatyan
 import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-research/kenmerkendewaarden
 
-# TODO: not in M2phasediff textfile (in hatyan): ['LICHTELGRE','EURPFM']
-# TODO: HW/LW numbers not always increasing (old comment): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
+# TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
 
 NAP2005correction = False #True #TODO: define for all stations
 
@@ -29,9 +28,9 @@ print(f'year_slotgem: {year_slotgem}')
 
 # dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
-# dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20220101')
-#TODO: move to full data folder
-dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
+dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
+# TODO: move to full data folder
+# dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
 
 dir_havget = os.path.join(dir_base,f'out_havengetallen_{year_slotgem}')
 dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
@@ -52,7 +51,7 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
                 'ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE',
                 'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
-stat_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
+stat_list = ['BROUWHVSGT08']#,'HARVT10','VLISSGN']
 
 
 
@@ -119,8 +118,6 @@ for current_station in stat_list:
             numHWs = (data_pd_HWLW_10y_12['HWLWcode']==1).sum()
             if numHWs < 0.95*numHWs_expected:
                 raise Exception(f'ERROR: not enough high waters present in period, {numHWs} instead of >=0.95*{int(numHWs_expected):d}')
-    
-    
     
     
     
