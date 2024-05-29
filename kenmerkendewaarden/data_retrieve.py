@@ -219,7 +219,7 @@ def xarray_to_hatyan(ds):
     return df
 
 
-def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=False, correct_nap=False):
+def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=False, nap_correction=False):
 
     if extremes:
         fname = DICT_FNAMES["meas_ext"].format(station=station)
@@ -237,7 +237,7 @@ def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=
     
     df_meas = xarray_to_hatyan(ds_meas)
     
-    if correct_nap:
+    if nap_correction:
         # TODO: not available for all stations
         df_meas = nap2005_correction(df_meas, station)
     return df_meas
