@@ -98,6 +98,8 @@ def retrieve_measurements_amount(dir_output, station_list, extremes:bool, start_
         bool_station = locs_meas.index.isin([station])
         loc_meas_one = locs_meas.loc[bool_station]
         
+        check_locations_amount(loc_meas_one)
+        
         if len(loc_meas_one) == 0:
             logger.info(f"no station available (extremes={extremes})")
             # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
@@ -136,6 +138,19 @@ def read_measurements_amount(dir_output, extremes:bool):
     return df_amount
 
 
+def check_locations_amount(locations):
+    """
+    checks the amount of rows in a ddlpy.locations dataframe.
+    It allows for zero stations, since this regularly happens for extremes, in that case the station is skipped
+    It raises an error in case of multiple stations, stricter station selection is required.
+    """
+    if len(locations)==0:
+        logger.info(f"no stations present after station subsetting, skipping station:\n{locations}")
+        return
+    elif len(locations)!=1:
+        raise ValueError(f"no or multiple stations present after station subsetting:\n{locations}")
+
+
 def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date, end_date, drop_if_constant=None):
     
     locs_meas_ts, locs_meas_ext, locs_meas_exttype = retrieve_catalog()
@@ -172,12 +187,8 @@ def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date
     if os.path.exists(file_nc):
         logger.info(f'meas data (extremes={extremes}) for {station} already available in {os.path.basename(dir_output)}, skipping station')
         return
-        
-    if len(loc_meas_one)==0:
-        logger.info(f"no stations present after station subsetting for {station} (extremes={extremes}), skipping station:\n{loc_meas_one}")
-        return
-    elif len(loc_meas_one)!=1:
-        raise ValueError(f"no or multiple stations present after station subsetting for {station} (extremes={extremes}):\n{loc_meas_one}")
+    
+    check_locations_amount(loc_meas_one)
     
     logger.info(f'retrieving meas data (extremes={extremes}) from DDL for {station} to {os.path.basename(dir_output)}')
     measurements = ddlpy.measurements(location=loc_meas_one.iloc[0], start_date=start_date, end_date=end_date, freq=freq)
