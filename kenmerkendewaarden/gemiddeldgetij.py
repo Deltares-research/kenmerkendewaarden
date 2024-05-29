@@ -9,6 +9,13 @@ import numpy as np
 import pandas as pd
 import hatyan
 
+__all__ = ["get_gemgetij_components",
+           "ts_to_trefHW",
+           "reshape_signal",
+           "repeat_signal",
+           ]
+
+
 def get_gemgetij_components(data_pd_meas):
     # =============================================================================
     # Hatyan analyse voor 10 jaar (alle componenten voor gemiddelde getijcyclus) #TODO: maybe use original 4y period/componentfile instead? SA/SM should come from 19y analysis
