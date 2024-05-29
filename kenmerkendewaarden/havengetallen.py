@@ -97,21 +97,23 @@ def calc_HWLW_culmhr_summary_tidalcoeff(data_pd_HWLW_12):
 
 def plot_HWLW_pertimeclass(data_pd_HWLW, HWLW_culmhr_summary):
     
+    station = data_pd_HWLW.attrs["station"]
+    
     HWLW_culmhr_summary = HWLW_culmhr_summary.loc[:11].copy() #remove mean column
     
     fig, ((ax1,ax2),(ax3,ax4)) = plt.subplots(2,2,figsize=(18,8), sharex=True)
     data_pd_HW = data_pd_HWLW.loc[data_pd_HWLW['HWLWcode']==1]
     data_pd_LW = data_pd_HWLW.loc[data_pd_HWLW['HWLWcode']==2]
-    ax1.set_title('HW values')
+    ax1.set_title(f'HW values {station}')
     ax1.plot(data_pd_HW['culm_hr'],data_pd_HW['values'],'.')
     ax1.plot(HWLW_culmhr_summary['HW_values_median'],'.-')
-    ax2.set_title('LW values')
+    ax2.set_title(f'LW values {station}')
     ax2.plot(data_pd_LW['culm_hr'],data_pd_LW['values'],'.')
     ax2.plot(HWLW_culmhr_summary['LW_values_median'],'.-')
-    ax3.set_title('HW time delays')
+    ax3.set_title(f'HW time delays {station}')
     ax3.plot(data_pd_HW['culm_hr'],data_pd_HW['HWLW_delay'].dt.total_seconds()/3600,'.')
     ax3.plot(HWLW_culmhr_summary['HW_delay_median'].dt.total_seconds()/3600,'.-')
-    ax4.set_title('LW time delays')
+    ax4.set_title(f'LW time delays {station}')
     ax4.plot(data_pd_LW['culm_hr'],data_pd_LW['HWLW_delay'].dt.total_seconds()/3600,'.')
     ax4.plot(HWLW_culmhr_summary['LW_delay_median'].dt.total_seconds()/3600,'.-')
     ax4.set_xlim([0-0.5,12-0.5])

@@ -219,7 +219,7 @@ def xarray_to_hatyan(ds):
     return df
 
 
-def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=False):
+def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=False, correct_nap=False):
 
     if extremes:
         fname = DICT_FNAMES["meas_ext"].format(station=station)
@@ -236,4 +236,28 @@ def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=
         return ds_meas
     
     df_meas = xarray_to_hatyan(ds_meas)
+    
+    if correct_nap:
+        # TODO: not available for all stations
+        df_meas = nap2005_correction(df_meas, station)
+    return df_meas
+
+
+def nap2005_correction(df_meas, station):
+    #NAP correction for dates before 1-1-2005
+    # TODO: check if ths make a difference (for havengetallen it makes a slight difference so yes. For gemgetijkromme it only makes a difference for spring/doodtij. (now only applied at gemgetij en havengetallen)). If so, make this flexible per station, where to get the data or is the RWS data already corrected for it?
+    #herdefinitie van NAP (~20mm voor HvH in fig2, relevant?): https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_113484_31&versienummer=1
+    #Dit is de rapportage waar het gebruik voor PSMSL data voor het eerst beschreven is: https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_137204_31&versienummer=1
+    print('applying NAP2005 correction')
+    before2005bool = df_meas.index < pd.Timestamp("2005-01-01")
+    # TODO: maybe move dict to csv file and add as package data
+    dict_correct_nap2005 = {'HOEKVHLD':-0.0277,
+                            'HARVT10':-0.0210,
+                            'VLISSGN':-0.0297}
+    if not station in dict_correct_nap2005.keys():
+        raise Exception('ERROR nap2005 correction not implemented for this station')
+
+    correct_value = dict_correct_nap2005[station]
+    df_meas.loc[before2005bool,'values'] = df_meas.loc[before2005bool,'values'] + correct_value
+    
     return df_meas

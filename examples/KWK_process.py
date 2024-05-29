@@ -15,8 +15,6 @@ import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-re
 
 # TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
 
-NAP2005correction = False #True #TODO: define for all stations
-
 tstart_dt = pd.Timestamp(2011,1,1, tz="UTC+01:00")
 tstop_dt = pd.Timestamp(2021,1,1, tz="UTC+01:00")
 tstop_dt_naive = tstop_dt.tz_localize(None)
@@ -28,9 +26,9 @@ print(f'year_slotgem: {year_slotgem}')
 
 # dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
-# dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
+dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
 # TODO: move to full data folder (otherwise overschrijding and slotgemiddelde is completely wrong)
-dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
+# dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
 
 dir_havget = os.path.join(dir_base,f'out_havengetallen_{year_slotgem}')
 dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
@@ -55,26 +53,6 @@ stat_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
 
 
 
-# TODO: move to functions
-def nap2005_correction(data_pd,current_station):
-    #NAP correction for dates before 1-1-2005
-    #TODO: check if ths make a difference (for havengetallen it makes a slight difference so yes. For gemgetijkromme it only makes a difference for spring/doodtij. (now only applied at gemgetij en havengetallen)). If so, make this flexible per station, where to get the data or is the RWS data already corrected for it?
-    #herdefinitie van NAP (~20mm voor HvH in fig2, relevant?): https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_113484_31&versienummer=1
-    #Dit is de rapportage waar het gebruik voor PSMSL data voor het eerst beschreven is: https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_137204_31&versienummer=1
-    print('applying NAP2005 correction')
-    data_pd_corr = data_pd.copy()
-    before2005bool = data_pd_corr.index < dt.datetime(2005,1,1)
-    # TODO: move to csv file and add as package data
-    dict_correct_nap2005 = {'HOEKVHLD':-0.0277,
-                            'HARVT10':-0.0210,
-                            'VLISSGN':-0.0297}
-    if not current_station in dict_correct_nap2005.keys():
-        raise Exception('ERROR nap2005 correction not implemented for this station')
-
-    correct_value = dict_correct_nap2005[current_station]
-    data_pd_corr.loc[before2005bool,'values'] = data_pd_corr.loc[before2005bool,'values']+correct_value
-    
-    return data_pd_corr
 
 
 # TODO: move to csv file and add as package data
@@ -83,6 +61,8 @@ physical_break_dict = {'DENOVBTN':'1933', #laatste sluitgat afsluitdijk in 1932
                        'HARLGN':'1933', #laatste sluitgat afsluitdijk in 1932
                        'VLIELHVN':'1933', #laatste sluitgat afsluitdijk in 1932
                        } #TODO: add physical_break for STAVNSE and KATSBTN? (Oosterscheldekering)
+
+nap_correction = False
 
 compute_slotgem = True
 compute_havengetallen = True
@@ -95,32 +75,28 @@ for current_station in stat_list:
     
     print(f'loading data for {current_station}')
     # timeseries are used for slotgemiddelden, gemgetijkrommen (needs slotgem+havget)
-    data_pd_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False)
+    data_pd_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False, nap_correction=nap_correction)
     if data_pd_meas_all is not None:
-        if NAP2005correction:
-            data_pd_meas_all = nap2005_correction(data_pd_meas_all,current_station)
         #crop measurement data
         data_pd_meas_10y = hatyan.crop_timeseries(data_pd_meas_all, times=slice(tstart_dt,tstop_dt-dt.timedelta(minutes=10)))#,onlyfull=False)
     
     # extremes are used for slotgemiddelden, havengetallen, overschrijding
-    data_pd_HWLW_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True)
+    data_pd_HWLW_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True, nap_correction=nap_correction)
     if data_pd_HWLW_all is not None:
-        if NAP2005correction:
-            data_pd_HWLW_all = nap2005_correction(data_pd_HWLW_all,current_station)
-        if compute_slotgem or compute_havengetallen or compute_overschrijding: #TODO: make calc_HWLW12345to12() faster
-            data_pd_HWLW_all_12 = hatyan.calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
-            #crop timeseries to 10y
-            data_pd_HWLW_10y_12 = hatyan.crop_timeseries(data_pd_HWLW_all_12, times=slice(tstart_dt,tstop_dt),onlyfull=False)
-            
-            #check if amount of HWs is enough
-            M2_period_timedelta = pd.Timedelta(hours=hatyan.schureman.get_schureman_freqs(['M2']).loc['M2','period [hr]'])
-            numHWs_expected = (tstop_dt-tstart_dt).total_seconds()/M2_period_timedelta.total_seconds()
-            numHWs = (data_pd_HWLW_10y_12['HWLWcode']==1).sum()
-            if numHWs < 0.95*numHWs_expected:
-                raise Exception(f'ERROR: not enough high waters present in period, {numHWs} instead of >=0.95*{int(numHWs_expected):d}')
-    
-    
-    
+        # TODO: make calc_HWLW12345to12() faster and fix missing laagwaters: https://github.com/Deltares/hatyan/issues/311
+        data_pd_HWLW_all_12 = hatyan.calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
+        #crop timeseries to 10y
+        data_pd_HWLW_10y_12 = hatyan.crop_timeseries(data_pd_HWLW_all_12, times=slice(tstart_dt,tstop_dt),onlyfull=False)
+        
+        #check if amount of HWs is enough
+        M2_period_timedelta = pd.Timedelta(hours=hatyan.schureman.get_schureman_freqs(['M2']).loc['M2','period [hr]'])
+        numHWs_expected = (tstop_dt-tstart_dt).total_seconds()/M2_period_timedelta.total_seconds()
+        numHWs = (data_pd_HWLW_10y_12['HWLWcode']==1).sum()
+        if numHWs < 0.95*numHWs_expected:
+            raise Exception(f'ERROR: not enough high waters present in period, {numHWs} instead of >=0.95*{int(numHWs_expected):d}')
+
+
+
     #### SLOTGEMIDDELDEN
     #TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
     #TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
@@ -226,14 +202,10 @@ for current_station in stat_list:
         
         print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
         fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, HWLW_culmhr_summary)
-        for ax in axs.ravel():
-            ax.set_title(f'{ax.get_title()} {current_station} {year_slotgem}')
         fig.savefig(os.path.join(dir_havget,f'HWLW_pertijdsklasse_inclmedianline_{current_station}'))
         
         print('AARDAPPELGRAFIEK')
         fig, (ax1,ax2) = kw.plot_aardappelgrafiek(HWLW_culmhr_summary)
-        for ax in (ax1,ax2):
-            ax.set_title(f'{ax.get_title()} {current_station} {year_slotgem}')
         fig.savefig(os.path.join(dir_havget, f'aardappelgrafiek_{year_slotgem}_{current_station}'))
         
         #write to csv
