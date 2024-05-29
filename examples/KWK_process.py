@@ -28,9 +28,9 @@ print(f'year_slotgem: {year_slotgem}')
 
 # dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
-dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
-# TODO: move to full data folder
-# dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
+# dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
+# TODO: move to full data folder (otherwise overschrijding and slotgemiddelde is completely wrong)
+dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
 
 dir_havget = os.path.join(dir_base,f'out_havengetallen_{year_slotgem}')
 dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
@@ -51,7 +51,7 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
                 'ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE',
                 'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
-stat_list = ['BROUWHVSGT08']#,'HARVT10','VLISSGN']
+stat_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
 
 
 
@@ -63,7 +63,7 @@ def nap2005_correction(data_pd,current_station):
     #Dit is de rapportage waar het gebruik voor PSMSL data voor het eerst beschreven is: https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_137204_31&versienummer=1
     print('applying NAP2005 correction')
     data_pd_corr = data_pd.copy()
-    before2005bool = data_pd_corr.index<dt.datetime(2005,1,1)
+    before2005bool = data_pd_corr.index < dt.datetime(2005,1,1)
     # TODO: move to csv file and add as package data
     dict_correct_nap2005 = {'HOEKVHLD':-0.0277,
                             'HARVT10':-0.0210,
@@ -211,11 +211,17 @@ for current_station in stat_list:
         
         print(f'havengetallen for {current_station}')
         
-        #TODO: move calc_HWLW_moonculm_combi() to top since it is the same for all stations
-        culm_addtime = 4*dt.timedelta(hours=12,minutes=25)+dt.timedelta(hours=1)-dt.timedelta(minutes=20) # 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek: HW is 2 days after culmination (so 4x25min difference between length of avg moonculm and length of 2 days), 1 hour (GMT to MET), 20 minutes (0 to 5 meridian)
-        #TODO: check culm_addtime and HWLWno+4 offsets. culm_addtime could also be 2 days or 2days +1h GMT-MET correction. 20 minutes seems odd since moonculm is about tidal wave from ocean
-        # TODO: we added tz_convert an tz_localize on 28-5-2024 (https://github.com/Deltares-research/kenmerkendewaarden/issues/30), simplify this and check workings
-        data_pd_HWLW = kw.calc_HWLW_moonculm_combi(data_pd_HWLW_12=data_pd_HWLW_10y_12.tz_convert(None), culm_addtime=culm_addtime).tz_localize("UTC").tz_convert("UTC+01:00") #culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
+        # TODO: check culm_addtime and HWLWno+4 offsets. culm_addtime could also be 2 days or 2days +1h GMT-MET correction. 20 minutes seems odd since moonculm is about tidal wave from ocean
+        # culm_addtime is a 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek
+        # HW is 2 days after culmination (so 4x25min difference between length of avg moonculm and length of 2 days)
+        # 1 hour (GMT to MET, alternatively we can also account for timezone differences elsewhere)
+        # 20 minutes (0 to 5 meridian)
+        culm_addtime = 4*dt.timedelta(hours=12,minutes=25) + dt.timedelta(hours=1) - dt.timedelta(minutes=20)
+        
+        # TODO: move calc_HWLW_moonculm_combi() to top since it is the same for all stations
+        # TODO: we added tz_localize on 29-5-2024 (https://github.com/Deltares-research/kenmerkendewaarden/issues/30)
+        # this means we pass a UTC+1 timeseries as if it were a UTC timeseries
+        data_pd_HWLW = kw.calc_HWLW_moonculm_combi(data_pd_HWLW_12=data_pd_HWLW_10y_12.tz_localize(None), culm_addtime=culm_addtime) #culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
         HWLW_culmhr_summary = kw.calc_HWLW_culmhr_summary(data_pd_HWLW) #TODO: maybe add tijverschil
         
         print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
