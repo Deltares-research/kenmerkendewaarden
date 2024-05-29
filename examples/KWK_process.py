@@ -106,7 +106,7 @@ for current_station in stat_list:
         #calculate yearly mean
         dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all)
         wl_mean_peryear = dict_wltidalindicators['wl_mean_peryear']
-        dict_wltidalindicators_valid = kw.calc_wltidalindicators(data_pd_meas_all, tresh_yearlywlcount=2900) #24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
+        dict_wltidalindicators_valid = kw.calc_wltidalindicators(data_pd_meas_all, min_count=2900) #24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
         wl_mean_peryear_valid = dict_wltidalindicators_valid['wl_mean_peryear']
         
         #derive tidal indicators like yearmean HWLW from HWLW values
@@ -114,7 +114,7 @@ for current_station in stat_list:
             dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12)
             HW_mean_peryear = dict_HWLWtidalindicators['HW_mean_peryear']
             LW_mean_peryear = dict_HWLWtidalindicators['LW_mean_peryear']
-            dict_HWLWtidalindicators_valid = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12, tresh_yearlyHWLWcount=1400) #2*24*365/12.42=1410.6 (12.42 hourly extreme)
+            dict_HWLWtidalindicators_valid = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12, min_count=1400) #2*24*365/12.42=1410.6 (12.42 hourly extreme)
             HW_mean_peryear_valid = dict_HWLWtidalindicators_valid['HW_mean_peryear']
             LW_mean_peryear_valid = dict_HWLWtidalindicators_valid['LW_mean_peryear']
         
@@ -418,7 +418,7 @@ for current_station in stat_list:
         print(f'overschrijdingsfrequenties for {current_station}')
         
         #clip data #TODO: do at top?
-        data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt_naive] # only include data up to year_slotgem
+        data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt] # only include data up to year_slotgem
         
         data_pd_HW = data_pd_measext.loc[data_pd_measext['HWLWcode']==1]
         data_pd_LW = data_pd_measext.loc[data_pd_measext['HWLWcode']!=1]

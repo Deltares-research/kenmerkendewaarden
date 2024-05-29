@@ -19,7 +19,7 @@ __all__ = ["calc_wltidalindicators",
 #from pydantic import validate_arguments #TODO: enable validator (first add pydantic as dependency, plus how to validate comp df (columns A/phi, then maybe classed should be used instead)
 
 
-def calc_HWLWtidalindicators(data_pd_HWLW_all, tresh_yearlyHWLWcount=None):
+def calc_HWLWtidalindicators(data_pd_HWLW_all, min_count=None):
     """
     computes several tidal extreme indicators from tidal extreme dataset
 
@@ -27,6 +27,8 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, tresh_yearlyHWLWcount=None):
     ----------
     data_pd_HWLW_all : TYPE
         DESCRIPTION.
+    min_count : int
+        The minimum amount of timeseries values per year to consider the statistics to be valid.
 
     Returns
     -------
@@ -34,10 +36,9 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, tresh_yearlyHWLWcount=None):
         DESCRIPTION.
 
     """
-    if hasattr(data_pd_HWLW_all.index[0],'tz'): #timezone present in index
-        data_pd_HWLW_all.index = data_pd_HWLW_all.index.tz_localize(None)
     if len(data_pd_HWLW_all['HWLWcode'].unique()) > 2: #aggers are present
-        data_pd_HWLW_12 = calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater) #TODO: this drops first/last value if it is a LW, should be fixed
+        # TODO: this drops first/last value if it is a LW, should be fixed: https://github.com/Deltares/hatyan/issues/311
+        data_pd_HWLW_12 = calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
     else:
         data_pd_HWLW_12 = data_pd_HWLW_all.copy()
     
@@ -56,18 +57,24 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, tresh_yearlyHWLWcount=None):
     #derive GHHW/GHWS (gemiddeld hoogwater springtij) per month
     HW_monthmax_permonth = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="m"))[['values']].max() #proxy for HW at spring tide
     LW_monthmin_permonth = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="m"))[['values']].min() #proxy for LW at spring tide
+    HW_monthmin_permonth = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="m"))[['values']].min() #proxy for HW at neap tide
+    LW_monthmax_permonth = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="m"))[['values']].max() #proxy for LW at neap tide
     
     #replace invalids with nan (in case of too less values per month or year)
-    if tresh_yearlyHWLWcount is not None:
-        tresh_monthlyHWLWcount = tresh_yearlyHWLWcount/13 #not 13 but 12, to also make the threshold valid in short months
-        HW_mean_peryear.loc[HWLW_count_peryear<tresh_yearlyHWLWcount] = np.nan
-        LW_mean_peryear.loc[HWLW_count_peryear<tresh_yearlyHWLWcount] = np.nan
-        HW_monthmax_permonth.loc[HWLW_count_permonth<tresh_monthlyHWLWcount] = np.nan
-        LW_monthmin_permonth.loc[HWLW_count_permonth<tresh_monthlyHWLWcount] = np.nan
+    if min_count is not None:
+        min_count_permonth = min_count/13 #not 13 but 12, to also make the threshold valid in short months
+        HW_mean_peryear.loc[HWLW_count_peryear<min_count] = np.nan
+        LW_mean_peryear.loc[HWLW_count_peryear<min_count] = np.nan
+        HW_monthmax_permonth.loc[HWLW_count_permonth<min_count_permonth] = np.nan
+        LW_monthmin_permonth.loc[HWLW_count_permonth<min_count_permonth] = np.nan
+        HW_monthmin_permonth.loc[HWLW_count_permonth<min_count_permonth] = np.nan
+        LW_monthmax_permonth.loc[HWLW_count_permonth<min_count_permonth] = np.nan
     
     #derive GHHW/GHWS (gemiddeld hoogwater springtij)
-    HW_monthmax_peryear = HW_monthmax_permonth.groupby(pd.PeriodIndex(HW_monthmax_permonth.index, freq="y"))[['values']].mean()
-    LW_monthmin_peryear = LW_monthmin_permonth.groupby(pd.PeriodIndex(LW_monthmin_permonth.index, freq="y"))[['values']].mean()
+    HW_monthmax_mean_peryear = HW_monthmax_permonth.groupby(pd.PeriodIndex(HW_monthmax_permonth.index, freq="y"))[['values']].mean()
+    LW_monthmin_mean_peryear = LW_monthmin_permonth.groupby(pd.PeriodIndex(LW_monthmin_permonth.index, freq="y"))[['values']].mean()
+    HW_monthmin_mean_peryear = HW_monthmin_permonth.groupby(pd.PeriodIndex(HW_monthmin_permonth.index, freq="y"))[['values']].mean()
+    LW_monthmax_mean_peryear = LW_monthmax_permonth.groupby(pd.PeriodIndex(LW_monthmax_permonth.index, freq="y"))[['values']].mean()
     
     dict_HWLWtidalindicators = {'HW_mean':data_pd_HW['values'].mean(), #GHW
                                 'LW_mean':data_pd_LW['values'].mean(), #GLW
@@ -75,8 +82,10 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, tresh_yearlyHWLWcount=None):
                                 'LW_mean_peryear':LW_mean_peryear['values'], #GLW peryear
                                 'HW_monthmax_permonth':HW_monthmax_permonth['values'], #GHHW/GHWS permonth
                                 'LW_monthmin_permonth':LW_monthmin_permonth['values'], #GLLW/GLWS permonth
-                                'HW_monthmax_mean_peryear':HW_monthmax_peryear['values'], #GHHW/GHWS peryear
-                                'LW_monthmin_mean_peryear':LW_monthmin_peryear['values'], #GLLW/GLWS peryear
+                                'HW_monthmax_mean_peryear':HW_monthmax_mean_peryear['values'], #GHHW/GHWS peryear
+                                'LW_monthmin_mean_peryear':LW_monthmin_mean_peryear['values'], #GLLW/GLWS peryear
+                                'HW_monthmin_mean_peryear':HW_monthmin_mean_peryear['values'], #GLHW/GHWN peryear
+                                'LW_monthmax_mean_peryear':LW_monthmax_mean_peryear['values'], #GHLW/GLWN peryear
                                 }
     
     for key in dict_HWLWtidalindicators.keys():
@@ -87,7 +96,7 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, tresh_yearlyHWLWcount=None):
     return dict_HWLWtidalindicators
 
 
-def calc_wltidalindicators(data_wl_pd, tresh_yearlywlcount=None):
+def calc_wltidalindicators(data_wl_pd, min_count=None):
     """
     computes monthly and yearly means from waterlevel timeseries
 
@@ -95,6 +104,8 @@ def calc_wltidalindicators(data_wl_pd, tresh_yearlywlcount=None):
     ----------
     data_wl_pd : TYPE
         DESCRIPTION.
+    min_count : int
+        The minimum amount of timeseries values per year to consider the statistics to be valid.
 
     Returns
     -------
@@ -114,10 +125,10 @@ def calc_wltidalindicators(data_wl_pd, tresh_yearlywlcount=None):
     wl_mean_permonth = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="m"))[['values']].mean()
     
     #replace invalids with nan (in case of too less values per month or year)
-    if tresh_yearlywlcount is not None:
-        tresh_monthlyywlcount = tresh_yearlywlcount/12
-        wl_mean_peryear.loc[wl_count_peryear<tresh_yearlywlcount] = np.nan
-        wl_mean_permonth.loc[wl_count_permonth<tresh_monthlyywlcount] = np.nan
+    if min_count is not None:
+        min_count_permonth = min_count/12
+        wl_mean_peryear.loc[wl_count_peryear<min_count] = np.nan
+        wl_mean_permonth.loc[wl_count_permonth<min_count_permonth] = np.nan
         
     dict_wltidalindicators = {'wl_mean_peryear':wl_mean_peryear['values'], #yearly mean wl
                               'wl_mean_permonth':wl_mean_permonth['values'], #monthly mean wl
