@@ -76,6 +76,19 @@ def retrieve_catalog(overwrite=False, crs:int = None):
     return locs_meas_ts, locs_meas_ext, locs_meas_exttype
 
 
+def check_locations_amount(locations):
+    """
+    checks the amount of rows in a ddlpy.locations dataframe.
+    It allows for zero stations, since this regularly happens for extremes, in that case the station is skipped
+    It raises an error in case of multiple stations, stricter station selection is required.
+    """
+    if len(locations)==0:
+        logger.info(f"no stations present after station subsetting, skipping station:\n{locations}")
+        return
+    elif len(locations)!=1:
+        raise ValueError(f"no or multiple stations present after station subsetting:\n{locations}")
+
+
 def retrieve_measurements_amount(dir_output, station_list, extremes:bool, start_date, end_date):
     locs_meas_ts, locs_meas_ext, locs_meas_exttype = retrieve_catalog()
     
@@ -136,19 +149,6 @@ def read_measurements_amount(dir_output, extremes:bool):
     df_amount = pd.read_csv(file_csv_amount)
     df_amount = df_amount.set_index("Groeperingsperiode")
     return df_amount
-
-
-def check_locations_amount(locations):
-    """
-    checks the amount of rows in a ddlpy.locations dataframe.
-    It allows for zero stations, since this regularly happens for extremes, in that case the station is skipped
-    It raises an error in case of multiple stations, stricter station selection is required.
-    """
-    if len(locations)==0:
-        logger.info(f"no stations present after station subsetting, skipping station:\n{locations}")
-        return
-    elif len(locations)!=1:
-        raise ValueError(f"no or multiple stations present after station subsetting:\n{locations}")
 
 
 def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date, end_date, drop_if_constant=None):
