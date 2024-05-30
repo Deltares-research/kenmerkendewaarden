@@ -73,10 +73,12 @@ examples = [
 	"notebook",
 ]
 
+[tool.setuptools]
+packages = ["kenmerkendewaarden"]
+
 [tool.pytest.ini_options]
 console_output_style = "count"
 testpaths = ["tests"]
-python_files = "test_*.py"
 addopts = "-v --tb=short --durations=0"
 filterwarnings = ["ignore::UserWarning"]
 markers = [
