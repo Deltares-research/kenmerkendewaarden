@@ -291,7 +291,9 @@ def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hyd
     df_weibull = df_weibull.sort_values(by='values_Tfreq', ascending=False)
 
     # Trend to weibull
-    df_blended1 = df_trend.iloc[:-100].copy()
+    df_trend_maxfreq = 5
+    idx_maxfreq_trend = np.abs(df_trend['values_Tfreq'] - df_trend_maxfreq).argmin()
+    df_blended1 = df_trend.iloc[:idx_maxfreq_trend].copy()
     df_weibull = df_weibull.loc[df_weibull['values_Tfreq'] < df_blended1['values_Tfreq'].iloc[-1]].copy()
 
     # Weibull to Hydra
