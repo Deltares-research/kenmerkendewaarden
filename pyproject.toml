@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "kenmerkendewaarden"
 version = "0.1.1"
 maintainers = [{ name = "Jelmer Veenstra", email = "jelmer.veenstra@deltares.nl" }]
-description = "functions to derive kenmerkendewaarden from measured waterlevel timeseries"
+description = "Derive indicators from waterlevel measurements"
 readme = "README.md"
 keywords = ["kenmerkendewaarden"]
 license = { text = "GPLv3" }
@@ -56,6 +56,13 @@ dev = [
 	"pytest-cov",
 	"twine",
 	"build",
+]
+docs = [
+	"sphinx>=1.8.1",
+	"sphinx_mdinclude",
+	"nbsphinx",
+	"pydata-sphinx-theme",
+	#"pandoc", # installed with choco on github
 ]
 examples = [
 	"jupyter",

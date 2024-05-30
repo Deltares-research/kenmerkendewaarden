@@ -16,7 +16,7 @@ dir_testdata = r"c:\DATA\hatyan\tests\data_unitsystemtests"
 @pytest.mark.unittest
 def test_calc_HWLWtidalrange():
     file_ext = os.path.join(dir_testdata, "VLISSGN_ext.txt")
-    ts_ext = hatyan.readts_dia(file_ext)
+    ts_ext = hatyan.read_dia(file_ext)
     ts_ext_range = kw.calc_HWLWtidalrange(ts_ext)
     
     ranges = ts_ext_range["tidalrange"].values
