@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Derive indicators from waterlevel measurements
 """
