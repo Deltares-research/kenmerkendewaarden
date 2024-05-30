@@ -18,6 +18,13 @@ __all__ = ["compute_overschrijding",
            ]
 
 
+def get_threshold_rowidx(df):
+    # TODO: base on frequency or value?
+    thresholfreq = 3 # take a frequency that is at least higher than the max HYDRA frequency (which is 1)
+    rowidx_tresholdfreq = np.abs(df['values_Tfreq'] - thresholfreq).argmin()
+    return rowidx_tresholdfreq
+
+
 def compute_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
     
     df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
@@ -42,17 +49,19 @@ def compute_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
     dist['Trendanalyse'] = distribution(df_trend.copy(), inverse=inverse)
     
     print('Fit Weibull to filtered distribution with trendanalysis')
-    # Last 100 datapoints from distribution (assuming it is sorted with Tfreqs from large to small)
+    idx_maxfreq_trend = get_threshold_rowidx(dist['Trendanalyse'])
+    treshold_value = dist['Trendanalyse'].iloc[idx_maxfreq_trend]['values']
+    treshold_Tfreq = dist['Trendanalyse'].iloc[idx_maxfreq_trend]['values_Tfreq']
     dist['Weibull'] = get_weibull(dist['Trendanalyse'].copy(),
-                                  threshold=dist['Trendanalyse']['values'].iloc[-101], #-100 for HW, -101 for LW, but does not matter
-                                  Tfreqs=np.logspace(-5, np.log10(dist['Trendanalyse']['values_Tfreq'].iloc[-101]), 5000),
+                                  threshold=treshold_value,
+                                  Tfreqs=np.logspace(-5, np.log10(treshold_Tfreq), 5000),
                                   inverse=inverse)
     
     print('Blend trend and weibull together') # and Hydra-NL
     dist['Gecombineerd'] = blend_distributions(dist['Trendanalyse'].copy(),
                                                dist['Weibull'].copy(),
                                                #dist['Hydra-NL'].copy(), 
-                                               )#.set_index('values_Tfreq')
+                                               )
 
     """
     if row['apply_treshold']:
@@ -291,8 +300,7 @@ def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hyd
     df_weibull = df_weibull.sort_values(by='values_Tfreq', ascending=False)
 
     # Trend to weibull
-    df_trend_maxfreq = 5
-    idx_maxfreq_trend = np.abs(df_trend['values_Tfreq'] - df_trend_maxfreq).argmin()
+    idx_maxfreq_trend = get_threshold_rowidx(df_trend)
     df_blended1 = df_trend.iloc[:idx_maxfreq_trend].copy()
     df_weibull = df_weibull.loc[df_weibull['values_Tfreq'] < df_blended1['values_Tfreq'].iloc[-1]].copy()
 
