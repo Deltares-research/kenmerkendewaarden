@@ -83,7 +83,7 @@ for current_station in stat_list:
     # extremes are used for slotgemiddelden, havengetallen, overschrijding
     data_pd_HWLW_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True, nap_correction=nap_correction)
     if data_pd_HWLW_all is not None:
-        # TODO: make calc_HWLW12345to12() faster and fix missing laagwaters: https://github.com/Deltares/hatyan/issues/311
+        # TODO: make calc_HWLW12345to12() faster: https://github.com/Deltares/hatyan/issues/311
         data_pd_HWLW_all_12 = hatyan.calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
         #crop timeseries to 10y
         data_pd_HWLW_10y_12 = hatyan.crop_timeseries(data_pd_HWLW_all_12, times=slice(tstart_dt,tstop_dt),onlyfull=False)

@@ -37,7 +37,7 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, min_count=None):
 
     """
     if len(data_pd_HWLW_all['HWLWcode'].unique()) > 2: #aggers are present
-        # TODO: this drops first/last value if it is a LW (and more problems), should be fixed: https://github.com/Deltares/hatyan/issues/311
+        # TODO: this drops first value if it is a 3/4/5 LW, should be fixed: https://github.com/Deltares/hatyan/issues/311
         data_pd_HWLW_12 = calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
     else:
         data_pd_HWLW_12 = data_pd_HWLW_all.copy()
