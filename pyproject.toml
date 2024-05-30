@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "kenmerkendewaarden"
 version = "0.1.1"
 maintainers = [{ name = "Jelmer Veenstra", email = "jelmer.veenstra@deltares.nl" }]
-description = "functions to derive kenmerkendewaarden from measured waterlevel timeseries"
+description = "Derive indicators from waterlevel measurements"
 readme = "README.md"
 keywords = ["kenmerkendewaarden"]
 license = { text = "GPLv3" }
@@ -28,6 +28,10 @@ dependencies = [
 	"hatyan>=2.8.0",
 	#statsmodels<0.13.2 has no support for pandas 2.0.0
 	"statsmodels>=0.13.2",
+	#pyproj<3.1.0 not pip installable in py38
+	"pyproj>=3.1.0",
+	#pooch<1.1.0 do not have attribute retrieve
+	"pooch>=1.1.0",
 ]
 classifiers = [
 	"Development Status :: 2 - Pre-Alpha",
@@ -57,15 +61,24 @@ dev = [
 	"twine",
 	"build",
 ]
+docs = [
+	"sphinx>=1.8.1",
+	"sphinx_mdinclude",
+	"nbsphinx",
+	"pydata-sphinx-theme",
+	#"pandoc", # installed with choco on github
+]
 examples = [
 	"jupyter",
 	"notebook",
 ]
 
+[tool.setuptools]
+packages = ["kenmerkendewaarden"]
+
 [tool.pytest.ini_options]
 console_output_style = "count"
 testpaths = ["tests"]
-python_files = "test_*.py"
 addopts = "-v --tb=short --durations=0"
 filterwarnings = ["ignore::UserWarning"]
 markers = [

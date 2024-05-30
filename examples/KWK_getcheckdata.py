@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Dec 16 11:35:58 2022
-
-@author: veenstra
-"""
 
 import os
 import pandas as pd

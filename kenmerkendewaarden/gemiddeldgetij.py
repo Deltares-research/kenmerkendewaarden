@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec 16 16:35:26 2022
-
-@author: veenstra
+Computation of gemiddelde getijkromme
 """
 
 import numpy as np

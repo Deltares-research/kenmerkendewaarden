@@ -1,10 +1,7 @@
+# -*- coding: utf-8 -*-
 """
-All kind of functions to support calculation of probabilities
-
-Author:         Boyan Domhof (Deltares)
-Last update:    17/12/2020
+Computation of probabilities (overschrijdingsfrequenties) of extreme waterlevels
 """
-
 
 import pandas as pd
 import numpy as np
@@ -21,7 +18,6 @@ __all__ = ["compute_overschrijding",
            ]
 
 
-#wrapper
 def compute_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
     
     df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)

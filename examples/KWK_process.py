@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Apr  7 14:17:13 2022
-
-@author: veenstra
-"""
 
 import os
 import pandas as pd
 import datetime as dt
 import matplotlib.pyplot as plt
 plt.close('all')
-import hatyan # available via `pip install hatyan` or at https://github.com/Deltares/hatyan
+import hatyan
 import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-research/kenmerkendewaarden
 
 # TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
@@ -50,8 +45,6 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
                 'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
 stat_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
-
-
 
 
 

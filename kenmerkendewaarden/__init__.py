@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-.. include:: ../README.md
+Derive indicators from waterlevel measurements
 """
 
 __author__ = """Jelmer Veenstra"""
