@@ -6,7 +6,7 @@
 Voor het afleiden van kengetallen als slotgemiddelden, gemiddelde getijkrommen, havengetallen, overschrijdingsfrequenties op basis van waterstandsmetingen. Meer informatie over Kenmerkende Waarden is beschikbaar op [rijkswaterstaat.nl](https://www.rijkswaterstaat.nl/water/waterbeheer/metingen/meten-bij-rijkswaterstaat/waternormalen)
 
 ## LET OP
-Deze repository bevat een voorlopige versie van de methodieken, welke nog worden aangepast. Als dat zover is, wordt een nieuwe tag/release gemaakt.
+Deze repository bevat een voorlopige versie van de methodieken en zijn nog niet geschikt voor productie.
 
 ## installation
 - open anaconda prompt
