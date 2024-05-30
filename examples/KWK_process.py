@@ -445,7 +445,7 @@ for current_station in stat_list:
             station_break_value = data_pd_measext.index.min()
     
         # 1. Exceedance
-        print('Exceedance') #TODO: hatyan.get_weibull.der_pfunc() throws "RuntimeWarning: invalid value encountered in double_scalars"
+        print('Exceedance')
         dist_exc = kw.compute_overschrijding(data_pd_HW, rule_type=station_rule_type, rule_value=station_break_value)
         dist_exc.update(dist_vali_exc)
         df_interp = kw.interpolate_interested_Tfreqs(dist_exc['Gecombineerd'], Tfreqs=Tfreqs_interested)
