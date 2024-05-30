@@ -6,8 +6,9 @@ import hatyan
 import kenmerkendewaarden as kw
 import numpy as np
 
-# TODO: retrieve testdata from internet instead of hardcoded local
-dir_testdata = r"c:\DATA\hatyan\tests\data_unitsystemtests"
+dir_tests = os.path.dirname(__file__) #F9 doesnt work, only F5 (F5 also only method to reload external definition scripts)
+dir_testdata = os.path.join(dir_tests,'testdata')
+
 
 @pytest.mark.unittest
 def test_calc_HWLWtidalrange():
