@@ -28,6 +28,8 @@ dependencies = [
 	"hatyan>=2.8.0",
 	#statsmodels<0.13.2 has no support for pandas 2.0.0
 	"statsmodels>=0.13.2",
+	#pyproj<3.1.0 not pip installable in py38
+	"pyproj>=3.1.0",
 ]
 classifiers = [
 	"Development Status :: 2 - Pre-Alpha",

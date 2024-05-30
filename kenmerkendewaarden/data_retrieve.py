@@ -1,22 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon May 20 10:38:03 2024
-
-@author: veenstra
+Retrieve data from ddlpy and write to netcdf files including all metadata
 """
+
 import os
 import pandas as pd
-import ddlpy # requires ddlpy>=0.5.0
+import ddlpy
 import warnings
-from pyproj import Transformer # dependency of hatyan
+from pyproj import Transformer
 import pooch
 import logging
 import dateutil
-import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num()
+import hatyan
 import xarray as xr
 
 __all__ = [
-    # "retrieve_catalog",
     "retrieve_measurements_amount",
     "read_measurements_amount",
     "retrieve_measurements",

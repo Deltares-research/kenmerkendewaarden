@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 30 13:47:43 2024
 
-@author: veenstra
-"""
 import os
 import pytest
 import hatyan

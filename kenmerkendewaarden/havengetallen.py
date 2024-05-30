@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec 16 14:12:54 2022
-
-@author: veenstra
+Computation of havengetallen
 """
 
 import matplotlib.pyplot as plt

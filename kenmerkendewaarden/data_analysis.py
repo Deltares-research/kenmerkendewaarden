@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon May 20 11:23:46 2024
-
-@author: veenstra
+Data analysis like missings, duplicates, outliers and several other statistics
 """
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from kenmerkendewaarden.data_retrieve import read_measurements, xarray_to_hatyan
-import hatyan # requires hatyan>=2.8.0 for hatyan.ddlpy_to_hatyan() and hatyan.convert_HWLWstr2num()
+import hatyan
 import logging
 
 __all__ = [

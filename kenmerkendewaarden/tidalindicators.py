@@ -1,22 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue May 28 16:14:25 2024
-
-@author: veenstra
+Computation of tidal indicators from waterlevel extremes or timeseries
 """
 
 import numpy as np
 import pandas as pd
 import datetime as dt
 from hatyan.timeseries import calc_HWLW12345to12, calc_HWLWnumbering
-from hatyan.analysis_prediction import HatyanSettings, prediction #PydanticConfig
+from hatyan.analysis_prediction import HatyanSettings, prediction
 
 __all__ = ["calc_wltidalindicators",
            "calc_HWLWtidalindicators",
            "calc_HWLWtidalrange",
            ]
-
-#from pydantic import validate_arguments #TODO: enable validator (first add pydantic as dependency, plus how to validate comp df (columns A/phi, then maybe classed should be used instead)
 
 
 def calc_HWLWtidalindicators(data_pd_HWLW_all, min_count=None):
@@ -155,7 +151,6 @@ def calc_HWLWtidalrange(ts_ext):
     return ts_ext
 
 
-#@validate_arguments(config=PydanticConfig)
 def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     """
     Derive highest and lowest astronomical tide (HAT/LAT) from a component set.
