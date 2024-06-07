@@ -8,6 +8,7 @@
 - update dependencies and code to hatyan 2.8.0 in [#28](https://github.com/Deltares-research/kenmerkendewaarden/pull/28)
 - added neaptide tidal indicators for extremes in [#34](https://github.com/Deltares-research/kenmerkendewaarden/pull/34)
 - used threshold frequency instead of fixed index in `kw.overschrijding.blend_distributions` in [#38](https://github.com/Deltares-research/kenmerkendewaarden/pull/38)
+- dropped timezones consistently in `kw.calc_wltidalindicators()` and `kw.calc_HWLWtidalindicators()` to increase performance [#41](https://github.com/Deltares-research/kenmerkendewaarden/pull/41)
 
 
 ## 0.1.0 (2024-03-11)
