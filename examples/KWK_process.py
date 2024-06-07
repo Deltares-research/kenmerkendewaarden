@@ -220,13 +220,13 @@ for current_station in stat_list:
 
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
         prediction_av, prediction_sp, prediction_np = kw.gemiddeld_getij_av_sp_np(
-                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=0, na=0, 
+                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=0, nf=0, 
                                         scale_extremes=False, scale_period=False)
         prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.gemiddeld_getij_av_sp_np(
-                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=2, na=2, 
+                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=2, nf=2, 
                                         scale_extremes=file_havget, scale_period=False)
         prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.gemiddeld_getij_av_sp_np(
-                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=0, na=10, 
+                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=0, nf=10, 
                                         scale_extremes=file_havget, scale_period=True)
 
         # write boi timeseries to csv files # TODO: maybe convert timedeltaIndex to minutes instead?

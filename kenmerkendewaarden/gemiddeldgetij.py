@@ -7,10 +7,13 @@ import os
 import numpy as np
 import pandas as pd
 import hatyan
+import logging
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
 
 __all__ = ["gemiddeld_getij_av_sp_np",
            ]
+
+logger = logging.getLogger(__name__)
 
 
 def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, nf=0, scale_extremes=False, scale_period=False, debug=False):
@@ -136,21 +139,21 @@ def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, nf=0, scale_extre
         # fig.savefig(os.path.join(dir_gemgetij,f'springdoodtijkromme_{current_station}_slotgem{year_slotgem}.png'))
     
     #timeseries for gele boekje (av/sp/np have different lengths, time is relative to HW of av and HW of sp/np are shifted there) #TODO: is this product still necessary?
-    print(f'reshape_signal GEMGETIJ: {current_station}')
+    logger.info(f'reshape_signal GEMGETIJ: {current_station}')
     prediction_av_corr_one = reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=tP_goal)
     prediction_av_corr_one.index = prediction_av_corr_one.index - prediction_av_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
         prediction_av_corr_one = prediction_av_corr_one.resample(pred_freq).nearest()
     prediction_av = repeat_signal(prediction_av_corr_one, nb=nb, nf=nf)
     
-    print(f'reshape_signal SPRINGTIJ: {current_station}')
+    logger.info(f'reshape_signal SPRINGTIJ: {current_station}')
     prediction_sp_corr_one = reshape_signal(prediction_sp_one, prediction_sp_ext_one, HW_goal=HW_sp, LW_goal=LW_sp, tP_goal=tP_goal)
     prediction_sp_corr_one.index = prediction_sp_corr_one.index - prediction_sp_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
         prediction_sp_corr_one = prediction_sp_corr_one.resample(pred_freq).nearest()
     prediction_sp = repeat_signal(prediction_sp_corr_one, nb=nb, nf=nf)
     
-    print(f'reshape_signal DOODTIJ: {current_station}')
+    logger.info(f'reshape_signal DOODTIJ: {current_station}')
     prediction_np_corr_one = reshape_signal(prediction_np_one, prediction_np_ext_one, HW_goal=HW_np, LW_goal=LW_np, tP_goal=tP_goal)
     prediction_np_corr_one.index = prediction_np_corr_one.index - prediction_np_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
@@ -216,8 +219,8 @@ def get_gemgetij_components(data_pd_meas):
     
     comp_av.loc['A0'] = comp_frommeasurements_avg.loc['A0']
     
-    print('verhouding tussen originele en kwadratensom componenten')
-    print(comp_av/comp_frommeasurements_avg.loc[components_av]) # values are different than 1991.0 document and differs per station while the document states "Zoals te verwachten is de verhouding per component tussen deze wortel en de oorspronkelijke amplitude voor alle plaatsen gelijk"
+    logger.debug('verhouding tussen originele en kwadratensom componenten:\n'
+                 f'{comp_av/comp_frommeasurements_avg.loc[components_av]}') # values are different than 1991.0 document and differs per station while the document states "Zoals te verwachten is de verhouding per component tussen deze wortel en de oorspronkelijke amplitude voor alle plaatsen gelijk"
 
     return comp_frommeasurements_avg, comp_av
 
