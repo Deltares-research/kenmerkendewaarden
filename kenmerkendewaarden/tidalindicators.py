@@ -32,6 +32,10 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, min_count=None):
         DESCRIPTION.
 
     """
+    # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
+    if data_pd_HWLW_all.index.tz is not None:
+        data_pd_HWLW_all = data_pd_HWLW_all.tz_localize(None)
+        
     if len(data_pd_HWLW_all['HWLWcode'].unique()) > 2: #aggers are present
         # TODO: this drops first value if it is a 3/4/5 LW, should be fixed: https://github.com/Deltares/hatyan/issues/311
         data_pd_HWLW_12 = calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
@@ -109,8 +113,9 @@ def calc_wltidalindicators(data_wl_pd, min_count=None):
         DESCRIPTION.
 
     """
-    if hasattr(data_wl_pd.index[0],'tz'): #timezone present in index
-        data_wl_pd.index = data_wl_pd.index.tz_localize(None)
+    # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
+    if data_wl_pd.index.tz is not None:
+        data_wl_pd = data_wl_pd.tz_localize(None)
     
     #count wl values per year/month
     wl_count_peryear = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="y"))['values'].count()
