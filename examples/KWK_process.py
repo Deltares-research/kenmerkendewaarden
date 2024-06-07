@@ -122,9 +122,9 @@ for current_station in stat_list:
             file_yearmeanHW = os.path.join(dir_meas_gemHWLWwlAB,f'{station_name_dict[current_station]}_hw.txt')
             file_yearmeanLW = os.path.join(dir_meas_gemHWLWwlAB,f'{station_name_dict[current_station]}_lw.txt')
             file_yearmeanwl = os.path.join(dir_meas_gemHWLWwlAB,f'{station_name_dict[current_station]}_Z.txt')
-            yearmeanHW = pd.read_csv(file_yearmeanHW, delim_whitespace=True, skiprows=1, names=['datetime','values'], parse_dates=['datetime'], na_values=-999.9, index_col='datetime')/100
-            yearmeanLW = pd.read_csv(file_yearmeanLW, delim_whitespace=True, skiprows=1, names=['datetime','values'], parse_dates=['datetime'], na_values=-999.9, index_col='datetime')/100
-            yearmeanwl = pd.read_csv(file_yearmeanwl, delim_whitespace=True, skiprows=1, names=['datetime','values'], parse_dates=['datetime'], na_values=-999.9, index_col='datetime')/100
+            yearmeanHW = pd.read_csv(file_yearmeanHW, sep='\\s+', skiprows=1, names=['datetime','values'], parse_dates=['datetime'], na_values=-999.9, index_col='datetime')/100
+            yearmeanLW = pd.read_csv(file_yearmeanLW, sep='\\s+', skiprows=1, names=['datetime','values'], parse_dates=['datetime'], na_values=-999.9, index_col='datetime')/100
+            yearmeanwl = pd.read_csv(file_yearmeanwl, sep='\\s+', skiprows=1, names=['datetime','values'], parse_dates=['datetime'], na_values=-999.9, index_col='datetime')/100
             ax1.plot(yearmeanHW['values'],'+g')
             ax1.plot(yearmeanLW['values'],'+g')
             ax1.plot(yearmeanwl['values'],'+g',label='yearmean validation')
@@ -231,7 +231,7 @@ for current_station in stat_list:
         #derive components via TA on measured waterlevels
         comp_frommeasurements_avg, comp_av = kw.get_gemgetij_components(data_pd_meas_10y)
         
-        times_pred_1mnth = pd.date_range(start=dt.datetime(tstop_dt.year,1,1,0,0)-dt.timedelta(hours=12), end=dt.datetime(tstop_dt.year,2,1,0,0), freq=f'{pred_freq_sec} S') #start 12 hours in advance, to assure also corrected values on desired tstart
+        times_pred_1mnth = pd.date_range(start=dt.datetime(tstop_dt.year,1,1,0,0)-dt.timedelta(hours=12), end=dt.datetime(tstop_dt.year,2,1,0,0), freq=f'{pred_freq_sec} s') #start 12 hours in advance, to assure also corrected values on desired tstart
         comp_av.attrs['nodalfactors'] = False #nodalfactors=False to guarantee repetative signal
         comp_av.attrs['fu_alltimes'] = True # TODO: this is not true, but this setting is the default
         prediction_av = hatyan.prediction(comp_av, times=times_pred_1mnth)
@@ -326,21 +326,21 @@ for current_station in stat_list:
         #12u25m timeseries for BOI computations (no relation between HW and moon, HW has to come at same time for av/sp/np tide, HW timing does differ between stations)
         print(f'reshape_signal BOI GEMGETIJ and write to csv: {current_station}')
         prediction_av_corrBOI_one = kw.reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=pd.Timedelta(hours=12,minutes=25))
-        prediction_av_corrBOI_one_roundtime = prediction_av_corrBOI_one.resample(f'{pred_freq_sec}S').nearest()
+        prediction_av_corrBOI_one_roundtime = prediction_av_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
         prediction_av_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'gemGetijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_av_corrBOI_repn_roundtime = kw.repeat_signal(prediction_av_corrBOI_one_roundtime, nb=0, na=10)
         
         print(f'reshape_signal BOI SPRINGTIJ and write to csv: {current_station}')
         prediction_sp_corrBOI_one = kw.reshape_signal(prediction_sp_one, prediction_sp_ext_one, HW_goal=HW_sp, LW_goal=LW_sp, tP_goal=pd.Timedelta(hours=12,minutes=25))
         prediction_sp_corrBOI_one.index = prediction_sp_corrBOI_one.index - prediction_sp_corrBOI_one.index[0] + prediction_av_corrBOI_one.index[0] #shift times to first HW from gemgetij
-        prediction_sp_corrBOI_one_roundtime = prediction_sp_corrBOI_one.resample(f'{pred_freq_sec}S').nearest()
+        prediction_sp_corrBOI_one_roundtime = prediction_sp_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
         prediction_sp_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'springtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_sp_corrBOI_repn_roundtime = kw.repeat_signal(prediction_sp_corrBOI_one_roundtime, nb=0, na=10)
     
         print(f'reshape_signal BOI DOODTIJ and write to csv: {current_station}')
         prediction_np_corrBOI_one = kw.reshape_signal(prediction_np_one, prediction_np_ext_one, HW_goal=HW_np, LW_goal=LW_np, tP_goal=pd.Timedelta(hours=12,minutes=25))
         prediction_np_corrBOI_one.index = prediction_np_corrBOI_one.index - prediction_np_corrBOI_one.index[0] + prediction_av_corrBOI_one.index[0] #shift times to first HW from gemgetij
-        prediction_np_corrBOI_one_roundtime = prediction_np_corrBOI_one.resample(f'{pred_freq_sec}S').nearest()
+        prediction_np_corrBOI_one_roundtime = prediction_np_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
         prediction_np_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'doodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_np_corrBOI_repn_roundtime = kw.repeat_signal(prediction_np_corrBOI_one_roundtime, nb=0, na=10)
         
