@@ -231,7 +231,7 @@ for current_station in stat_list:
         #derive components via TA on measured waterlevels
         comp_frommeasurements_avg, comp_av = kw.get_gemgetij_components(data_pd_meas_10y)
         
-        times_pred_1mnth = pd.date_range(start=dt.datetime(tstop_dt.year,1,1,0,0)-dt.timedelta(hours=12), end=dt.datetime(tstop_dt.year,2,1,0,0), freq=f'{pred_freq_sec} S') #start 12 hours in advance, to assure also corrected values on desired tstart
+        times_pred_1mnth = pd.date_range(start=dt.datetime(tstop_dt.year,1,1,0,0)-dt.timedelta(hours=12), end=dt.datetime(tstop_dt.year,2,1,0,0), freq=f'{pred_freq_sec} s') #start 12 hours in advance, to assure also corrected values on desired tstart
         comp_av.attrs['nodalfactors'] = False #nodalfactors=False to guarantee repetative signal
         comp_av.attrs['fu_alltimes'] = True # TODO: this is not true, but this setting is the default
         prediction_av = hatyan.prediction(comp_av, times=times_pred_1mnth)
