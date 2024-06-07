@@ -13,12 +13,19 @@ __all__ = ["gemiddeld_getij_av_sp_np",
            ]
 
 
-def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, na=0, scale_extremes=False, scale_period=False, debug=False):
+def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, nf=0, scale_extremes=False, scale_period=False, debug=False):
     """
+    Generate an average tidal signal for average/spring/neap tide by doing a tidal 
+    analysis on a timeseries of measurements. The (subsets/adjusted) resulting tidal components 
+    are then used to make a raw prediction for average/spring/neap tide.
+    These raw predictions can optionally be scaled in height (with havengetallen)
+    and in time (to a fixed period of 12h25min). An n-number of backwards and forward repeats 
+    are added before the timeseries are returned, resulting in nb+nf+1 tidal periods.
+    
     df_meas: timeseries of 10 years of waterlevel measurements
     pred_freq: frequency of the prediction, a value of 60 seconds or lower is adivisable for decent results.
-    nb: amount of periods to repeat before
-    na: amount of periods to repeat after
+    nb: amount of periods to repeat backward
+    nf: amount of periods to repeat forward
     scale_extremes: scale extremes with havengetallen. Should be a boolean, but is now a filepath to the havengetallen csv files
     scale_period: scale to 12h25min (for boi)
     """
@@ -27,7 +34,7 @@ def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, na=0, scale_extre
     
     current_station = data_pd_meas_10y.attrs["station"]
     
-    # TODO: deprecate debug argument+plot
+    # TODO: deprecate debug argument+plot (maybe use max HW instead of max tidalrange?)
     # TODO: we now call this function three times and deriving the unscaled krommes takes quite some time. Put in different function and cache it. 
     # TODO: add correctie havengetallen HW/LW av/sp/np met slotgemiddelde uit PLSS/modelfit (HW/LW av)
     
@@ -134,21 +141,21 @@ def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, na=0, scale_extre
     prediction_av_corr_one.index = prediction_av_corr_one.index - prediction_av_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
         prediction_av_corr_one = prediction_av_corr_one.resample(pred_freq).nearest()
-    prediction_av = repeat_signal(prediction_av_corr_one, nb=nb, na=na)
+    prediction_av = repeat_signal(prediction_av_corr_one, nb=nb, nf=nf)
     
     print(f'reshape_signal SPRINGTIJ: {current_station}')
     prediction_sp_corr_one = reshape_signal(prediction_sp_one, prediction_sp_ext_one, HW_goal=HW_sp, LW_goal=LW_sp, tP_goal=tP_goal)
     prediction_sp_corr_one.index = prediction_sp_corr_one.index - prediction_sp_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
         prediction_sp_corr_one = prediction_sp_corr_one.resample(pred_freq).nearest()
-    prediction_sp = repeat_signal(prediction_sp_corr_one, nb=nb, na=na)
+    prediction_sp = repeat_signal(prediction_sp_corr_one, nb=nb, nf=nf)
     
     print(f'reshape_signal DOODTIJ: {current_station}')
     prediction_np_corr_one = reshape_signal(prediction_np_one, prediction_np_ext_one, HW_goal=HW_np, LW_goal=LW_np, tP_goal=tP_goal)
     prediction_np_corr_one.index = prediction_np_corr_one.index - prediction_np_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
         prediction_np_corr_one = prediction_np_corr_one.resample(pred_freq).nearest()
-    prediction_np = repeat_signal(prediction_np_corr_one, nb=nb, na=na)
+    prediction_np = repeat_signal(prediction_np_corr_one, nb=nb, nf=nf)
     
     return prediction_av, prediction_sp, prediction_np
 
@@ -226,6 +233,8 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     if HW_goal is None and LW_goal is None:
         return ts
     
+    # TODO: consider removing the need for ts_ext, it should be possible with min/max, although the HW of the raw timeseries are not exactly equal
+    
     TR_goal = HW_goal-LW_goal
     
     #selecteer alle hoogwaters en opvolgende laagwaters
@@ -264,26 +273,13 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     return ts_corr
 
 
-def ts_to_trefHW(ts,HWreftime=None):
-    """
-    converts to hours relative to HWreftime, to plot av/sp/np tidal signals in one plot
-    """
-    ts.index.name = 'times' #just to be sure
-    ts_trefHW = ts.reset_index()
-    if HWreftime is None:
-        ts_trefHW.index = (ts_trefHW['times']-ts_trefHW['times'].iloc[0])#.dt.total_seconds()/3600
-    else:
-        ts_trefHW.index = (ts_trefHW['times']-HWreftime)#.dt.total_seconds()/3600
-    return ts_trefHW
-
-
-def repeat_signal(ts_one_HWtoHW, nb, na):
+def repeat_signal(ts_one_HWtoHW, nb, nf):
     """
     repeat tidal signal, necessary for sp/np, since they are computed as single tidal signal first
     """
     tidalperiod = ts_one_HWtoHW.index[-1] - ts_one_HWtoHW.index[0]
     ts_rep = pd.DataFrame()
-    for iAdd in np.arange(-nb,na+1):
+    for iAdd in np.arange(-nb,nf+1):
         ts_add = pd.DataFrame({'values':ts_one_HWtoHW['values'].values},
                               index=ts_one_HWtoHW.index + iAdd*tidalperiod)
         ts_rep = pd.concat([ts_rep,ts_add])
