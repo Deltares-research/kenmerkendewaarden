@@ -326,21 +326,21 @@ for current_station in stat_list:
         #12u25m timeseries for BOI computations (no relation between HW and moon, HW has to come at same time for av/sp/np tide, HW timing does differ between stations)
         print(f'reshape_signal BOI GEMGETIJ and write to csv: {current_station}')
         prediction_av_corrBOI_one = kw.reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=pd.Timedelta(hours=12,minutes=25))
-        prediction_av_corrBOI_one_roundtime = prediction_av_corrBOI_one.resample(f'{pred_freq_sec}S').nearest()
+        prediction_av_corrBOI_one_roundtime = prediction_av_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
         prediction_av_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'gemGetijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_av_corrBOI_repn_roundtime = kw.repeat_signal(prediction_av_corrBOI_one_roundtime, nb=0, na=10)
         
         print(f'reshape_signal BOI SPRINGTIJ and write to csv: {current_station}')
         prediction_sp_corrBOI_one = kw.reshape_signal(prediction_sp_one, prediction_sp_ext_one, HW_goal=HW_sp, LW_goal=LW_sp, tP_goal=pd.Timedelta(hours=12,minutes=25))
         prediction_sp_corrBOI_one.index = prediction_sp_corrBOI_one.index - prediction_sp_corrBOI_one.index[0] + prediction_av_corrBOI_one.index[0] #shift times to first HW from gemgetij
-        prediction_sp_corrBOI_one_roundtime = prediction_sp_corrBOI_one.resample(f'{pred_freq_sec}S').nearest()
+        prediction_sp_corrBOI_one_roundtime = prediction_sp_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
         prediction_sp_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'springtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_sp_corrBOI_repn_roundtime = kw.repeat_signal(prediction_sp_corrBOI_one_roundtime, nb=0, na=10)
     
         print(f'reshape_signal BOI DOODTIJ and write to csv: {current_station}')
         prediction_np_corrBOI_one = kw.reshape_signal(prediction_np_one, prediction_np_ext_one, HW_goal=HW_np, LW_goal=LW_np, tP_goal=pd.Timedelta(hours=12,minutes=25))
         prediction_np_corrBOI_one.index = prediction_np_corrBOI_one.index - prediction_np_corrBOI_one.index[0] + prediction_av_corrBOI_one.index[0] #shift times to first HW from gemgetij
-        prediction_np_corrBOI_one_roundtime = prediction_np_corrBOI_one.resample(f'{pred_freq_sec}S').nearest()
+        prediction_np_corrBOI_one_roundtime = prediction_np_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
         prediction_np_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'doodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_np_corrBOI_repn_roundtime = kw.repeat_signal(prediction_np_corrBOI_one_roundtime, nb=0, na=10)
         
