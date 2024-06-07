@@ -214,7 +214,7 @@ for current_station in stat_list:
     if compute_gemgetij and data_pd_meas_all is not None:
         
         print(f'gem getijkrommen for {current_station}')
-        pred_freq_sec = 10 #TODO: frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
+        pred_freq = "10s" #TODO: frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
         
         #TODO: add correctie havengetallen HW/LW av/sp/np met slotgemiddelde uit PLSS/modelfit (HW/LW av)
         file_havget = os.path.join(dir_havget,f'havengetallen_{year_slotgem}_{current_station}.csv')
@@ -228,10 +228,12 @@ for current_station in stat_list:
         HW_np, LW_np = data_havget.loc['neap',['HW_values_median','LW_values_median']]
         HW_av, LW_av = data_havget.loc['mean',['HW_values_median','LW_values_median']]
         
+        # def get_prediction_one_av_sp_np():
+        
         #derive components via TA on measured waterlevels
         comp_frommeasurements_avg, comp_av = kw.get_gemgetij_components(data_pd_meas_10y)
         
-        times_pred_1mnth = pd.date_range(start=dt.datetime(tstop_dt.year,1,1,0,0)-dt.timedelta(hours=12), end=dt.datetime(tstop_dt.year,2,1,0,0), freq=f'{pred_freq_sec} s') #start 12 hours in advance, to assure also corrected values on desired tstart
+        times_pred_1mnth = pd.date_range(start=dt.datetime(tstop_dt.year,1,1,0,0)-dt.timedelta(hours=12), end=dt.datetime(tstop_dt.year,2,1,0,0), freq=pred_freq) #start 12 hours in advance, to assure also corrected values on desired tstart
         comp_av.attrs['nodalfactors'] = False #nodalfactors=False to guarantee repetative signal
         comp_av.attrs['fu_alltimes'] = True # TODO: this is not true, but this setting is the default
         prediction_av = hatyan.prediction(comp_av, times=times_pred_1mnth)
@@ -303,8 +305,10 @@ for current_station in stat_list:
         fig.savefig(os.path.join(dir_gemgetij,f'springdoodtijkromme_{current_station}_slotgem{year_slotgem}.png'))
         
         
+        
         #timeseries for gele boekje (av/sp/np have different lengths, time is relative to HW of av and HW of sp/np are shifted there) #TODO: is this product still necessary?
         print(f'reshape_signal GEMGETIJ: {current_station}')
+            
         prediction_av_one_trefHW = kw.ts_to_trefHW(prediction_av_one) # repeating one is not necessary for av, but easier to do the same for av/sp/np
         prediction_av_corr_one = kw.reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=None)
         prediction_av_corr_one.index = prediction_av_corr_one.index - prediction_av_corr_one.index[0] # make relative to first timestamp (=HW)
@@ -330,21 +334,21 @@ for current_station in stat_list:
         print(f'reshape_signal BOI GEMGETIJ and write to csv: {current_station}')
         prediction_av_corrBOI_one = kw.reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=pd.Timedelta(hours=12,minutes=25))
         prediction_av_corrBOI_one.index = prediction_av_corrBOI_one.index - prediction_av_corrBOI_one.index[0]
-        prediction_av_corrBOI_one_roundtime = prediction_av_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
+        prediction_av_corrBOI_one_roundtime = prediction_av_corrBOI_one.resample(pred_freq).nearest()
         prediction_av_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'gemGetijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_av_corrBOI_repn_roundtime = kw.repeat_signal(prediction_av_corrBOI_one_roundtime, nb=0, na=10)
         
         print(f'reshape_signal BOI SPRINGTIJ and write to csv: {current_station}')
         prediction_sp_corrBOI_one = kw.reshape_signal(prediction_sp_one, prediction_sp_ext_one, HW_goal=HW_sp, LW_goal=LW_sp, tP_goal=pd.Timedelta(hours=12,minutes=25))
         prediction_sp_corrBOI_one.index = prediction_sp_corrBOI_one.index - prediction_sp_corrBOI_one.index[0] #+ prediction_av_corrBOI_one.index[0] #shift times to first HW from gemgetij
-        prediction_sp_corrBOI_one_roundtime = prediction_sp_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
+        prediction_sp_corrBOI_one_roundtime = prediction_sp_corrBOI_one.resample(pred_freq).nearest()
         prediction_sp_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'springtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_sp_corrBOI_repn_roundtime = kw.repeat_signal(prediction_sp_corrBOI_one_roundtime, nb=0, na=10)
     
         print(f'reshape_signal BOI DOODTIJ and write to csv: {current_station}')
         prediction_np_corrBOI_one = kw.reshape_signal(prediction_np_one, prediction_np_ext_one, HW_goal=HW_np, LW_goal=LW_np, tP_goal=pd.Timedelta(hours=12,minutes=25))
         prediction_np_corrBOI_one.index = prediction_np_corrBOI_one.index - prediction_np_corrBOI_one.index[0] #+ prediction_av_corrBOI_one.index[0] #shift times to first HW from gemgetij
-        prediction_np_corrBOI_one_roundtime = prediction_np_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
+        prediction_np_corrBOI_one_roundtime = prediction_np_corrBOI_one.resample(pred_freq).nearest()
         prediction_np_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'doodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_np_corrBOI_repn_roundtime = kw.repeat_signal(prediction_np_corrBOI_one_roundtime, nb=0, na=10)
         
@@ -360,7 +364,7 @@ for current_station in stat_list:
         prediction_sp_corr_rep5['values'].plot(ax=ax_sum, color=cmap(1), label='sp kromme, corr')
         prediction_np_one_trefHW['values'].plot(ax=ax_sum, linestyle='--', color=cmap(2), linewidth=0.7, label='np kromme, one')
         prediction_np_corr_rep5['values'].plot(ax=ax_sum, color=cmap(2), label='np kromme, corr')
-        ax_sum.set_xticks([x*3600e9 for x in range(-12, 24, 6)]) # nanoseconds units
+        ax_sum.set_xticks([x*3600e9 for x in range(-15, 25, 5)]) # nanoseconds units # TODO: make multiple of 12
         ax_sum.legend(loc=4)
         ax_sum.grid()
         ax_sum.set_xlim([x*3600e9 for x in [-15.5,15.5]])
@@ -375,7 +379,7 @@ for current_station in stat_list:
         prediction_av_corrBOI_repn_roundtime['values'].plot(ax=ax1_boi,color=cmap(0),label='prediction gemtij')
         prediction_sp_corrBOI_repn_roundtime['values'].plot(ax=ax1_boi,color=cmap(1),label='prediction springtij')
         prediction_np_corrBOI_repn_roundtime['values'].plot(ax=ax1_boi,color=cmap(2),label='prediction doodtij')
-        ax1_boi.set_xticks([x*3600e9 for x in range(0, 6*24, 24)]) # nanoseconds units
+        ax1_boi.set_xticks([x*3600e9 for x in range(0, 6*24, 12)]) # nanoseconds units
         
         #plot validation lines if available
         dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
@@ -395,7 +399,7 @@ for current_station in stat_list:
         ax1_boi.grid()
         ax1_boi.legend(loc=4)
         ax1_boi.set_xlabel('times since first av HW (start of ts)')
-        ax1_boi.set_xlim(tstop_dt-dt.timedelta(hours=2),tstop_dt+dt.timedelta(hours=48))
+        ax1_boi.set_xlim([x*3600e9 for x in [-2-5, 48-5]]) # TODO: make nicer xrange
         fig_boi.tight_layout()
         fig_boi.savefig(os.path.join(dir_gemgetij,f'gemspringdoodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.png'))
     
