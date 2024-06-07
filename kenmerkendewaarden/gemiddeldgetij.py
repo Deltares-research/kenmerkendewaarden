@@ -128,9 +128,9 @@ def ts_to_trefHW(ts,HWreftime=None):
     ts.index.name = 'times' #just to be sure
     ts_trefHW = ts.reset_index()
     if HWreftime is None:
-        ts_trefHW.index = (ts_trefHW['times']-ts_trefHW['times'].iloc[0]).dt.total_seconds()/3600
+        ts_trefHW.index = (ts_trefHW['times']-ts_trefHW['times'].iloc[0])#.dt.total_seconds()/3600
     else:
-        ts_trefHW.index = (ts_trefHW['times']-HWreftime).dt.total_seconds()/3600
+        ts_trefHW.index = (ts_trefHW['times']-HWreftime)#.dt.total_seconds()/3600
     return ts_trefHW
 
 

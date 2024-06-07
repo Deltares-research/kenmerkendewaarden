@@ -307,39 +307,43 @@ for current_station in stat_list:
         print(f'reshape_signal GEMGETIJ: {current_station}')
         prediction_av_one_trefHW = kw.ts_to_trefHW(prediction_av_one) # repeating one is not necessary for av, but easier to do the same for av/sp/np
         prediction_av_corr_one = kw.reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=None)
+        prediction_av_corr_one.index = prediction_av_corr_one.index - prediction_av_corr_one.index[0] # make relative to first timestamp (=HW)
         prediction_av_corr_rep5 = kw.repeat_signal(prediction_av_corr_one, nb=2, na=2)
-        prediction_av_corr_rep5_trefHW = kw.ts_to_trefHW(prediction_av_corr_rep5,HWreftime=ia1)
+        # prediction_av_corr_rep5_trefHW = kw.ts_to_trefHW(prediction_av_corr_rep5,HWreftime=ia1)
         
         print(f'reshape_signal SPRINGTIJ: {current_station}')
         prediction_sp_one_trefHW = kw.ts_to_trefHW(prediction_sp_one)
         prediction_sp_corr_one = kw.reshape_signal(prediction_sp_one, prediction_sp_ext_one, HW_goal=HW_sp, LW_goal=LW_sp, tP_goal=None)
+        prediction_sp_corr_one.index = prediction_sp_corr_one.index - prediction_sp_corr_one.index[0] # make relative to first timestamp (=HW)
         prediction_sp_corr_rep5 = kw.repeat_signal(prediction_sp_corr_one, nb=2, na=2)
-        prediction_sp_corr_rep5_trefHW = kw.ts_to_trefHW(prediction_sp_corr_rep5,HWreftime=is1)
+        # prediction_sp_corr_rep5_trefHW = kw.ts_to_trefHW(prediction_sp_corr_rep5,HWreftime=is1)
         
         print(f'reshape_signal DOODTIJ: {current_station}')
         prediction_np_one_trefHW = kw.ts_to_trefHW(prediction_np_one)
         prediction_np_corr_one = kw.reshape_signal(prediction_np_one, prediction_np_ext_one, HW_goal=HW_np, LW_goal=LW_np, tP_goal=None)
+        prediction_np_corr_one.index = prediction_np_corr_one.index - prediction_np_corr_one.index[0] # make relative to first timestamp (=HW)
         prediction_np_corr_rep5 = kw.repeat_signal(prediction_np_corr_one, nb=2, na=2)
-        prediction_np_corr_rep5_trefHW = kw.ts_to_trefHW(prediction_np_corr_rep5,HWreftime=in1)
+        # prediction_np_corr_rep5_trefHW = kw.ts_to_trefHW(prediction_np_corr_rep5,HWreftime=in1)
         
         
         #12u25m timeseries for BOI computations (no relation between HW and moon, HW has to come at same time for av/sp/np tide, HW timing does differ between stations)
         print(f'reshape_signal BOI GEMGETIJ and write to csv: {current_station}')
         prediction_av_corrBOI_one = kw.reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=pd.Timedelta(hours=12,minutes=25))
+        prediction_av_corrBOI_one.index = prediction_av_corrBOI_one.index - prediction_av_corrBOI_one.index[0]
         prediction_av_corrBOI_one_roundtime = prediction_av_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
         prediction_av_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'gemGetijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_av_corrBOI_repn_roundtime = kw.repeat_signal(prediction_av_corrBOI_one_roundtime, nb=0, na=10)
         
         print(f'reshape_signal BOI SPRINGTIJ and write to csv: {current_station}')
         prediction_sp_corrBOI_one = kw.reshape_signal(prediction_sp_one, prediction_sp_ext_one, HW_goal=HW_sp, LW_goal=LW_sp, tP_goal=pd.Timedelta(hours=12,minutes=25))
-        prediction_sp_corrBOI_one.index = prediction_sp_corrBOI_one.index - prediction_sp_corrBOI_one.index[0] + prediction_av_corrBOI_one.index[0] #shift times to first HW from gemgetij
+        prediction_sp_corrBOI_one.index = prediction_sp_corrBOI_one.index - prediction_sp_corrBOI_one.index[0] #+ prediction_av_corrBOI_one.index[0] #shift times to first HW from gemgetij
         prediction_sp_corrBOI_one_roundtime = prediction_sp_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
         prediction_sp_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'springtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_sp_corrBOI_repn_roundtime = kw.repeat_signal(prediction_sp_corrBOI_one_roundtime, nb=0, na=10)
     
         print(f'reshape_signal BOI DOODTIJ and write to csv: {current_station}')
         prediction_np_corrBOI_one = kw.reshape_signal(prediction_np_one, prediction_np_ext_one, HW_goal=HW_np, LW_goal=LW_np, tP_goal=pd.Timedelta(hours=12,minutes=25))
-        prediction_np_corrBOI_one.index = prediction_np_corrBOI_one.index - prediction_np_corrBOI_one.index[0] + prediction_av_corrBOI_one.index[0] #shift times to first HW from gemgetij
+        prediction_np_corrBOI_one.index = prediction_np_corrBOI_one.index - prediction_np_corrBOI_one.index[0] #+ prediction_av_corrBOI_one.index[0] #shift times to first HW from gemgetij
         prediction_np_corrBOI_one_roundtime = prediction_np_corrBOI_one.resample(f'{pred_freq_sec}s').nearest()
         prediction_np_corrBOI_one_roundtime.to_csv(os.path.join(dir_gemgetij,f'doodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
         prediction_np_corrBOI_repn_roundtime = kw.repeat_signal(prediction_np_corrBOI_one_roundtime, nb=0, na=10)
@@ -350,15 +354,16 @@ for current_station in stat_list:
         print(f'plot getijkromme trefHW: {current_station}')
         fig_sum,ax_sum = plt.subplots(figsize=(14,7))
         ax_sum.set_title(f'getijkromme trefHW {current_station}')
-        ax_sum.plot(prediction_av_one_trefHW['values'],'--', color=cmap(0), linewidth=0.7, label='gem kromme, one')
-        ax_sum.plot(prediction_av_corr_rep5_trefHW['values'], color=cmap(0), label='gem kromme, corr')
-        ax_sum.plot(prediction_sp_one_trefHW['values'],'--', color=cmap(1), linewidth=0.7, label='sp kromme, one')
-        ax_sum.plot(prediction_sp_corr_rep5_trefHW['values'], color=cmap(1), label='sp kromme, corr')
-        ax_sum.plot(prediction_np_one_trefHW['values'],'--', color=cmap(2), linewidth=0.7, label='np kromme, one')
-        ax_sum.plot(prediction_np_corr_rep5_trefHW['values'], color=cmap(2), label='np kromme, corr')
+        prediction_av_one_trefHW['values'].plot(ax=ax_sum, linestyle='--', color=cmap(0), linewidth=0.7, label='gem kromme, one')
+        prediction_av_corr_rep5['values'].plot(ax=ax_sum, color=cmap(0), label='gem kromme, corr')
+        prediction_sp_one_trefHW['values'].plot(ax=ax_sum, linestyle='--', color=cmap(1), linewidth=0.7, label='sp kromme, one')
+        prediction_sp_corr_rep5['values'].plot(ax=ax_sum, color=cmap(1), label='sp kromme, corr')
+        prediction_np_one_trefHW['values'].plot(ax=ax_sum, linestyle='--', color=cmap(2), linewidth=0.7, label='np kromme, one')
+        prediction_np_corr_rep5['values'].plot(ax=ax_sum, color=cmap(2), label='np kromme, corr')
+        ax_sum.set_xticks([x*3600e9 for x in range(-12, 24, 6)]) # nanoseconds units
         ax_sum.legend(loc=4)
         ax_sum.grid()
-        ax_sum.set_xlim(-15.5,15.5)
+        ax_sum.set_xlim([x*3600e9 for x in [-15.5,15.5]])
         ax_sum.set_xlabel('hours since HW (ts are shifted to this reference)')
         fig_sum.tight_layout()
         fig_sum.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
@@ -366,11 +371,11 @@ for current_station in stat_list:
         print(f'plot BOI figure and compare to KW2020: {current_station}')
         fig_boi,ax1_boi = plt.subplots(figsize=(14,7))
         ax1_boi.set_title(f'getijkromme BOI {current_station}')
-        
         #plot gemtij/springtij/doodtij
-        ax1_boi.plot(prediction_av_corrBOI_repn_roundtime['values'],color=cmap(0),label='prediction gemtij')
-        ax1_boi.plot(prediction_sp_corrBOI_repn_roundtime['values'],color=cmap(1),label='prediction springtij')
-        ax1_boi.plot(prediction_np_corrBOI_repn_roundtime['values'],color=cmap(2),label='prediction doodtij')
+        prediction_av_corrBOI_repn_roundtime['values'].plot(ax=ax1_boi,color=cmap(0),label='prediction gemtij')
+        prediction_sp_corrBOI_repn_roundtime['values'].plot(ax=ax1_boi,color=cmap(1),label='prediction springtij')
+        prediction_np_corrBOI_repn_roundtime['values'].plot(ax=ax1_boi,color=cmap(2),label='prediction doodtij')
+        ax1_boi.set_xticks([x*3600e9 for x in range(0, 6*24, 24)]) # nanoseconds units
         
         #plot validation lines if available
         dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
