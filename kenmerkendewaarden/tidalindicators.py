@@ -32,6 +32,10 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, min_count=None):
         DESCRIPTION.
 
     """
+    # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
+    if data_pd_HWLW_all.index.tz is not None:
+        data_pd_HWLW_all = data_pd_HWLW_all.tz_localize(None)
+        
     if len(data_pd_HWLW_all['HWLWcode'].unique()) > 2: #aggers are present
         # TODO: this drops first value if it is a 3/4/5 LW, should be fixed: https://github.com/Deltares/hatyan/issues/311
         data_pd_HWLW_12 = calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
@@ -43,18 +47,18 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, min_count=None):
     data_pd_LW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==2]
     
     #count HWLW values per year/month
-    HWLW_count_peryear = data_pd_HWLW_12.groupby(pd.PeriodIndex(data_pd_HWLW_12.index, freq="y"))['values'].count()
-    HWLW_count_permonth = data_pd_HWLW_12.groupby(pd.PeriodIndex(data_pd_HWLW_12.index, freq="m"))['values'].count()
+    HWLW_count_peryear = data_pd_HWLW_12.groupby(pd.PeriodIndex(data_pd_HWLW_12.index, freq="Y"))['values'].count()
+    HWLW_count_permonth = data_pd_HWLW_12.groupby(pd.PeriodIndex(data_pd_HWLW_12.index, freq="M"))['values'].count()
     
     #yearmean HWLW from HWLW values #maybe also add *_mean_permonth
-    HW_mean_peryear = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))[['values']].mean()
-    LW_mean_peryear = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="y"))[['values']].mean()
+    HW_mean_peryear = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="Y"))[['values']].mean()
+    LW_mean_peryear = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="Y"))[['values']].mean()
     
     #derive GHHW/GHWS (gemiddeld hoogwater springtij) per month
-    HW_monthmax_permonth = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="m"))[['values']].max() #proxy for HW at spring tide
-    LW_monthmin_permonth = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="m"))[['values']].min() #proxy for LW at spring tide
-    HW_monthmin_permonth = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="m"))[['values']].min() #proxy for HW at neap tide
-    LW_monthmax_permonth = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="m"))[['values']].max() #proxy for LW at neap tide
+    HW_monthmax_permonth = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="M"))[['values']].max() #proxy for HW at spring tide
+    LW_monthmin_permonth = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="M"))[['values']].min() #proxy for LW at spring tide
+    HW_monthmin_permonth = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="M"))[['values']].min() #proxy for HW at neap tide
+    LW_monthmax_permonth = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="M"))[['values']].max() #proxy for LW at neap tide
     
     #replace invalids with nan (in case of too less values per month or year)
     if min_count is not None:
@@ -67,10 +71,10 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, min_count=None):
         LW_monthmax_permonth.loc[HWLW_count_permonth<min_count_permonth] = np.nan
     
     #derive GHHW/GHWS (gemiddeld hoogwater springtij)
-    HW_monthmax_mean_peryear = HW_monthmax_permonth.groupby(pd.PeriodIndex(HW_monthmax_permonth.index, freq="y"))[['values']].mean()
-    LW_monthmin_mean_peryear = LW_monthmin_permonth.groupby(pd.PeriodIndex(LW_monthmin_permonth.index, freq="y"))[['values']].mean()
-    HW_monthmin_mean_peryear = HW_monthmin_permonth.groupby(pd.PeriodIndex(HW_monthmin_permonth.index, freq="y"))[['values']].mean()
-    LW_monthmax_mean_peryear = LW_monthmax_permonth.groupby(pd.PeriodIndex(LW_monthmax_permonth.index, freq="y"))[['values']].mean()
+    HW_monthmax_mean_peryear = HW_monthmax_permonth.groupby(pd.PeriodIndex(HW_monthmax_permonth.index, freq="Y"))[['values']].mean()
+    LW_monthmin_mean_peryear = LW_monthmin_permonth.groupby(pd.PeriodIndex(LW_monthmin_permonth.index, freq="Y"))[['values']].mean()
+    HW_monthmin_mean_peryear = HW_monthmin_permonth.groupby(pd.PeriodIndex(HW_monthmin_permonth.index, freq="Y"))[['values']].mean()
+    LW_monthmax_mean_peryear = LW_monthmax_permonth.groupby(pd.PeriodIndex(LW_monthmax_permonth.index, freq="Y"))[['values']].mean()
     
     dict_HWLWtidalindicators = {'HW_mean':data_pd_HW['values'].mean(), #GHW
                                 'LW_mean':data_pd_LW['values'].mean(), #GLW
@@ -109,16 +113,17 @@ def calc_wltidalindicators(data_wl_pd, min_count=None):
         DESCRIPTION.
 
     """
-    if hasattr(data_wl_pd.index[0],'tz'): #timezone present in index
-        data_wl_pd.index = data_wl_pd.index.tz_localize(None)
+    # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
+    if data_wl_pd.index.tz is not None:
+        data_wl_pd = data_wl_pd.tz_localize(None)
     
     #count wl values per year/month
-    wl_count_peryear = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="y"))['values'].count()
-    wl_count_permonth = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="m"))['values'].count()
+    wl_count_peryear = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="Y"))['values'].count()
+    wl_count_permonth = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="M"))['values'].count()
     
     #yearmean wl from wl values
-    wl_mean_peryear = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="y"))[['values']].mean()
-    wl_mean_permonth = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="m"))[['values']].mean()
+    wl_mean_peryear = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="Y"))[['values']].mean()
+    wl_mean_permonth = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="M"))[['values']].mean()
     
     #replace invalids with nan (in case of too less values per month or year)
     if min_count is not None:
