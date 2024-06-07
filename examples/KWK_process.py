@@ -8,6 +8,12 @@ plt.close('all')
 import hatyan
 import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-research/kenmerkendewaarden
 
+# set logging level to INFO to get log messages
+# calling basicConfig is essential to set logging level of single module, format is optional
+import logging
+logging.basicConfig(format='%(message)s')
+logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
+
 # TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
 
 tstart_dt = pd.Timestamp(2011,1,1, tz="UTC+01:00")
