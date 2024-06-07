@@ -57,10 +57,10 @@ physical_break_dict = {'DENOVBTN':'1933', #laatste sluitgat afsluitdijk in 1932
 
 nap_correction = False
 
-compute_slotgem = False
+compute_slotgem = True
 compute_havengetallen = True
 compute_gemgetij = True
-compute_overschrijding = False
+compute_overschrijding = True
 
 
 for current_station in stat_list:
