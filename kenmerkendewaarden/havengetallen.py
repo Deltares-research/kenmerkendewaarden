@@ -17,7 +17,7 @@ __all__ = ["havengetallen",
            ]
 
 
-def havengetallen(df_ext:pd.DataFrame):
+def havengetallen(df_ext:pd.DataFrame, return_df=False):
     """
     havengetallen consist of the extreme (high and low) median values and the 
     extreme median time delays with respect to the moonculmination.
@@ -29,7 +29,9 @@ def havengetallen(df_ext:pd.DataFrame):
     ----------
     df_ext : pd.DataFrame
         DataFrame with extremes (highs and lows, no aggers).
-
+    return_df : bool
+        Whether to return the enriched input dataframe. Default is False.
+    
     Returns
     -------
     havengetallen_dict : dict
@@ -55,7 +57,10 @@ def havengetallen(df_ext:pd.DataFrame):
         df_ext = df_ext.tz_localize(None)
     df_ext = calc_HWLW_moonculm_combi(data_pd_HWLW_12=df_ext, culm_addtime=culm_addtime) #culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
     havengetallen_dict = calc_HWLW_culmhr_summary(df_ext) #TODO: maybe add tijverschil
-    return havengetallen_dict, df_ext
+    if return_df:
+        return havengetallen_dict, df_ext
+    else:
+        return havengetallen_dict
 
 
 def get_moonculm_idxHWLWno(tstart,tstop):
