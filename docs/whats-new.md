@@ -10,6 +10,7 @@
 - used threshold frequency instead of fixed index in `kw.overschrijding.blend_distributions` in [#38](https://github.com/Deltares-research/kenmerkendewaarden/pull/38)
 - dropped timezones consistently in `kw.calc_wltidalindicators()` and `kw.calc_HWLWtidalindicators()` to increase performance [#41](https://github.com/Deltares-research/kenmerkendewaarden/pull/41)
 - simplified methods for gemiddeld getij and reducing public functions to `kw.gemiddeld_getijkromme_av_sp_np()` in [#46](https://github.com/Deltares-research/kenmerkendewaarden/pull/46)
+- simplified methods for havengetallen and reducing public functions to `kw.havengetallen()` in [#48](https://github.com/Deltares-research/kenmerkendewaarden/pull/48)
 
 
 ## 0.1.0 (2024-03-11)
