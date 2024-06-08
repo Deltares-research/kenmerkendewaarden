@@ -212,7 +212,7 @@ for current_station in stat_list:
         # file_havget = os.path.join(dir_havget,f'havengetallen_{year_slotgem}_{current_station}.csv')
 
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
-        prediction_av, prediction_sp, prediction_np = kw.gemiddeld_getij_av_sp_np(
+        prediction_av_raw, prediction_sp_raw, prediction_np_raw = kw.gemiddeld_getij_av_sp_np(
                                         df_meas=data_pd_meas_10y, df_ext=None,
                                         freq=pred_freq, nb=0, nf=0, 
                                         scale_extremes=False, scale_period=False)
@@ -236,11 +236,11 @@ for current_station in stat_list:
         print(f'plot getijkromme trefHW: {current_station}')
         fig_sum,ax_sum = plt.subplots(figsize=(14,7))
         ax_sum.set_title(f'getijkromme trefHW {current_station}')
-        prediction_av['values'].plot(ax=ax_sum, linestyle='--', color=cmap(0), linewidth=0.7, label='gem kromme, one')
+        prediction_av_raw['values'].plot(ax=ax_sum, linestyle='--', color=cmap(0), linewidth=0.7, label='gem kromme, one')
         prediction_av_corr['values'].plot(ax=ax_sum, color=cmap(0), label='gem kromme, corr')
-        prediction_sp['values'].plot(ax=ax_sum, linestyle='--', color=cmap(1), linewidth=0.7, label='sp kromme, one')
+        prediction_sp_raw['values'].plot(ax=ax_sum, linestyle='--', color=cmap(1), linewidth=0.7, label='sp kromme, one')
         prediction_sp_corr['values'].plot(ax=ax_sum, color=cmap(1), label='sp kromme, corr')
-        prediction_np['values'].plot(ax=ax_sum, linestyle='--', color=cmap(2), linewidth=0.7, label='np kromme, one')
+        prediction_np_raw['values'].plot(ax=ax_sum, linestyle='--', color=cmap(2), linewidth=0.7, label='np kromme, one')
         prediction_np_corr['values'].plot(ax=ax_sum, color=cmap(2), label='np kromme, corr')
         ax_sum.set_xticks([x*3600e9 for x in range(-15, 25, 5)]) # nanoseconds units # TODO: make multiple of 12
         ax_sum.legend(loc=4)
