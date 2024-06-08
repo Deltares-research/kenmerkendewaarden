@@ -186,7 +186,7 @@ for current_station in stat_list:
         
         print(f'havengetallen for {current_station}')
         # TODO: havengetallen are different than p:\archivedprojects\11208031-010-kenmerkende-waarden-k\work\out_havengetallen_2021\havengetallen_2021_HOEKVHLD.csv
-        havengetallen_dict, data_pd_HWLW = kw.havengetallen(df_ext=data_pd_HWLW_10y_12)
+        havengetallen_dict, data_pd_HWLW = kw.havengetallen(df_ext=data_pd_HWLW_10y_12, return_df=True)
         
         print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
         fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, havengetallen_dict)
