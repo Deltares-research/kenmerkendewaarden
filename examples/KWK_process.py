@@ -186,30 +186,18 @@ for current_station in stat_list:
         
         print(f'havengetallen for {current_station}')
         # TODO: havengetallen are different than p:\archivedprojects\11208031-010-kenmerkende-waarden-k\work\out_havengetallen_2021\havengetallen_2021_HOEKVHLD.csv
-        
-        # TODO: check culm_addtime and HWLWno+4 offsets. culm_addtime could also be 2 days or 2days +1h GMT-MET correction. 20 minutes seems odd since moonculm is about tidal wave from ocean
-        # culm_addtime is a 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek
-        # HW is 2 days after culmination (so 4x25min difference between length of avg moonculm and length of 2 days)
-        # 1 hour (GMT to MET, alternatively we can also account for timezone differences elsewhere)
-        # 20 minutes (0 to 5 meridian)
-        culm_addtime = 4*dt.timedelta(hours=12,minutes=25) + dt.timedelta(hours=1) - dt.timedelta(minutes=20)
-        
-        # TODO: move calc_HWLW_moonculm_combi() to top since it is the same for all stations
-        # TODO: we added tz_localize on 29-5-2024 (https://github.com/Deltares-research/kenmerkendewaarden/issues/30)
-        # this means we pass a UTC+1 timeseries as if it were a UTC timeseries
-        data_pd_HWLW = kw.calc_HWLW_moonculm_combi(data_pd_HWLW_12=data_pd_HWLW_10y_12.tz_localize(None), culm_addtime=culm_addtime) #culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
-        HWLW_culmhr_summary = kw.calc_HWLW_culmhr_summary(data_pd_HWLW) #TODO: maybe add tijverschil
+        havengetallen_dict, data_pd_HWLW = kw.havengetallen(df_ext=data_pd_HWLW_10y_12)
         
         print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
-        fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, HWLW_culmhr_summary)
+        fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, havengetallen_dict)
         fig.savefig(os.path.join(dir_havget,f'HWLW_pertijdsklasse_inclmedianline_{current_station}'))
         
         print('AARDAPPELGRAFIEK')
-        fig, (ax1,ax2) = kw.plot_aardappelgrafiek(HWLW_culmhr_summary)
+        fig, (ax1,ax2) = kw.plot_aardappelgrafiek(havengetallen_dict)
         fig.savefig(os.path.join(dir_havget, f'aardappelgrafiek_{year_slotgem}_{current_station}'))
         
-        #write to csv
-        HWLW_culmhr_summary_exp = HWLW_culmhr_summary.loc[[6,'mean',0]] #select neap/mean/springtide
+        #write to csv # TODO: do we need this in this format?
+        HWLW_culmhr_summary_exp = havengetallen_dict.loc[[6,'mean',0]] #select neap/mean/springtide
         HWLW_culmhr_summary_exp.index = ['neap','mean','spring']
         HWLW_culmhr_summary_exp.to_csv(os.path.join(dir_havget, f'havengetallen_{year_slotgem}_{current_station}.csv'),float_format='%.3f')
     

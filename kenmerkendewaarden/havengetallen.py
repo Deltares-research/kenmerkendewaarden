@@ -11,11 +11,51 @@ from hatyan.astrog import astrog_culminations
 from hatyan.timeseries import calc_HWLWnumbering
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
 
-__all__ = ["calc_HWLW_moonculm_combi",
-           "calc_HWLW_culmhr_summary",
+__all__ = ["havengetallen",
            "plot_HWLW_pertimeclass",
            "plot_aardappelgrafiek",
            ]
+
+
+def havengetallen(df_ext:pd.DataFrame):
+    """
+    havengetallen consist of the extreme (high and low) median values and the 
+    extreme median time delays with respect to the moonculmination.
+    Besides that it computes the tide difference for each cycle and the tidal period.
+    All these indicators are derived by dividing the extremes in hour-classes 
+    with respect to the moonculminination.
+
+    Parameters
+    ----------
+    df_ext : pd.DataFrame
+        DataFrame with extremes (highs and lows, no aggers).
+
+    Returns
+    -------
+    havengetallen_dict : dict
+        Dictionary with havengetallen.
+    df_ext : pd.DataFrame
+        An enriched copy of the input DataFrame, mainly for plotting.
+
+    """
+    # TODO: alternatively we can convert 12345 to 12 here
+    assert (df_ext["HWLWcode"].drop_duplicates()) == 2
+    
+    # TODO: check culm_addtime and HWLWno+4 offsets. culm_addtime could also be 2 days or 2days +1h GMT-MET correction. 20 minutes seems odd since moonculm is about tidal wave from ocean
+    # culm_addtime is a 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek
+    # HW is 2 days after culmination (so 4x25min difference between length of avg moonculm and length of 2 days)
+    # 1 hour (GMT to MET, alternatively we can also account for timezone differences elsewhere)
+    # 20 minutes (0 to 5 meridian)
+    culm_addtime = 4*dt.timedelta(hours=12,minutes=25) + dt.timedelta(hours=1) - dt.timedelta(minutes=20)
+    
+    # TODO: move calc_HWLW_moonculm_combi() to top since it is the same for all stations
+    # TODO: we added tz_localize on 29-5-2024 (https://github.com/Deltares-research/kenmerkendewaarden/issues/30)
+    # this means we pass a UTC+1 timeseries as if it were a UTC timeseries
+    if df_ext.index.tz is not None:
+        df_ext = df_ext.tz_localize(None)
+    df_ext = calc_HWLW_moonculm_combi(data_pd_HWLW_12=df_ext, culm_addtime=culm_addtime) #culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
+    havengetallen_dict = calc_HWLW_culmhr_summary(df_ext) #TODO: maybe add tijverschil
+    return havengetallen_dict, df_ext
 
 
 def get_moonculm_idxHWLWno(tstart,tstop):
