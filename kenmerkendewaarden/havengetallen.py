@@ -63,7 +63,7 @@ def havengetallen(df_ext:pd.DataFrame, return_df_ext=False):
         df_ext = df_ext.tz_localize(None)
     df_ext = calc_HWLW_moonculm_combi(data_pd_HWLW_12=df_ext, culm_addtime=culm_addtime) #culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
     df_havengetallen = calc_HWLW_culmhr_summary(df_ext) #TODO: maybe add tijverschil
-    logger.info('done')
+    logger.info('computing havengetallen done')
     if return_df_ext:
         return df_havengetallen, df_ext
     else:
