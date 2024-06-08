@@ -18,7 +18,6 @@ logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 tstart_dt = pd.Timestamp(2011,1,1, tz="UTC+01:00")
 tstop_dt = pd.Timestamp(2021,1,1, tz="UTC+01:00")
-tstop_dt_naive = tstop_dt.tz_localize(None)
 if ((tstop_dt.year-tstart_dt.year)==10) & (tstop_dt.month==tstop_dt.day==tstart_dt.month==tstart_dt.day==1):
     year_slotgem = tstop_dt.year
 else:
@@ -155,6 +154,7 @@ for current_station in stat_list:
             tstart_dt_trend = None
         
         #fit linear models over yearly mean values
+        tstop_dt_naive = tstop_dt.tz_localize(None)
         wl_mean_array_todate = wl_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
         pred_pd_wl = kw.fit_models(wl_mean_array_todate)
         ax1.plot(pred_pd_wl, ".-", label=pred_pd_wl.columns)
