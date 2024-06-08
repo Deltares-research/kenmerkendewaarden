@@ -184,7 +184,6 @@ for current_station in stat_list:
     ### HAVENGETALLEN 
     if compute_havengetallen and data_pd_HWLW_all is not None:
         
-        # TODO: havengetallen are different than p:\archivedprojects\11208031-010-kenmerkende-waarden-k\work\out_havengetallen_2021\havengetallen_2021_HOEKVHLD.csv
         df_havengetallen, data_pd_HWLW = kw.havengetallen(df_ext=data_pd_HWLW_10y_12, return_df_ext=True)
         
         print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
@@ -209,18 +208,17 @@ for current_station in stat_list:
         
         print(f'gem getijkrommen for {current_station}')
         pred_freq = "10s" #TODO: frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
-        # file_havget = os.path.join(dir_havget,f'havengetallen_{year_slotgem}_{current_station}.csv')
-
+        
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
-        prediction_av_raw, prediction_sp_raw, prediction_np_raw = kw.gemiddeld_getij_av_sp_np(
+        prediction_av_raw, prediction_sp_raw, prediction_np_raw = kw.gemiddeld_getijkromme_av_sp_np(
                                         df_meas=data_pd_meas_10y, df_ext=None,
                                         freq=pred_freq, nb=0, nf=0, 
                                         scale_extremes=False, scale_period=False)
-        prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.gemiddeld_getij_av_sp_np(
+        prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.gemiddeld_getijkromme_av_sp_np(
                                         df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
                                         freq=pred_freq, nb=2, nf=2, 
                                         scale_extremes=True, scale_period=False)
-        prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.gemiddeld_getij_av_sp_np(
+        prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.gemiddeld_getijkromme_av_sp_np(
                                         df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
                                         freq=pred_freq, nb=0, nf=10, 
                                         scale_extremes=True, scale_period=True)

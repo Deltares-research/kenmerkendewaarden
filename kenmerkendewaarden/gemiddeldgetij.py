@@ -10,13 +10,13 @@ import logging
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
 from kenmerkendewaarden.havengetallen import havengetallen
 
-__all__ = ["gemiddeld_getij_av_sp_np",
+__all__ = ["gemiddeld_getijkromme_av_sp_np",
            ]
 
 logger = logging.getLogger(__name__)
 
 
-def gemiddeld_getij_av_sp_np(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, 
+def gemiddeld_getijkromme_av_sp_np(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, 
                              freq: str = "60sec", nb: int = 0, nf: int  = 0, 
                              scale_extremes: bool = False, scale_period: bool = False, debug: bool = False):
     """
