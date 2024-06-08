@@ -3,20 +3,22 @@
 Computation of gemiddelde getijkromme
 """
 
-import os
 import numpy as np
 import pandas as pd
 import hatyan
 import logging
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
+from kenmerkendewaarden.havengetallen import havengetallen
 
-__all__ = ["gemiddeld_getij_av_sp_np",
+__all__ = ["gemiddeld_getijkromme_av_sp_np",
            ]
 
 logger = logging.getLogger(__name__)
 
 
-def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, nf=0, scale_extremes=False, scale_period=False, debug=False):
+def gemiddeld_getijkromme_av_sp_np(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, 
+                             freq: str = "60sec", nb: int = 0, nf: int  = 0, 
+                             scale_extremes: bool = False, scale_period: bool = False, debug: bool = False):
     """
     Generate an average tidal signal for average/spring/neap tide by doing a tidal 
     analysis on a timeseries of measurements. The (subsets/adjusted) resulting tidal components 
@@ -25,12 +27,34 @@ def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, nf=0, scale_extre
     and in time (to a fixed period of 12h25min). An n-number of backwards and forward repeats 
     are added before the timeseries are returned, resulting in nb+nf+1 tidal periods.
     
-    df_meas: timeseries of 10 years of waterlevel measurements
-    pred_freq: frequency of the prediction, a value of 60 seconds or lower is adivisable for decent results.
-    nb: amount of periods to repeat backward
-    nf: amount of periods to repeat forward
-    scale_extremes: scale extremes with havengetallen. Should be a boolean, but is now a filepath to the havengetallen csv files
-    scale_period: scale to 12h25min (for boi)
+    Parameters
+    ----------
+    df_meas : pd.DataFrame
+        Timeseries of 10 years of waterlevel measurements.
+    df_ext : pd.DataFrame, optional
+        Timeseries of 10 years of waterlevel extremes (1/2 only). The default is None.
+    freq : str, optional
+        Frequency of the prediction, a value of 60 seconds or lower is adivisable for decent results.. The default is "60sec".
+    nb : int, optional
+        Amount of periods to repeat backward. The default is 0.
+    nf : int, optional
+        Amount of periods to repeat forward. The default is 0.
+    scale_extremes : bool, optional
+        Whether to scale extremes with havengetallen. The default is False.
+    scale_period : bool, optional
+        Whether to scale to 12h25min (for boi). The default is False.
+    debug : bool, optional
+        Whether to generate a debug figure with selected spring/neap tidalperiods. The default is False.
+
+    Returns
+    -------
+    prediction_av : pd.DataFrame
+        Dataframe with prediction for average tide.
+    prediction_sp : pd.DataFrame
+        Dataframe with prediction for spring tide.
+    prediction_np : pd.DataFrame
+        Dataframe with prediction for neap tide.
+
     """
     data_pd_meas_10y = df_meas
     tstop_dt = df_meas.index.max()
@@ -45,19 +69,15 @@ def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, nf=0, scale_extre
         tP_goal = pd.Timedelta(hours=12,minutes=25)
     else:
         tP_goal = None
-
-    # TODO: derive havengetallen on the fly instead, no hardcoded files at least (and deprecate file_havget argument)
-    if scale_extremes: # if not None, so e.g. file_havget
-        file_havget = scale_extremes # TODO: this is a temporary solution to pass file_havget
-        if not os.path.exists(file_havget):
-            raise Exception(f'havengetallen file does not exist: {file_havget}')
-        data_havget = pd.read_csv(file_havget, index_col=0)
-        for colname in ['HW_delay_median','LW_delay_median','getijperiod_median','duurdaling_median']:
-            data_havget[colname] = pd.to_timedelta(data_havget[colname])
-        
-        HW_sp, LW_sp = data_havget.loc['spring',['HW_values_median','LW_values_median']]
-        HW_np, LW_np = data_havget.loc['neap',['HW_values_median','LW_values_median']]
-        HW_av, LW_av = data_havget.loc['mean',['HW_values_median','LW_values_median']]
+    
+    # scale extremes with havengetallen, or not
+    if scale_extremes:
+        if df_ext is None:
+            raise TypeError("df_ext should be provided if scale_extremes=True")
+        df_havengetallen = havengetallen(df_ext=df_ext)
+        HW_sp, LW_sp = df_havengetallen.loc[0,['HW_values_median','LW_values_median']] # spring
+        HW_np, LW_np = df_havengetallen.loc[6,['HW_values_median','LW_values_median']] # neap
+        HW_av, LW_av = df_havengetallen.loc['mean',['HW_values_median','LW_values_median']] # mean
     else:
         HW_av = LW_av = None
         HW_sp = LW_sp = None
@@ -66,7 +86,7 @@ def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, nf=0, scale_extre
     #derive components via TA on measured waterlevels
     comp_frommeasurements_avg, comp_av = get_gemgetij_components(data_pd_meas_10y)
     
-    times_pred_1mnth = pd.date_range(start=pd.Timestamp(tstop_dt.year,1,1,0,0)-pd.Timedelta(hours=12), end=pd.Timestamp(tstop_dt.year,2,1,0,0), freq=pred_freq) #start 12 hours in advance, to assure also corrected values on desired tstart
+    times_pred_1mnth = pd.date_range(start=pd.Timestamp(tstop_dt.year,1,1,0,0)-pd.Timedelta(hours=12), end=pd.Timestamp(tstop_dt.year,2,1,0,0), freq=freq) #start 12 hours in advance, to assure also corrected values on desired tstart
     comp_av.attrs['nodalfactors'] = False #nodalfactors=False to guarantee repetative signal
     comp_av.attrs['fu_alltimes'] = True # TODO: this is not true, but this setting is the default
     prediction_av = hatyan.prediction(comp_av, times=times_pred_1mnth)
@@ -143,21 +163,21 @@ def gemiddeld_getij_av_sp_np(df_meas, pred_freq="60sec", nb=0, nf=0, scale_extre
     prediction_av_corr_one = reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=tP_goal)
     prediction_av_corr_one.index = prediction_av_corr_one.index - prediction_av_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
-        prediction_av_corr_one = prediction_av_corr_one.resample(pred_freq).nearest()
+        prediction_av_corr_one = prediction_av_corr_one.resample(freq).nearest()
     prediction_av = repeat_signal(prediction_av_corr_one, nb=nb, nf=nf)
     
     logger.info(f'reshape_signal SPRINGTIJ: {current_station}')
     prediction_sp_corr_one = reshape_signal(prediction_sp_one, prediction_sp_ext_one, HW_goal=HW_sp, LW_goal=LW_sp, tP_goal=tP_goal)
     prediction_sp_corr_one.index = prediction_sp_corr_one.index - prediction_sp_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
-        prediction_sp_corr_one = prediction_sp_corr_one.resample(pred_freq).nearest()
+        prediction_sp_corr_one = prediction_sp_corr_one.resample(freq).nearest()
     prediction_sp = repeat_signal(prediction_sp_corr_one, nb=nb, nf=nf)
     
     logger.info(f'reshape_signal DOODTIJ: {current_station}')
     prediction_np_corr_one = reshape_signal(prediction_np_one, prediction_np_ext_one, HW_goal=HW_np, LW_goal=LW_np, tP_goal=tP_goal)
     prediction_np_corr_one.index = prediction_np_corr_one.index - prediction_np_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
-        prediction_np_corr_one = prediction_np_corr_one.resample(pred_freq).nearest()
+        prediction_np_corr_one = prediction_np_corr_one.resample(freq).nearest()
     prediction_np = repeat_signal(prediction_np_corr_one, nb=nb, nf=nf)
     
     return prediction_av, prediction_sp, prediction_np

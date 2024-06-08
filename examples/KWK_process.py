@@ -18,7 +18,6 @@ logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 tstart_dt = pd.Timestamp(2011,1,1, tz="UTC+01:00")
 tstop_dt = pd.Timestamp(2021,1,1, tz="UTC+01:00")
-tstop_dt_naive = tstop_dt.tz_localize(None)
 if ((tstop_dt.year-tstart_dt.year)==10) & (tstop_dt.month==tstop_dt.day==tstart_dt.month==tstart_dt.day==1):
     year_slotgem = tstop_dt.year
 else:
@@ -155,6 +154,7 @@ for current_station in stat_list:
             tstart_dt_trend = None
         
         #fit linear models over yearly mean values
+        tstop_dt_naive = tstop_dt.tz_localize(None)
         wl_mean_array_todate = wl_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
         pred_pd_wl = kw.fit_models(wl_mean_array_todate)
         ax1.plot(pred_pd_wl, ".-", label=pred_pd_wl.columns)
@@ -184,32 +184,18 @@ for current_station in stat_list:
     ### HAVENGETALLEN 
     if compute_havengetallen and data_pd_HWLW_all is not None:
         
-        print(f'havengetallen for {current_station}')
-        # TODO: havengetallen are different than p:\archivedprojects\11208031-010-kenmerkende-waarden-k\work\out_havengetallen_2021\havengetallen_2021_HOEKVHLD.csv
-        
-        # TODO: check culm_addtime and HWLWno+4 offsets. culm_addtime could also be 2 days or 2days +1h GMT-MET correction. 20 minutes seems odd since moonculm is about tidal wave from ocean
-        # culm_addtime is a 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek
-        # HW is 2 days after culmination (so 4x25min difference between length of avg moonculm and length of 2 days)
-        # 1 hour (GMT to MET, alternatively we can also account for timezone differences elsewhere)
-        # 20 minutes (0 to 5 meridian)
-        culm_addtime = 4*dt.timedelta(hours=12,minutes=25) + dt.timedelta(hours=1) - dt.timedelta(minutes=20)
-        
-        # TODO: move calc_HWLW_moonculm_combi() to top since it is the same for all stations
-        # TODO: we added tz_localize on 29-5-2024 (https://github.com/Deltares-research/kenmerkendewaarden/issues/30)
-        # this means we pass a UTC+1 timeseries as if it were a UTC timeseries
-        data_pd_HWLW = kw.calc_HWLW_moonculm_combi(data_pd_HWLW_12=data_pd_HWLW_10y_12.tz_localize(None), culm_addtime=culm_addtime) #culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
-        HWLW_culmhr_summary = kw.calc_HWLW_culmhr_summary(data_pd_HWLW) #TODO: maybe add tijverschil
+        df_havengetallen, data_pd_HWLW = kw.havengetallen(df_ext=data_pd_HWLW_10y_12, return_df_ext=True)
         
         print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
-        fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, HWLW_culmhr_summary)
+        fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, df_havengetallen)
         fig.savefig(os.path.join(dir_havget,f'HWLW_pertijdsklasse_inclmedianline_{current_station}'))
         
         print('AARDAPPELGRAFIEK')
-        fig, (ax1,ax2) = kw.plot_aardappelgrafiek(HWLW_culmhr_summary)
+        fig, (ax1,ax2) = kw.plot_aardappelgrafiek(df_havengetallen)
         fig.savefig(os.path.join(dir_havget, f'aardappelgrafiek_{year_slotgem}_{current_station}'))
         
-        #write to csv
-        HWLW_culmhr_summary_exp = HWLW_culmhr_summary.loc[[6,'mean',0]] #select neap/mean/springtide
+        #write to csv # TODO: do we need this in this format?
+        HWLW_culmhr_summary_exp = df_havengetallen.loc[[6,'mean',0]] #select neap/mean/springtide
         HWLW_culmhr_summary_exp.index = ['neap','mean','spring']
         HWLW_culmhr_summary_exp.to_csv(os.path.join(dir_havget, f'havengetallen_{year_slotgem}_{current_station}.csv'),float_format='%.3f')
     
@@ -221,19 +207,21 @@ for current_station in stat_list:
     if compute_gemgetij and data_pd_meas_all is not None:
         
         print(f'gem getijkrommen for {current_station}')
-        pred_freq = "10s" #TODO: frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
-        file_havget = os.path.join(dir_havget,f'havengetallen_{year_slotgem}_{current_station}.csv')
-
+        pred_freq = "10s" # frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
+        
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
-        prediction_av, prediction_sp, prediction_np = kw.gemiddeld_getij_av_sp_np(
-                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=0, nf=0, 
+        prediction_av_raw, prediction_sp_raw, prediction_np_raw = kw.gemiddeld_getijkromme_av_sp_np(
+                                        df_meas=data_pd_meas_10y, df_ext=None,
+                                        freq=pred_freq, nb=0, nf=0, 
                                         scale_extremes=False, scale_period=False)
-        prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.gemiddeld_getij_av_sp_np(
-                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=2, nf=2, 
-                                        scale_extremes=file_havget, scale_period=False)
-        prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.gemiddeld_getij_av_sp_np(
-                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=0, nf=10, 
-                                        scale_extremes=file_havget, scale_period=True)
+        prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.gemiddeld_getijkromme_av_sp_np(
+                                        df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
+                                        freq=pred_freq, nb=2, nf=2, 
+                                        scale_extremes=True, scale_period=False)
+        prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.gemiddeld_getijkromme_av_sp_np(
+                                        df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
+                                        freq=pred_freq, nb=0, nf=10, 
+                                        scale_extremes=True, scale_period=True)
 
         # write boi timeseries to csv files # TODO: maybe convert timedeltaIndex to minutes instead?
         prediction_av_corr_boi.to_csv(os.path.join(dir_gemgetij,f'gemGetijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
@@ -246,11 +234,11 @@ for current_station in stat_list:
         print(f'plot getijkromme trefHW: {current_station}')
         fig_sum,ax_sum = plt.subplots(figsize=(14,7))
         ax_sum.set_title(f'getijkromme trefHW {current_station}')
-        prediction_av['values'].plot(ax=ax_sum, linestyle='--', color=cmap(0), linewidth=0.7, label='gem kromme, one')
+        prediction_av_raw['values'].plot(ax=ax_sum, linestyle='--', color=cmap(0), linewidth=0.7, label='gem kromme, one')
         prediction_av_corr['values'].plot(ax=ax_sum, color=cmap(0), label='gem kromme, corr')
-        prediction_sp['values'].plot(ax=ax_sum, linestyle='--', color=cmap(1), linewidth=0.7, label='sp kromme, one')
+        prediction_sp_raw['values'].plot(ax=ax_sum, linestyle='--', color=cmap(1), linewidth=0.7, label='sp kromme, one')
         prediction_sp_corr['values'].plot(ax=ax_sum, color=cmap(1), label='sp kromme, corr')
-        prediction_np['values'].plot(ax=ax_sum, linestyle='--', color=cmap(2), linewidth=0.7, label='np kromme, one')
+        prediction_np_raw['values'].plot(ax=ax_sum, linestyle='--', color=cmap(2), linewidth=0.7, label='np kromme, one')
         prediction_np_corr['values'].plot(ax=ax_sum, color=cmap(2), label='np kromme, corr')
         ax_sum.set_xticks([x*3600e9 for x in range(-15, 25, 5)]) # nanoseconds units # TODO: make multiple of 12
         ax_sum.legend(loc=4)
