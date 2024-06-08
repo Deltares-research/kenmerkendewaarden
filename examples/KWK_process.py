@@ -184,20 +184,19 @@ for current_station in stat_list:
     ### HAVENGETALLEN 
     if compute_havengetallen and data_pd_HWLW_all is not None:
         
-        print(f'havengetallen for {current_station}')
         # TODO: havengetallen are different than p:\archivedprojects\11208031-010-kenmerkende-waarden-k\work\out_havengetallen_2021\havengetallen_2021_HOEKVHLD.csv
-        havengetallen_dict, data_pd_HWLW = kw.havengetallen(df_ext=data_pd_HWLW_10y_12, return_df=True)
+        df_havengetallen, data_pd_HWLW = kw.havengetallen(df_ext=data_pd_HWLW_10y_12, return_df_ext=True)
         
         print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
-        fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, havengetallen_dict)
+        fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, df_havengetallen)
         fig.savefig(os.path.join(dir_havget,f'HWLW_pertijdsklasse_inclmedianline_{current_station}'))
         
         print('AARDAPPELGRAFIEK')
-        fig, (ax1,ax2) = kw.plot_aardappelgrafiek(havengetallen_dict)
+        fig, (ax1,ax2) = kw.plot_aardappelgrafiek(df_havengetallen)
         fig.savefig(os.path.join(dir_havget, f'aardappelgrafiek_{year_slotgem}_{current_station}'))
         
         #write to csv # TODO: do we need this in this format?
-        HWLW_culmhr_summary_exp = havengetallen_dict.loc[[6,'mean',0]] #select neap/mean/springtide
+        HWLW_culmhr_summary_exp = df_havengetallen.loc[[6,'mean',0]] #select neap/mean/springtide
         HWLW_culmhr_summary_exp.index = ['neap','mean','spring']
         HWLW_culmhr_summary_exp.to_csv(os.path.join(dir_havget, f'havengetallen_{year_slotgem}_{current_station}.csv'),float_format='%.3f')
     
@@ -210,18 +209,21 @@ for current_station in stat_list:
         
         print(f'gem getijkrommen for {current_station}')
         pred_freq = "10s" #TODO: frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
-        file_havget = os.path.join(dir_havget,f'havengetallen_{year_slotgem}_{current_station}.csv')
+        # file_havget = os.path.join(dir_havget,f'havengetallen_{year_slotgem}_{current_station}.csv')
 
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
         prediction_av, prediction_sp, prediction_np = kw.gemiddeld_getij_av_sp_np(
-                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=0, nf=0, 
+                                        df_meas=data_pd_meas_10y, df_ext=None,
+                                        freq=pred_freq, nb=0, nf=0, 
                                         scale_extremes=False, scale_period=False)
         prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.gemiddeld_getij_av_sp_np(
-                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=2, nf=2, 
-                                        scale_extremes=file_havget, scale_period=False)
+                                        df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
+                                        freq=pred_freq, nb=2, nf=2, 
+                                        scale_extremes=True, scale_period=False)
         prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.gemiddeld_getij_av_sp_np(
-                                        df_meas=data_pd_meas_10y, pred_freq=pred_freq, nb=0, nf=10, 
-                                        scale_extremes=file_havget, scale_period=True)
+                                        df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
+                                        freq=pred_freq, nb=0, nf=10, 
+                                        scale_extremes=True, scale_period=True)
 
         # write boi timeseries to csv files # TODO: maybe convert timedeltaIndex to minutes instead?
         prediction_av_corr_boi.to_csv(os.path.join(dir_gemgetij,f'gemGetijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')

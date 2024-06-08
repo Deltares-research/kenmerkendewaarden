@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import datetime as dt
+import logging
 from hatyan.astrog import astrog_culminations
 from hatyan.timeseries import calc_HWLWnumbering
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
@@ -16,8 +17,10 @@ __all__ = ["havengetallen",
            "plot_aardappelgrafiek",
            ]
 
+logger = logging.getLogger(__name__)
 
-def havengetallen(df_ext:pd.DataFrame, return_df=False):
+
+def havengetallen(df_ext:pd.DataFrame, return_df_ext=False):
     """
     havengetallen consist of the extreme (high and low) median values and the 
     extreme median time delays with respect to the moonculmination.
@@ -34,15 +37,18 @@ def havengetallen(df_ext:pd.DataFrame, return_df=False):
     
     Returns
     -------
-    havengetallen_dict : dict
-        Dictionary with havengetallen.
-    df_ext : pd.DataFrame
+    df_havengetallen : pd.DataFrame
+        DataFrame with havengetallen for all hour-classes. 
+        0 corresponds to spring, 6 corresponds to neap, mean is mean.
+    return_df_ext : pd.DataFrame
         An enriched copy of the input DataFrame, mainly for plotting.
 
     """
     # TODO: alternatively we can convert 12345 to 12 here
-    assert (df_ext["HWLWcode"].drop_duplicates()) == 2
+    assert len(df_ext["HWLWcode"].drop_duplicates()) == 2
     
+    current_station = df_ext.attrs["station"]
+    logger.info(f'computing havengetallen for {current_station}')
     # TODO: check culm_addtime and HWLWno+4 offsets. culm_addtime could also be 2 days or 2days +1h GMT-MET correction. 20 minutes seems odd since moonculm is about tidal wave from ocean
     # culm_addtime is a 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek
     # HW is 2 days after culmination (so 4x25min difference between length of avg moonculm and length of 2 days)
@@ -56,11 +62,12 @@ def havengetallen(df_ext:pd.DataFrame, return_df=False):
     if df_ext.index.tz is not None:
         df_ext = df_ext.tz_localize(None)
     df_ext = calc_HWLW_moonculm_combi(data_pd_HWLW_12=df_ext, culm_addtime=culm_addtime) #culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
-    havengetallen_dict = calc_HWLW_culmhr_summary(df_ext) #TODO: maybe add tijverschil
-    if return_df:
-        return havengetallen_dict, df_ext
+    df_havengetallen = calc_HWLW_culmhr_summary(df_ext) #TODO: maybe add tijverschil
+    logger.info('done')
+    if return_df_ext:
+        return df_havengetallen, df_ext
     else:
-        return havengetallen_dict
+        return df_havengetallen
 
 
 def get_moonculm_idxHWLWno(tstart,tstop):
@@ -96,7 +103,7 @@ def calc_HWLW_moonculm_combi(data_pd_HWLW_12,culm_addtime=None):
 
 
 def calc_HWLW_culmhr_summary(data_pd_HWLW):
-    print('calculate medians per hour group for LW and HW (instead of 1991 method: average of subgroups with removal of outliers)')
+    logger.info('calculate medians per hour group for LW and HW (instead of 1991 method: average of subgroups with removal of outliers)')
     data_pd_HW = data_pd_HWLW.loc[data_pd_HWLW['HWLWcode']==1]
     data_pd_LW = data_pd_HWLW.loc[data_pd_HWLW['HWLWcode']==2]
     
