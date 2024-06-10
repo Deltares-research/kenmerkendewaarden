@@ -11,25 +11,12 @@ import hatyan
 import logging
 
 __all__ = [
-    "df_amount_boxplot",
     "df_amount_pcolormesh",
     "plot_measurements",
     "derive_statistics",
     ]
 
 logger = logging.getLogger(__name__)
-
-
-def df_amount_boxplot(df):
-    df = df.copy()
-    df.index = pd.to_datetime(df.index)
-    df[df==0] = np.nan
-    
-    fig, ax = plt.subplots(figsize=(14,8))
-    df.plot.box(ax=ax, rot=90, grid=True)
-    ax.set_ylabel("measurements per year (0 excluded) [-]")
-    fig.tight_layout()
-    return fig, ax
 
 
 def df_amount_pcolormesh(df, relative=False):
@@ -120,8 +107,8 @@ def get_flat_meta_from_dataset(ds):
 def get_stats_from_dataframe(df):
     df_times = df.index
     ts_dupltimes = df_times.duplicated()
-    ts_timediff = df_times.diff()[1:]
-    
+    ts_timediff = df_times[1:]-df_times[:-1] # from pandas 2.2.0 the following also works: df_times.diff()[1:]
+
     ds_stats = {}
     ds_stats['tstart'] = df_times.min()
     ds_stats['tstop'] = df_times.max()
