@@ -184,7 +184,7 @@ for current_station in stat_list:
     ### HAVENGETALLEN 
     if compute_havengetallen and data_pd_HWLW_all is not None:
         
-        df_havengetallen, data_pd_HWLW = kw.havengetallen(df_ext=data_pd_HWLW_10y_12, return_df_ext=True)
+        df_havengetallen, data_pd_HWLW = kw.calc_havengetallen(df_ext=data_pd_HWLW_10y_12, return_df_ext=True)
         
         print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
         fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, df_havengetallen)

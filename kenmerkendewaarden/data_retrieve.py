@@ -235,8 +235,10 @@ def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=
 
     if not os.path.exists(file_nc):
         # return None if file does not exist
+        logger.info(f"file {fname} not found, returning None")
         return
     
+    logger.info(f"loading {fname}")
     ds_meas = xr.open_dataset(file_nc)
     if return_xarray:
         return ds_meas
@@ -254,7 +256,6 @@ def nap2005_correction(df_meas, station):
     # TODO: check if ths make a difference (for havengetallen it makes a slight difference so yes. For gemgetijkromme it only makes a difference for spring/doodtij. (now only applied at gemgetij en havengetallen)). If so, make this flexible per station, where to get the data or is the RWS data already corrected for it?
     #herdefinitie van NAP (~20mm voor HvH in fig2, relevant?): https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_113484_31&versienummer=1
     #Dit is de rapportage waar het gebruik voor PSMSL data voor het eerst beschreven is: https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_137204_31&versienummer=1
-    print('applying NAP2005 correction')
     before2005bool = df_meas.index < pd.Timestamp("2005-01-01")
     # TODO: maybe move dict to csv file and add as package data
     dict_correct_nap2005 = {'HOEKVHLD':-0.0277,
@@ -263,6 +264,7 @@ def nap2005_correction(df_meas, station):
     if not station in dict_correct_nap2005.keys():
         raise Exception('ERROR nap2005 correction not implemented for this station')
 
+    logger.info(f'applying NAP2005 correction for {station}')
     correct_value = dict_correct_nap2005[station]
     df_meas.loc[before2005bool,'values'] = df_meas.loc[before2005bool,'values'] + correct_value
     

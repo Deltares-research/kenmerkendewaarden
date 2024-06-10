@@ -12,7 +12,7 @@ from hatyan.astrog import astrog_culminations
 from hatyan.timeseries import calc_HWLWnumbering
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
 
-__all__ = ["havengetallen",
+__all__ = ["calc_havengetallen",
            "plot_HWLW_pertimeclass",
            "plot_aardappelgrafiek",
            ]
@@ -20,7 +20,7 @@ __all__ = ["havengetallen",
 logger = logging.getLogger(__name__)
 
 
-def havengetallen(df_ext:pd.DataFrame, return_df_ext=False):
+def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False):
     """
     havengetallen consist of the extreme (high and low) median values and the 
     extreme median time delays with respect to the moonculmination.
@@ -58,6 +58,7 @@ def havengetallen(df_ext:pd.DataFrame, return_df_ext=False):
     
     # TODO: move calc_HWLW_moonculm_combi() to top since it is the same for all stations
     # TODO: we added tz_localize on 29-5-2024 (https://github.com/Deltares-research/kenmerkendewaarden/issues/30)
+    # TODO: consider supporting timezones in hatyan.astrog.dT
     # this means we pass a UTC+1 timeseries as if it were a UTC timeseries
     if df_ext.index.tz is not None:
         df_ext = df_ext.tz_localize(None)

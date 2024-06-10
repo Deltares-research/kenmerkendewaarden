@@ -8,7 +8,7 @@ import pandas as pd
 import hatyan
 import logging
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
-from kenmerkendewaarden.havengetallen import havengetallen
+from kenmerkendewaarden.havengetallen import calc_havengetallen
 
 __all__ = ["gemiddeld_getijkromme_av_sp_np",
            ]
@@ -74,14 +74,14 @@ def gemiddeld_getijkromme_av_sp_np(df_meas: pd.DataFrame, df_ext: pd.DataFrame =
     if scale_extremes:
         if df_ext is None:
             raise TypeError("df_ext should be provided if scale_extremes=True")
-        df_havengetallen = havengetallen(df_ext=df_ext)
+        df_havengetallen = calc_havengetallen(df_ext=df_ext)
         HW_sp, LW_sp = df_havengetallen.loc[0,['HW_values_median','LW_values_median']] # spring
         HW_np, LW_np = df_havengetallen.loc[6,['HW_values_median','LW_values_median']] # neap
         HW_av, LW_av = df_havengetallen.loc['mean',['HW_values_median','LW_values_median']] # mean
     else:
         HW_av = LW_av = None
         HW_sp = LW_sp = None
-        HW_np = LW_np = None        
+        HW_np = LW_np = None
     
     #derive components via TA on measured waterlevels
     comp_frommeasurements_avg, comp_av = get_gemgetij_components(data_pd_meas_10y)

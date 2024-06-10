@@ -16,6 +16,8 @@ dependencies = [
 	"numpy>=1.22.0",
 	#pandas<2.0.0 supports non-nanosecond timestep and therefore larger min/max range
 	"pandas>=2.0.0",
+	#pandas>=2.2.0 results in different values for havengetallen: https://github.com/Deltares-research/kenmerkendewaarden/issues/53
+	"pandas<2.2.0",
 	#matplotlib<3.5.2 raises "ValueError: Multi-dimensional indexing" in hatyan.plot_timeseries()
 	"matplotlib>=3.5.2",
 	#netcdf4<1.5.4 pip install fails in py39
