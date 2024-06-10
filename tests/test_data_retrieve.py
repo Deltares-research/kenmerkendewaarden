@@ -54,6 +54,8 @@ def test_retrieve_read_measurements_derive_statistics(tmp_path, extremes):
                'mean', 'dupltimes', 'dupltimes_#nans', 'qc_none', 'timediff<4hr',
                'aggers']
         stats_expected = np.array([0.07922705314009662, -1.33, 2.11])
+        timedif_min = pd.Timedelta('0 days 00:34:00')
+        timedif_max = pd.Timedelta('0 days 08:57:00')
     else:
         df_meas_len = 52561
         cols_stats = ['WaarnemingMetadata.StatuswaardeLijst',
@@ -63,6 +65,8 @@ def test_retrieve_read_measurements_derive_statistics(tmp_path, extremes):
                'timediff_min', 'timediff_max', 'nvals', '#nans', 'min', 'max', 'std',
                'mean', 'dupltimes', 'dupltimes_#nans', 'qc_none']
         stats_expected = np.array([0.07962614866536023, -1.33, 2.11])
+        timedif_min = pd.Timedelta('0 days 00:10:00')
+        timedif_max = pd.Timedelta('0 days 00:10:00')
     
     # assert amount of measurements, this might change if ddl data is updated
     assert len(df_meas) == df_meas_len
@@ -75,3 +79,6 @@ def test_retrieve_read_measurements_derive_statistics(tmp_path, extremes):
     # assert statistics values, this might change if ddl data is updated
     stats_vals = stats.loc[current_station, ["mean","min","max"]].values.astype(float)
     assert np.allclose(stats_vals, stats_expected)
+    
+    assert stats.loc[current_station, "timediff_min"] == timedif_min
+    assert stats.loc[current_station, "timediff_max"] == timedif_max
