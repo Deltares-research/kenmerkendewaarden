@@ -9,7 +9,7 @@ logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.fixture(scope="session")
+@pytest.fixture
 def dir_meas_timeseries(tmp_path):
     dir_meas_timeseries = tmp_path
     start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
@@ -23,7 +23,7 @@ def dir_meas_timeseries(tmp_path):
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.fixture(scope="session")
+@pytest.fixture
 def dir_meas_extremes(tmp_path):
     dir_meas_extremes = tmp_path
     start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
