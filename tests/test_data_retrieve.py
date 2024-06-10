@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# import os
 import pytest
 import kenmerkendewaarden as kw
 import numpy as np
 import pandas as pd
-
-# dir_tests = os.path.dirname(__file__) #F9 doesnt work, only F5 (F5 also only method to reload external definition scripts)
-# dir_testdata = os.path.join(dir_tests,'testdata')
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
