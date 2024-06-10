@@ -175,7 +175,7 @@ def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date
     else:
         fname = DICT_FNAMES["meas_ts"].format(station=station)
         loc_meas_one = loc_meas_ts_one
-        freq = None
+        freq = dateutil.rrule.MONTHLY
     file_nc = os.path.join(dir_output,fname)
     
     #retrieving waterlevel extremes or timeseries
