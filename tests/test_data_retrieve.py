@@ -8,74 +8,70 @@ import pandas as pd
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.systemtest
-def test_retrieve_read_measurements_amount(tmp_path):
-    start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
-    end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
+@pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
+def test_retrieve_read_measurements_amount(tmp_path, extremes):
+    start_date = pd.Timestamp(2010,11,1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2011,2,1, tz="UTC+01:00")
     station_list = ["HOEKVHLD"]
     
     kw.retrieve_measurements_amount(dir_output=tmp_path, station_list=station_list, 
                                     start_date=start_date, end_date=end_date,
-                                    extremes=False)
-    kw.retrieve_measurements_amount(dir_output=tmp_path, station_list=station_list, 
-                                    start_date=start_date, end_date=end_date,
-                                    extremes=True)
+                                    extremes=extremes)
 
-    df_amount_ts = kw.read_measurements_amount(dir_output=tmp_path, extremes=False)
-    df_amount_ext = kw.read_measurements_amount(dir_output=tmp_path, extremes=True)
+    df_amount = kw.read_measurements_amount(dir_output=tmp_path, extremes=extremes)
     
-    assert len(df_amount_ts) == 2
-    assert len(df_amount_ext) == 1
-    assert np.allclose(df_amount_ts["HOEKVHLD"].values, np.array([52560,     1]))
-    assert np.allclose(df_amount_ext["HOEKVHLD"].values, np.array([1863]))
+    if extremes:
+        df_vals = np.array([312, 157])
+    else:
+        df_vals = np.array([8784, 4465])
+    assert len(df_amount) == 2
+    assert np.allclose(df_amount["HOEKVHLD"].values, df_vals)
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.systemtest
-def test_retrieve_read_measurements_derive_statistics(tmp_path):
+@pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
+def test_retrieve_read_measurements_derive_statistics(tmp_path, extremes):
     start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
     end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
     station_list = ["HOEKVHLD"]
     current_station = station_list[0]
     
     # retrieve meas
-    kw.retrieve_measurements(dir_output=tmp_path, station=current_station, extremes=False,
-                             start_date=start_date, end_date=end_date)
-    kw.retrieve_measurements(dir_output=tmp_path, station=current_station, extremes=True,
+    kw.retrieve_measurements(dir_output=tmp_path, station=current_station, extremes=extremes,
                              start_date=start_date, end_date=end_date)
 
     # read meas
-    df_ts_meas = kw.read_measurements(dir_output=tmp_path, station=current_station, extremes=False)
-    df_ext_meas = kw.read_measurements(dir_output=tmp_path, station=current_station, extremes=True)
+    df_meas = kw.read_measurements(dir_output=tmp_path, station=current_station, extremes=extremes)
 
-    # assert amount of measurements, this might change if ddl data is updated
-    assert len(df_ts_meas) == 52561
-    assert len(df_ext_meas) == 1863
+    if extremes:
+        df_meas_len = 1863
+        cols_stats = ['WaarnemingMetadata.StatuswaardeLijst',
+               'WaarnemingMetadata.KwaliteitswaardecodeLijst',
+               'WaardeBepalingsmethode.Code', 'MeetApparaat.Code', 'Hoedanigheid.Code',
+               'Grootheid.Code', 'Groepering.Code', 'Typering.Code', 'tstart', 'tstop',
+               'timediff_min', 'timediff_max', 'nvals', '#nans', 'min', 'max', 'std',
+               'mean', 'dupltimes', 'dupltimes_#nans', 'qc_none', 'timediff<4hr',
+               'aggers']
+        stats_expected = np.array([0.07922705314009662, -1.33, 2.11])
+    else:
+        df_meas_len = 52561
+        cols_stats = ['WaarnemingMetadata.StatuswaardeLijst',
+               'WaarnemingMetadata.KwaliteitswaardecodeLijst',
+               'WaardeBepalingsmethode.Code', 'MeetApparaat.Code', 'Hoedanigheid.Code',
+               'Grootheid.Code', 'Groepering.Code', 'Typering.Code', 'tstart', 'tstop',
+               'timediff_min', 'timediff_max', 'nvals', '#nans', 'min', 'max', 'std',
+               'mean', 'dupltimes', 'dupltimes_#nans', 'qc_none']
+        stats_expected = np.array([0.07962614866536023, -1.33, 2.11])
     
-    stats_ts = kw.derive_statistics(dir_output=tmp_path, station_list=station_list, extremes=False)
-    stats_ext = kw.derive_statistics(dir_output=tmp_path, station_list=station_list, extremes=True)
+    # assert amount of measurements, this might change if ddl data is updated
+    assert len(df_meas) == df_meas_len
+    
+    stats = kw.derive_statistics(dir_output=tmp_path, station_list=station_list, extremes=extremes)
     
     # assert statistics columns
-    cols_stats_ts = ['WaarnemingMetadata.StatuswaardeLijst',
-           'WaarnemingMetadata.KwaliteitswaardecodeLijst',
-           'WaardeBepalingsmethode.Code', 'MeetApparaat.Code', 'Hoedanigheid.Code',
-           'Grootheid.Code', 'Groepering.Code', 'Typering.Code', 'tstart', 'tstop',
-           'timediff_min', 'timediff_max', 'nvals', '#nans', 'min', 'max', 'std',
-           'mean', 'dupltimes', 'dupltimes_#nans', 'qc_none']
-    assert set(stats_ts.columns) == set(cols_stats_ts)
-    cols_stats_ext = ['WaarnemingMetadata.StatuswaardeLijst',
-           'WaarnemingMetadata.KwaliteitswaardecodeLijst',
-           'WaardeBepalingsmethode.Code', 'MeetApparaat.Code', 'Hoedanigheid.Code',
-           'Grootheid.Code', 'Groepering.Code', 'Typering.Code', 'tstart', 'tstop',
-           'timediff_min', 'timediff_max', 'nvals', '#nans', 'min', 'max', 'std',
-           'mean', 'dupltimes', 'dupltimes_#nans', 'qc_none', 'timediff<4hr',
-           'aggers']
-    assert set(stats_ext.columns) == set(cols_stats_ext)
+    assert set(stats.columns) == set(cols_stats)
     
     # assert statistics values, this might change if ddl data is updated
-    stats_ts_vals = stats_ts.loc[current_station, ["mean","min","max"]].values.astype(float)
-    stats_ts_expected = np.array([0.07962614866536023, -1.33, 2.11])
-    assert np.allclose(stats_ts_vals, stats_ts_expected)
-    
-    stats_ext_vals = stats_ext.loc[current_station, ["mean","min","max"]].values.astype(float)
-    stats_ext_expected = np.array([0.07922705314009662, -1.33, 2.11])
-    assert np.allclose(stats_ext_vals, stats_ext_expected)
+    stats_vals = stats.loc[current_station, ["mean","min","max"]].values.astype(float)
+    assert np.allclose(stats_vals, stats_expected)

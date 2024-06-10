@@ -45,7 +45,7 @@ def retrieve_catalog(overwrite=False, crs:int = None):
         catalog_filter = ['Eenheden','Grootheden','Hoedanigheden','Groeperingen','Parameters','Compartimenten','Typeringen']
         locations_full = ddlpy.locations(catalog_filter=catalog_filter)
         drop_columns = [x for x in locations_full.columns if x.endswith(".Omschrijving")]
-        drop_columns.append("Parameter_Wat_Omschrijving")
+        # drop_columns.append("Parameter_Wat_Omschrijving") # TODO: uncomment after ddlpy 0.6.0 is released: https://github.com/Deltares/ddlpy/pull/104
         locations = locations_full.drop(columns=drop_columns)
         pd.to_pickle(locations, file_catalog_pkl)
     
