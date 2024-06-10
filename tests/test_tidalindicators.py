@@ -11,6 +11,32 @@ dir_tests = os.path.dirname(__file__) #F9 doesnt work, only F5 (F5 also only met
 dir_testdata = os.path.join(dir_tests,'testdata')
 
 
+@pytest.fixture(scope="session")
+def components():
+    components = pd.DataFrame({"A": [1, 0.5, 0.2],
+                         "phi_deg": [10,15,20]}, 
+                        index=["M2","M4","S2"])
+    components.attrs["nodalfactors"] = True
+    components.attrs["fu_alltimes"] = True
+    components.attrs["xfac"] = False
+    components.attrs["source"] = "schureman"
+    components.attrs["tzone"] = None # TODO: required but this is a bug: https://github.com/Deltares/hatyan/issues/317
+    return components
+
+
+@pytest.fixture(scope="session")
+def prediction(components):
+    dtindex = pd.date_range("2020-01-01","2024-01-01", freq="10min")
+    prediction = hatyan.prediction(components, times=dtindex)
+    return prediction
+
+
+@pytest.fixture(scope="session")
+def prediction_extremes(prediction):
+    prediction_extremes = hatyan.calc_HWLW(prediction)
+    return prediction_extremes
+
+
 @pytest.mark.unittest
 def test_calc_HWLWtidalrange():
     file_ext = os.path.join(dir_testdata, "VLISSGN_ext.txt")
@@ -21,27 +47,6 @@ def test_calc_HWLWtidalrange():
     vals_expected = np.array([4.  , 4.  , 4.1 , 4.1 , 3.77, 3.77, 3.89, 3.89, 3.5 , 3.5 ])
     assert len(ranges) == 1411
     assert np.allclose(ranges[-10:], vals_expected)
-
-
-@pytest.fixture(scope="session")
-def prediction():
-    comp = pd.DataFrame({"A": [1, 0.5, 0.2],
-                         "phi_deg": [10,15,20]}, 
-                        index=["M2","M4","S2"])
-    comp.attrs["nodalfactors"] = True
-    comp.attrs["fu_alltimes"] = True
-    comp.attrs["xfac"] = False
-    comp.attrs["source"] = "schureman"
-    comp.attrs["tzone"] = None # TODO: required but this is a bug: https://github.com/Deltares/hatyan/issues/317
-    dtindex = pd.date_range("2020-01-01","2024-01-01", freq="10min")
-    prediction = hatyan.prediction(comp, times=dtindex)
-    return prediction
-
-
-@pytest.fixture(scope="session")
-def prediction_extremes(prediction):
-    prediction_extremes = hatyan.calc_HWLW(prediction)
-    return prediction_extremes
 
 
 @pytest.mark.unittest
@@ -125,3 +130,10 @@ def test_calc_wltidalindicators(prediction_extremes):
     assert np.allclose(ext_stats['LW_monthmin_mean_peryear'].values, lw_monthmin_mean_peryear_expected)
     assert np.allclose(ext_stats['HW_monthmin_mean_peryear'].values, hw_monthmin_mean_peryear_expected)
     assert np.allclose(ext_stats['LW_monthmax_mean_peryear'].values, lw_monthmax_mean_peryear_expected)
+
+
+@pytest.mark.unittest
+def test_calc_hat_lat_fromcomponents(components):
+    hat, lat = kw.calc_hat_lat_fromcomponents(components)
+    assert np.isclose(hat, 1.7756676846720225)
+    assert np.isclose(lat, -1.027867748556516)
