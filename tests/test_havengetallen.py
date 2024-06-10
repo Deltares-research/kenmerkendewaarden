@@ -9,10 +9,10 @@ import numpy as np
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.systemtest
 def test_retrieve_read_measurements_amount(dir_meas_extremes):
-    df_meas_ext = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
-    df_meas_ext_12 = hatyan.calc_HWLW12345to12(df_meas_ext)
+    df_ext = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
+    df_ext_12 = hatyan.calc_HWLW12345to12(df_ext)
     
-    df_havengetallen, data_pd_HWLW = kw.havengetallen(df_ext=df_meas_ext_12, return_df_ext=True)
+    df_havengetallen, data_pd_HWLW = kw.havengetallen(df_ext=df_ext_12, return_df_ext=True)
     
     df_columns = ['HW_values_median', 'HW_delay_median', 'LW_values_median',
            'LW_delay_median', 'tijverschil', 'getijperiod_median',
