@@ -29,7 +29,7 @@ def test_retrieve_read_measurements_amount(tmp_path, extremes):
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.systemtest
+@pytest.mark.unittest
 def test_read_measurements_timeseries(dir_meas_timeseries):
     # read meas
     df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
@@ -39,7 +39,7 @@ def test_read_measurements_timeseries(dir_meas_timeseries):
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.systemtest
+@pytest.mark.unittest
 def test_read_measurements_extremes(dir_meas_extremes):
     # read meas
     df_meas = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
@@ -49,7 +49,7 @@ def test_read_measurements_extremes(dir_meas_extremes):
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.systemtest
+@pytest.mark.unittest
 @pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
 def test_derive_statistics(tmp_path, extremes, dir_meas_timeseries, dir_meas_extremes):
     current_station = "HOEKVHLD"

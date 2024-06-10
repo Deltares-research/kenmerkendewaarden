@@ -7,8 +7,8 @@ import numpy as np
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.systemtest
-def test_gemiddeld_getijkromme_av_sp_np_raw(dir_meas_timeseries, dir_meas_extremes):
+@pytest.mark.unittest
+def test_gemiddeld_getijkromme_av_sp_np_raw(dir_meas_timeseries):
     pred_freq = "60s"
     df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
     df_meas = df_meas.loc["2010":"2010"]
@@ -32,7 +32,7 @@ def test_gemiddeld_getijkromme_av_sp_np_raw(dir_meas_timeseries, dir_meas_extrem
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.systemtest
+@pytest.mark.unittest
 def test_gemiddeld_getijkromme_av_sp_np_corr(dir_meas_timeseries, dir_meas_extremes):
     pred_freq = "60s"
     df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
@@ -59,7 +59,7 @@ def test_gemiddeld_getijkromme_av_sp_np_corr(dir_meas_timeseries, dir_meas_extre
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.systemtest
+@pytest.mark.unittest
 def test_gemiddeld_getijkromme_av_sp_np_corr_boi(dir_meas_timeseries, dir_meas_extremes):
     pred_freq = "60s"
     df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)

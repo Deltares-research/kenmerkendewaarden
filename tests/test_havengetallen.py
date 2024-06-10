@@ -7,8 +7,8 @@ import numpy as np
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.systemtest
-def test_retrieve_read_measurements_amount(dir_meas_extremes):
+@pytest.mark.unittest
+def test_havengetallen(dir_meas_extremes):
     df_ext = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
     df_ext_12 = hatyan.calc_HWLW12345to12(df_ext)
     
