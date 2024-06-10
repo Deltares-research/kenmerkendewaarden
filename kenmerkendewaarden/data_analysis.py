@@ -11,25 +11,12 @@ import hatyan
 import logging
 
 __all__ = [
-    "df_amount_boxplot",
     "df_amount_pcolormesh",
     "plot_measurements",
     "derive_statistics",
     ]
 
 logger = logging.getLogger(__name__)
-
-
-def df_amount_boxplot(df):
-    df = df.copy()
-    df.index = pd.to_datetime(df.index)
-    df[df==0] = np.nan
-    
-    fig, ax = plt.subplots(figsize=(14,8))
-    df.plot.box(ax=ax, rot=90, grid=True)
-    ax.set_ylabel("measurements per year (0 excluded) [-]")
-    fig.tight_layout()
-    return fig, ax
 
 
 def df_amount_pcolormesh(df, relative=False):

@@ -83,11 +83,6 @@ if plot_meas_amount:
     fig, ax = kw.df_amount_pcolormesh(df_amount_ext, relative=True)
     fig.savefig(file_plot + "_ext_pcolormesh_relative", dpi=200)
     
-    fig, ax = kw.df_amount_boxplot(df_amount_ts)
-    fig.savefig(file_plot + "_ts_boxplot", dpi=200)
-    fig, ax = kw.df_amount_boxplot(df_amount_ext)
-    fig.savefig(file_plot + "_ext_boxplot", dpi=200)
-
 
 
 ### RETRIEVE DATA FROM DDL AND WRITE TO NETCDF
