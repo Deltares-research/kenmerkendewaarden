@@ -12,7 +12,7 @@ import pandas as pd
 def test_retrieve_read_measurements_amount(tmp_path, extremes):
     start_date = pd.Timestamp(2010,11,1, tz="UTC+01:00")
     end_date = pd.Timestamp(2011,2,1, tz="UTC+01:00")
-    station_list = ["HOEKVHLD"]
+    station_list = ["A12","HOEKVHLD"]
     
     kw.retrieve_measurements_amount(dir_output=tmp_path, station_list=station_list, 
                                     start_date=start_date, end_date=end_date,

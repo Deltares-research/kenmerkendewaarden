@@ -6,7 +6,6 @@ Retrieve data from ddlpy and write to netcdf files including all metadata
 import os
 import pandas as pd
 import ddlpy
-import warnings
 from pyproj import Transformer
 import pooch
 import logging
@@ -116,8 +115,8 @@ def retrieve_measurements_amount(dir_output, station_list, extremes:bool, start_
             # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
             #                                     "L9PFM","MAASMSMPL","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
             # https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-            amount_ext = pd.DataFrame({station:[]})
-            amount_ext.index.name = "Groeperingsperiode"
+            amount_meas = pd.DataFrame({station:[]}, dtype='int64')
+            amount_meas.index.name = "Groeperingsperiode"
         else:
             amount_meas = ddlpy.measurements_amount(location=loc_meas_one.iloc[0], start_date=start_date, end_date=end_date)
             amount_meas = amount_meas.rename(columns={"AantalMetingen":station})
@@ -125,9 +124,7 @@ def retrieve_measurements_amount(dir_output, station_list, extremes:bool, start_
         amount_list.append(amount_meas)
     
     logger.info(f'write measurement amount csvs to {os.path.basename(dir_output)}')
-    with warnings.catch_warnings(action="ignore", category=FutureWarning):
-        # to suppress "FutureWarning: The behavior of array concatenation with empty entries is deprecated. In a future version, this will no longer exclude empty items when determining the result dtype. "
-        df_amount = pd.concat(amount_list, axis=1).sort_index()
+    df_amount = pd.concat(amount_list, axis=1).sort_index()
     df_amount = df_amount.fillna(0).astype(int)
     
     df_amount.to_csv(file_csv_amount)
