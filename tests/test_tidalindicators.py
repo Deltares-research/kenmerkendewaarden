@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import os
 import pytest
 import hatyan
 import kenmerkendewaarden as kw
 import numpy as np
 import pandas as pd
-
-dir_tests = os.path.dirname(__file__) #F9 doesnt work, only F5 (F5 also only method to reload external definition scripts)
-dir_testdata = os.path.join(dir_tests,'testdata')
 
 
 @pytest.fixture(scope="session")
@@ -38,15 +34,13 @@ def prediction_extremes(prediction):
 
 
 @pytest.mark.unittest
-def test_calc_HWLWtidalrange():
-    file_ext = os.path.join(dir_testdata, "VLISSGN_ext.txt")
-    ts_ext = hatyan.read_dia(file_ext)
-    ts_ext_range = kw.calc_HWLWtidalrange(ts_ext)
+def test_calc_HWLWtidalrange(df_ext_12_2010):
+    ts_ext_range = kw.calc_HWLWtidalrange(df_ext_12_2010)
     
     ranges = ts_ext_range["tidalrange"].values
-    vals_expected = np.array([4.  , 4.  , 4.1 , 4.1 , 3.77, 3.77, 3.89, 3.89, 3.5 , 3.5 ])
+    vals_expected = np.array([1.89, 1.89, 1.87, 1.87, 1.97, 1.97, 2.05, 2.05, 2.05, 2.05])
     assert len(ranges) == 1411
-    assert np.allclose(ranges[-10:], vals_expected)
+    assert np.allclose(ranges[:10], vals_expected)
 
 
 @pytest.mark.unittest

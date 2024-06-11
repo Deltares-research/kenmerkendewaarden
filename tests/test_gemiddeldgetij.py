@@ -5,7 +5,6 @@ import kenmerkendewaarden as kw
 import numpy as np
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
 def test_gemiddeld_getijkromme_av_sp_np_raw(df_meas_2010):
     pred_freq = "60s"
@@ -28,13 +27,12 @@ def test_gemiddeld_getijkromme_av_sp_np_raw(df_meas_2010):
     assert np.isclose(prediction_np_raw["values"].max(), 0.8044625899304197)
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_gemiddeld_getijkromme_av_sp_np_corr(df_meas_2010, df_ext_2010_12):
+def test_gemiddeld_getijkromme_av_sp_np_corr(df_meas_2010, df_ext_12_2010):
     pred_freq = "60s"
     
     prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.gemiddeld_getijkromme_av_sp_np(
-                                    df_meas=df_meas_2010, df_ext=df_ext_2010_12,
+                                    df_meas=df_meas_2010, df_ext=df_ext_12_2010,
                                     freq=pred_freq, nb=2, nf=2, 
                                     scale_extremes=True, scale_period=False)
     
@@ -51,13 +49,12 @@ def test_gemiddeld_getijkromme_av_sp_np_corr(df_meas_2010, df_ext_2010_12):
     assert np.isclose(prediction_np_corr["values"].max(), 0.8650000000000001) # 0.89 in pandas>=2.2
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_gemiddeld_getijkromme_av_sp_np_corr_boi(df_meas_2010, df_ext_2010_12):
+def test_gemiddeld_getijkromme_av_sp_np_corr_boi(df_meas_2010, df_ext_12_2010):
     pred_freq = "60s"
     
     prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.gemiddeld_getijkromme_av_sp_np(
-                                    df_meas=df_meas_2010, df_ext=df_ext_2010_12,
+                                    df_meas=df_meas_2010, df_ext=df_ext_12_2010,
                                     freq=pred_freq, nb=0, nf=10, 
                                     scale_extremes=True, scale_period=True)
     

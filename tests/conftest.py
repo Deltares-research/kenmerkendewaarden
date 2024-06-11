@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import pytest
 import pandas as pd
 import kenmerkendewaarden as kw
@@ -7,6 +8,9 @@ import hatyan
 import logging
 logging.basicConfig(format='%(message)s')
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
+
+dir_tests = os.path.dirname(__file__) #F9 doesnt work, only F5 (F5 also only method to reload external definition scripts)
+dir_testdata = os.path.join(dir_tests,'testdata')
 
 
 @pytest.fixture
@@ -36,20 +40,36 @@ def dir_meas_extremes(tmp_path):
 
 
 @pytest.fixture
-def df_meas_2010(dir_meas_timeseries):
-    df_meas_2010 = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
-    df_meas_2010 = df_meas_2010.loc["2010":"2010"]
+def df_meas():
+    file_dia_ts = os.path.join(dir_testdata, "HOEK_KW.dia")
+    df_meas = hatyan.read_dia(file_dia_ts)
+    return df_meas
+
+
+@pytest.fixture
+def df_meas_2010(df_meas):
+    df_meas_2010 = df_meas.loc["2010":"2010"]
+    assert len(df_meas_2010) == 52560
     return df_meas_2010
 
 
 @pytest.fixture
-def df_ext_2010(dir_meas_extremes):
-    df_ext_2010 = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
-    df_ext_2010 = df_ext_2010.loc["2010":"2010"]
+def df_ext():
+    file_dia_ext = os.path.join(dir_testdata, "HOEKVHLD_ext.dia")
+    df_ext = hatyan.read_dia(file_dia_ext, station="HOEKVHLD", block_ids="allstation")
+    return df_ext
+
+@pytest.fixture
+def df_ext_2010(df_ext):
+    df_ext_2010 = df_ext.loc["2010":"2010"]
+    assert len(df_ext_2010) == 1863
     return df_ext_2010
 
 
 @pytest.fixture
-def df_ext_2010_12(df_ext_2010):
-    df_ext_2010_12 = hatyan.calc_HWLW12345to12(df_ext_2010)
-    return df_ext_2010_12
+def df_ext_12_2010(df_ext):
+    df_ext_sel = df_ext.loc["2009-12-28":"2011-01-03"]
+    df_ext_12 = hatyan.calc_HWLW12345to12(df_ext_sel)
+    df_ext_12_2010 = df_ext_12.loc["2010":"2010"]
+    assert len(df_ext_12_2010) == 1411
+    return df_ext_12_2010

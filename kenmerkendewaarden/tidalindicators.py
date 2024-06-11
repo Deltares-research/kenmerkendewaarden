@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 from hatyan.timeseries import calc_HWLW12345to12, calc_HWLWnumbering
-from hatyan.analysis_prediction import HatyanSettings, prediction
+from hatyan.analysis_prediction import prediction
 
 __all__ = ["calc_wltidalindicators",
            "calc_HWLWtidalindicators",
