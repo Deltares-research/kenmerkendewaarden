@@ -31,32 +31,6 @@ def test_retrieve_read_measurements_amount(tmp_path, extremes):
     assert np.allclose(df_amount["HOEKVHLD"].values, df_vals)
 
 
-# @pytest.fixture(scope="session")
-# def dir_meas_timeseries(tmp_path):
-#     dir_meas_timeseries = tmp_path
-#     start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
-#     end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
-#     current_station = "HOEKVHLD"
-    
-#     # retrieve meas
-#     kw.retrieve_measurements(dir_output=dir_meas_timeseries, station=current_station, extremes=False,
-#                              start_date=start_date, end_date=end_date)
-#     return dir_meas_timeseries
-
-
-# @pytest.fixture(scope="session")
-# def dir_meas_extremes(tmp_path):
-#     dir_meas_extremes = tmp_path
-#     start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
-#     end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
-#     current_station = "HOEKVHLD"
-    
-#     # retrieve meas
-#     kw.retrieve_measurements(dir_output=dir_meas_extremes, station=current_station, extremes=True,
-#                              start_date=start_date, end_date=end_date)
-#     return dir_meas_extremes
-
-
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.systemtest
 @pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
