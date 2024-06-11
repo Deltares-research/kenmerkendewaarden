@@ -23,13 +23,13 @@ def test_havengetallen(df_ext_12_2010):
 @pytest.mark.unittest
 def test_plot_HWLW_pertimeclass(df_ext_12_2010):
     df_havengetallen, data_pd_hwlw = kw.calc_havengetallen(df_ext=df_ext_12_2010, return_df_ext=True)
-    kw.plot_HWLW_pertimeclass(data_pd_HWLW=data_pd_hwlw, HWLW_culmhr_summary=df_havengetallen)
+    kw.plot_HWLW_pertimeclass(df_ext=data_pd_hwlw, df_havengetallen=df_havengetallen)
 
 
 @pytest.mark.unittest
 def test_plot_aardappelgrafiek(df_ext_12_2010):
     df_havengetallen = kw.calc_havengetallen(df_ext=df_ext_12_2010, return_df_ext=False)
-    kw.plot_aardappelgrafiek(HWLW_culmhr_summary=df_havengetallen)
+    kw.plot_aardappelgrafiek(df_havengetallen=df_havengetallen)
 
 
 @pytest.mark.unittest
