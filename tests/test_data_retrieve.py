@@ -47,12 +47,39 @@ def test_retrieve_read_measurements_amount(tmp_path, extremes):
     assert np.allclose(df_amount["HOEKVHLD"].values, df_vals)
 
 
+@pytest.fixture(scope="session")
+def dir_meas(tmp_path):
+    dir_meas = tmp_path
+    start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
+    current_station = "HOEKVHLD"
+
+    # retrieve measurements
+    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
+                             start_date=start_date, end_date=end_date)
+    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=True,
+                             start_date=start_date, end_date=end_date)
+    return dir_meas
+
+
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.systemtest
 @pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
-def test_retrieve_measurements_derive_statistics(tmp_path, extremes):
-    start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
-    end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
+def test_retrieve_measurements(dir_meas, extremes):
+    df_meas = kw.read_measurements(dir_output=dir_meas, station="HOEKVHLD", extremes=False)
+    df_ext = kw.read_measurements(dir_output=dir_meas, station="HOEKVHLD", extremes=True)
+    assert df_meas.index.tz.zone == 'Etc/GMT-1'
+    assert df_ext.index.tz.zone == 'Etc/GMT-1'
+    assert df_meas.index[0] == pd.Timestamp('2010-01-01 00:00:00+0100', tz='Etc/GMT-1')
+    assert df_meas.index[-1] == pd.Timestamp('2011-01-01 00:00:00+0100', tz='Etc/GMT-1')
+    assert df_ext.index[0] == pd.Timestamp('2010-01-01 02:35:00+0100', tz='Etc/GMT-1')
+    assert df_ext.index[-1] == pd.Timestamp('2010-12-31 23:50:00+0100', tz='Etc/GMT-1')
+
+
+@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.systemtest
+@pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
+def test_derive_statistics(dir_meas, extremes):
     current_station = "HOEKVHLD"
     station_list = [current_station]
     
@@ -78,12 +105,8 @@ def test_retrieve_measurements_derive_statistics(tmp_path, extremes):
         timedif_min = pd.Timedelta('0 days 00:10:00')
         timedif_max = pd.Timedelta('0 days 00:10:00')
     
-    # retrieve measurements
-    kw.retrieve_measurements(dir_output=tmp_path, station=current_station, extremes=extremes,
-                             start_date=start_date, end_date=end_date)
-
     
-    stats = kw.derive_statistics(dir_output=tmp_path, station_list=station_list, extremes=extremes)
+    stats = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, extremes=extremes)
     
     # assert statistics columns
     assert set(stats.columns) == set(cols_stats)
