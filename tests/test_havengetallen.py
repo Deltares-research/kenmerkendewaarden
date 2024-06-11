@@ -2,17 +2,13 @@
 
 import pytest
 import kenmerkendewaarden as kw
-import hatyan
 import numpy as np
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_havengetallen(dir_meas_extremes):
-    df_ext = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
-    df_ext_12 = hatyan.calc_HWLW12345to12(df_ext)
-    
-    df_havengetallen, data_pd_hwlw = kw.calc_havengetallen(df_ext=df_ext_12, return_df_ext=True)
+def test_havengetallen(df_ext_2010_12):
+    df_havengetallen, data_pd_hwlw = kw.calc_havengetallen(df_ext=df_ext_2010_12, return_df_ext=True)
     
     df_columns = ['HW_values_median', 'HW_delay_median', 'LW_values_median',
            'LW_delay_median', 'tijverschil', 'getijperiod_median',
@@ -26,4 +22,4 @@ def test_havengetallen(dir_meas_extremes):
     assert np.allclose(hw_values_median, hw_values_median_expected)
     
     # assert the enriched df_ext length
-    assert len(data_pd_hwlw) == len(df_ext_12)
+    assert len(data_pd_hwlw) == len(df_ext_2010_12)

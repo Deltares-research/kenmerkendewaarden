@@ -2,19 +2,16 @@
 
 import pytest
 import kenmerkendewaarden as kw
-import hatyan
 import numpy as np
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_gemiddeld_getijkromme_av_sp_np_raw(dir_meas_timeseries):
+def test_gemiddeld_getijkromme_av_sp_np_raw(df_meas_2010):
     pred_freq = "60s"
-    df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
-    df_meas = df_meas.loc["2010":"2010"]
     
     prediction_av_raw, prediction_sp_raw, prediction_np_raw = kw.gemiddeld_getijkromme_av_sp_np(
-                                    df_meas=df_meas, df_ext=None,
+                                    df_meas=df_meas_2010, df_ext=None,
                                     freq=pred_freq, nb=0, nf=0, 
                                     scale_extremes=False, scale_period=False)
     
@@ -33,15 +30,11 @@ def test_gemiddeld_getijkromme_av_sp_np_raw(dir_meas_timeseries):
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_gemiddeld_getijkromme_av_sp_np_corr(dir_meas_timeseries, dir_meas_extremes):
+def test_gemiddeld_getijkromme_av_sp_np_corr(df_meas_2010, df_ext_2010_12):
     pred_freq = "60s"
-    df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
-    df_meas = df_meas.loc["2010":"2010"]
-    df_ext = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
-    df_ext_12 = hatyan.calc_HWLW12345to12(df_ext)
     
     prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.gemiddeld_getijkromme_av_sp_np(
-                                    df_meas=df_meas, df_ext=df_ext_12,
+                                    df_meas=df_meas_2010, df_ext=df_ext_2010_12,
                                     freq=pred_freq, nb=2, nf=2, 
                                     scale_extremes=True, scale_period=False)
     
@@ -60,15 +53,11 @@ def test_gemiddeld_getijkromme_av_sp_np_corr(dir_meas_timeseries, dir_meas_extre
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_gemiddeld_getijkromme_av_sp_np_corr_boi(dir_meas_timeseries, dir_meas_extremes):
+def test_gemiddeld_getijkromme_av_sp_np_corr_boi(df_meas_2010, df_ext_2010_12):
     pred_freq = "60s"
-    df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
-    df_meas = df_meas.loc["2010":"2010"]
-    df_ext = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
-    df_ext_12 = hatyan.calc_HWLW12345to12(df_ext)
     
     prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.gemiddeld_getijkromme_av_sp_np(
-                                    df_meas=df_meas, df_ext=df_ext_12,
+                                    df_meas=df_meas_2010, df_ext=df_ext_2010_12,
                                     freq=pred_freq, nb=0, nf=10, 
                                     scale_extremes=True, scale_period=True)
     

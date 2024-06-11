@@ -3,12 +3,12 @@
 import pytest
 import pandas as pd
 import kenmerkendewaarden as kw
+import hatyan
 import logging
 logging.basicConfig(format='%(message)s')
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.fixture
 def dir_meas_timeseries(tmp_path):
     dir_meas_timeseries = tmp_path
@@ -22,7 +22,6 @@ def dir_meas_timeseries(tmp_path):
     return dir_meas_timeseries
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.fixture
 def dir_meas_extremes(tmp_path):
     dir_meas_extremes = tmp_path
@@ -34,3 +33,23 @@ def dir_meas_extremes(tmp_path):
     kw.retrieve_measurements(dir_output=dir_meas_extremes, station=current_station, extremes=True,
                              start_date=start_date, end_date=end_date)
     return dir_meas_extremes
+
+
+@pytest.fixture
+def df_meas_2010(dir_meas_timeseries):
+    df_meas_2010 = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
+    df_meas_2010 = df_meas_2010.loc["2010":"2010"]
+    return df_meas_2010
+
+
+@pytest.fixture
+def df_ext_2010(dir_meas_extremes):
+    df_ext_2010 = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
+    df_ext_2010 = df_ext_2010.loc["2010":"2010"]
+    return df_ext_2010
+
+
+@pytest.fixture
+def df_ext_2010_12(df_ext_2010):
+    df_ext_2010_12 = hatyan.calc_HWLW12345to12(df_ext_2010)
+    return df_ext_2010_12

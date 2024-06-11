@@ -30,22 +30,23 @@ def test_retrieve_read_measurements_amount(tmp_path, extremes):
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_read_measurements_timeseries(dir_meas_timeseries):
-    # read meas
-    df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
-    
+def test_read_measurements_timeseries(dir_meas_2010):
     # assert amount of measurements, this might change if ddl data is updated
-    assert len(df_meas) == 52561
+    assert len(dir_meas_2010) == 52561
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_read_measurements_extremes(dir_meas_extremes):
-    # read meas
-    df_meas = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
-    
+def test_read_measurements_extremes(dir_ext_2010):
     # assert amount of measurements, this might change if ddl data is updated
-    assert len(df_meas) == 1863
+    assert len(dir_ext_2010) == 1863
+
+
+@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.unittest
+def test_read_measurements_extremes(dir_ext_2010_12):
+    # assert amount of measurements, this might change if ddl data is updated
+    assert len(dir_ext_2010) == 1863
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
