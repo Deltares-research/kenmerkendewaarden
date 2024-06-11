@@ -44,7 +44,7 @@ def df_meas_2010(dir_meas_timeseries):
 
 @pytest.fixture
 def df_ext_2010(dir_meas_extremes):
-    df_ext_2010 = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
+    df_ext_2010 = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
     df_ext_2010 = df_ext_2010.loc["2010":"2010"]
     return df_ext_2010
 
