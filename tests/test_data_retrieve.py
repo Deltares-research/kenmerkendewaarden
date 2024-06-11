@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 
-
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
 def test_retrieve_catalog():
