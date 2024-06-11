@@ -3,6 +3,8 @@
 import os
 import pytest
 import hatyan
+import pandas as pd
+import kenmerkendewaarden as kw
 import logging
 logging.basicConfig(format='%(message)s')
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
@@ -75,3 +77,18 @@ def df_ext_12_2010_2014(df_ext):
 def df_components_2010(df_meas_2010):
     df_components_2010 = hatyan.analysis(df_meas_2010, const_list="year")
     return df_components_2010
+
+
+@pytest.fixture
+def dir_meas(tmp_path):
+    dir_meas = tmp_path
+    start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
+    current_station = "HOEKVHLD"
+
+    # retrieve measurements
+    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
+                             start_date=start_date, end_date=end_date)
+    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=True,
+                             start_date=start_date, end_date=end_date)
+    return dir_meas

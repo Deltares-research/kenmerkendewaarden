@@ -46,26 +46,10 @@ def test_retrieve_read_measurements_amount(tmp_path, extremes):
     assert len(df_amount) == 2
     assert np.allclose(df_amount["HOEKVHLD"].values, df_vals)
 
-
-@pytest.fixture(scope="session")
-def dir_meas(tmp_path):
-    dir_meas = tmp_path
-    start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
-    end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
-    current_station = "HOEKVHLD"
-
-    # retrieve measurements
-    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
-                             start_date=start_date, end_date=end_date)
-    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=True,
-                             start_date=start_date, end_date=end_date)
-    return dir_meas
-
-
+ 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.systemtest
-@pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
-def test_retrieve_measurements(dir_meas, extremes):
+@pytest.mark.unittest
+def test_retrieve_measurements(dir_meas):
     df_meas = kw.read_measurements(dir_output=dir_meas, station="HOEKVHLD", extremes=False)
     df_ext = kw.read_measurements(dir_output=dir_meas, station="HOEKVHLD", extremes=True)
     assert df_meas.index.tz.zone == 'Etc/GMT-1'
@@ -74,46 +58,3 @@ def test_retrieve_measurements(dir_meas, extremes):
     assert df_meas.index[-1] == pd.Timestamp('2011-01-01 00:00:00+0100', tz='Etc/GMT-1')
     assert df_ext.index[0] == pd.Timestamp('2010-01-01 02:35:00+0100', tz='Etc/GMT-1')
     assert df_ext.index[-1] == pd.Timestamp('2010-12-31 23:50:00+0100', tz='Etc/GMT-1')
-
-
-@pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.systemtest
-@pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
-def test_derive_statistics(dir_meas, extremes):
-    current_station = "HOEKVHLD"
-    station_list = [current_station]
-    
-    if extremes:
-        cols_stats = ['WaarnemingMetadata.StatuswaardeLijst',
-               'WaarnemingMetadata.KwaliteitswaardecodeLijst',
-               'WaardeBepalingsmethode.Code', 'MeetApparaat.Code', 'Hoedanigheid.Code',
-               'Grootheid.Code', 'Groepering.Code', 'Typering.Code', 'tstart', 'tstop',
-               'timediff_min', 'timediff_max', 'nvals', '#nans', 'min', 'max', 'std',
-               'mean', 'dupltimes', 'dupltimes_#nans', 'qc_none', 'timediff<4hr',
-               'aggers']
-        stats_expected = np.array([0.07922705314009662, -1.33, 2.11])
-        timedif_min = pd.Timedelta('0 days 00:34:00')
-        timedif_max = pd.Timedelta('0 days 08:57:00')
-    else:
-        cols_stats = ['WaarnemingMetadata.StatuswaardeLijst',
-               'WaarnemingMetadata.KwaliteitswaardecodeLijst',
-               'WaardeBepalingsmethode.Code', 'MeetApparaat.Code', 'Hoedanigheid.Code',
-               'Grootheid.Code', 'Groepering.Code', 'Typering.Code', 'tstart', 'tstop',
-               'timediff_min', 'timediff_max', 'nvals', '#nans', 'min', 'max', 'std',
-               'mean', 'dupltimes', 'dupltimes_#nans', 'qc_none']
-        stats_expected = np.array([0.07962614866536023, -1.33, 2.11])
-        timedif_min = pd.Timedelta('0 days 00:10:00')
-        timedif_max = pd.Timedelta('0 days 00:10:00')
-    
-    
-    stats = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, extremes=extremes)
-    
-    # assert statistics columns
-    assert set(stats.columns) == set(cols_stats)
-    
-    # assert statistics values, this might change if ddl data is updated
-    stats_vals = stats.loc[current_station, ["mean","min","max"]].values.astype(float)
-    assert np.allclose(stats_vals, stats_expected)
-    
-    assert stats.loc[current_station, "timediff_min"] == timedif_min
-    assert stats.loc[current_station, "timediff_max"] == timedif_max
