@@ -54,10 +54,18 @@ def df_meas_2010(df_meas):
 
 
 @pytest.fixture
+def df_meas_2010_2014(df_meas):
+    df_meas_2010_2014 = df_meas.loc["2010":"2014"]
+    assert len(df_meas_2010_2014) == 262944
+    return df_meas_2010_2014
+
+
+@pytest.fixture
 def df_ext():
     file_dia_ext = os.path.join(dir_testdata, "HOEKVHLD_ext.dia")
     df_ext = hatyan.read_dia(file_dia_ext, station="HOEKVHLD", block_ids="allstation")
     return df_ext
+
 
 @pytest.fixture
 def df_ext_2010(df_ext):
@@ -67,9 +75,31 @@ def df_ext_2010(df_ext):
 
 
 @pytest.fixture
+def df_ext_2010_2014(df_ext):
+    df_ext_2010_2014 = df_ext.loc["2010":"2014"]
+    assert len(df_ext_2010_2014) == 9881
+    return df_ext_2010_2014
+
+
+@pytest.fixture
 def df_ext_12_2010(df_ext):
     df_ext_sel = df_ext.loc["2009-12-28":"2011-01-03"]
     df_ext_12 = hatyan.calc_HWLW12345to12(df_ext_sel)
     df_ext_12_2010 = df_ext_12.loc["2010":"2010"]
     assert len(df_ext_12_2010) == 1411
     return df_ext_12_2010
+
+
+@pytest.fixture
+def df_ext_12_2010_2014(df_ext):
+    df_ext_sel = df_ext.loc["2009-12-28":"2015-01-03"]
+    df_ext_12 = hatyan.calc_HWLW12345to12(df_ext_sel)
+    df_ext_12_2010_2014 = df_ext_12.loc["2010":"2014"]
+    assert len(df_ext_12_2010_2014) == 7057
+    return df_ext_12_2010_2014
+
+
+@pytest.fixture
+def df_components_2010(df_meas_2010):
+    df_components_2010 = hatyan.analysis(df_meas_2010, const_list="year")
+    return df_components_2010

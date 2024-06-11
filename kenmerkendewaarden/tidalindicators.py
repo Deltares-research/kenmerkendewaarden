@@ -8,12 +8,15 @@ import pandas as pd
 import datetime as dt
 from hatyan.timeseries import calc_HWLW12345to12, calc_HWLWnumbering
 from hatyan.analysis_prediction import prediction
+import logging
 
 __all__ = ["calc_wltidalindicators",
            "calc_HWLWtidalindicators",
            "calc_HWLWtidalrange",
            "calc_hat_lat_fromcomponents",
            ]
+
+logger = logging.getLogger(__name__)
 
 
 def calc_HWLWtidalindicators(data_pd_HWLW_all, min_count=None):
@@ -178,6 +181,7 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     
     min_vallist_allyears = pd.Series(dtype=float)
     max_vallist_allyears = pd.Series(dtype=float)
+    logger.info("generating prediction for 19 years")
     for year in range(2020,2039): # 19 arbitrary consequtive years to capture entire nodal cycle
         times_pred_all = pd.date_range(start=dt.datetime(year,1,1), end=dt.datetime(year+1,1,1), freq='1min')
         ts_prediction = prediction(comp=comp, times=times_pred_all)
@@ -185,6 +189,7 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
         min_vallist_allyears.loc[year] = ts_prediction['values'].min()
         max_vallist_allyears.loc[year] = ts_prediction['values'].max()
     
+    logger.info("deriving hat/lat")
     hat = max_vallist_allyears.max()
     lat = min_vallist_allyears.min()
     return hat, lat
