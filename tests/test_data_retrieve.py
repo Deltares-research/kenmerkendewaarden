@@ -6,6 +6,23 @@ import numpy as np
 import pandas as pd
 
 
+
+@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.unittest
+def test_retrieve_catalog():
+    crs = 28992
+    locs_meas_ts, locs_meas_ext, _ = kw.data_retrieve.retrieve_catalog(crs=crs)
+    
+    assert np.isclose(locs_meas_ts.loc["HOEKVHLD"]["X"], 67930.00003341127)
+    assert np.isclose(locs_meas_ts.loc["HOEKVHLD"]["Y"], 444000.0027572268)
+    assert np.isclose(locs_meas_ext.loc["HOEKVHLD"]["X"], 67930.00003341127)
+    assert np.isclose(locs_meas_ext.loc["HOEKVHLD"]["Y"], 444000.0027572268)
+    df_crs = locs_meas_ext["Coordinatenstelsel"].drop_duplicates().tolist()
+    assert len(df_crs) == 1
+    assert isinstance(df_crs[0], str)
+    assert int(df_crs[0]) == crs
+
+
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.systemtest
 @pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
