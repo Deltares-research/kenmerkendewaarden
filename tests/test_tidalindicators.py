@@ -97,3 +97,17 @@ def test_calc_hat_lat_fromcomponents(df_components_2010):
     hat, lat = kw.calc_hat_lat_fromcomponents(df_components_2010_sel)
     assert np.isclose(hat, 1.2262061956302408)
     assert np.isclose(lat, -0.8369650960044822)
+
+
+@pytest.mark.unittest
+def test_calc_HWLWtidalrange_aggers_input(df_ext_2010):
+    with pytest.raises(ValueError) as e:
+        kw.calc_HWLWtidalrange(ts_ext=df_ext_2010)
+    assert "contains aggers" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_calc_HWLWtidalindicators_aggers_input(df_ext_2010):
+    with pytest.raises(ValueError) as e:
+        kw.calc_HWLWtidalindicators(df_ext=df_ext_2010)
+    assert "contains aggers" in str(e.value)

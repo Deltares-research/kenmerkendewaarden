@@ -6,8 +6,7 @@ Computation of tidal indicators from waterlevel extremes or timeseries
 import numpy as np
 import pandas as pd
 import datetime as dt
-from hatyan.timeseries import calc_HWLW12345to12, calc_HWLWnumbering
-from hatyan.analysis_prediction import prediction
+import hatyan
 import logging
 
 __all__ = ["calc_wltidalindicators",
@@ -19,7 +18,7 @@ __all__ = ["calc_wltidalindicators",
 logger = logging.getLogger(__name__)
 
 
-def calc_HWLWtidalindicators(data_pd_HWLW_all, min_count=None):
+def calc_HWLWtidalindicators(df_ext, min_count=None):
     """
     computes several tidal extreme indicators from tidal extreme dataset
 
@@ -37,22 +36,23 @@ def calc_HWLWtidalindicators(data_pd_HWLW_all, min_count=None):
 
     """
     # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
-    if data_pd_HWLW_all.index.tz is not None:
-        data_pd_HWLW_all = data_pd_HWLW_all.tz_localize(None)
-        
-    if len(data_pd_HWLW_all['HWLWcode'].unique()) > 2: #aggers are present
-        # TODO: this drops first value if it is a 3/4/5 LW, should be fixed: https://github.com/Deltares/hatyan/issues/311
-        data_pd_HWLW_12 = calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
-    else:
-        data_pd_HWLW_12 = data_pd_HWLW_all.copy()
+    if df_ext.index.tz is not None:
+        df_ext = df_ext.tz_localize(None)
+    
+    # TODO: alternatively we can convert 12345 to 12 here
+    if len(df_ext["HWLWcode"].drop_duplicates()) != 2:
+        raise ValueError("df_ext should only contain extremes (HWLWcode 1/2), "
+                         "but it also contains aggers (HWLWcode 3/4/5). "
+                         "You can convert with `hatyan.calc_HWLW12345to12()`")
+    
     
     #split to HW and LW separately, also groupby year
-    data_pd_HW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==1]
-    data_pd_LW = data_pd_HWLW_12.loc[data_pd_HWLW_12['HWLWcode']==2]
+    data_pd_HW = df_ext.loc[df_ext['HWLWcode']==1]
+    data_pd_LW = df_ext.loc[df_ext['HWLWcode']==2]
     
     #count HWLW values per year/month
-    HWLW_count_peryear = data_pd_HWLW_12.groupby(pd.PeriodIndex(data_pd_HWLW_12.index, freq="Y"))['values'].count()
-    HWLW_count_permonth = data_pd_HWLW_12.groupby(pd.PeriodIndex(data_pd_HWLW_12.index, freq="M"))['values'].count()
+    HWLW_count_peryear = df_ext.groupby(pd.PeriodIndex(df_ext.index, freq="Y"))['values'].count()
+    HWLW_count_permonth = df_ext.groupby(pd.PeriodIndex(df_ext.index, freq="M"))['values'].count()
     
     #yearmean HWLW from HWLW values #maybe also add *_mean_permonth
     HW_mean_peryear = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="Y"))[['values']].mean()
@@ -151,7 +151,13 @@ def calc_HWLWtidalrange(ts_ext):
     """
     creates column 'tidalrange' in ts_ext dataframe
     """
-    ts_ext = calc_HWLWnumbering(ts_ext=ts_ext)
+    # TODO: alternatively we can convert 12345 to 12 here
+    if len(ts_ext["HWLWcode"].drop_duplicates()) != 2:
+        raise ValueError("df_ext should only contain extremes (HWLWcode 1/2), "
+                         "but it also contains aggers (HWLWcode 3/4/5). "
+                         "You can convert with `hatyan.calc_HWLW12345to12()`")
+    
+    ts_ext = hatyan.calc_HWLWnumbering(ts_ext=ts_ext)
     ts_ext['times_backup'] = ts_ext.index
     ts_ext_idxHWLWno = ts_ext.set_index('HWLWno',drop=False)
     ts_ext_idxHWLWno['tidalrange'] = ts_ext_idxHWLWno.loc[ts_ext_idxHWLWno['HWLWcode']==1,'values'] - ts_ext_idxHWLWno.loc[ts_ext_idxHWLWno['HWLWcode']==2,'values']
@@ -184,7 +190,7 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     logger.info("generating prediction for 19 years")
     for year in range(2020,2039): # 19 arbitrary consequtive years to capture entire nodal cycle
         times_pred_all = pd.date_range(start=dt.datetime(year,1,1), end=dt.datetime(year+1,1,1), freq='1min')
-        ts_prediction = prediction(comp=comp, times=times_pred_all)
+        ts_prediction = hatyan.prediction(comp=comp, times=times_pred_all)
         
         min_vallist_allyears.loc[year] = ts_prediction['values'].min()
         max_vallist_allyears.loc[year] = ts_prediction['values'].max()

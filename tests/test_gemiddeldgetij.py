@@ -70,3 +70,13 @@ def test_gemiddeld_getijkromme_av_sp_np_corr_boi(df_meas_2010, df_ext_12_2010):
     assert np.isclose(prediction_np_corr_boi["values"].min(), -0.61)
     assert np.isclose(prediction_np_corr_boi["values"].max(), 0.8650000000000001) # 0.89 in pandas>=2.2
 
+
+@pytest.mark.unittest
+def test_gemiddeld_getijkromme_av_sp_np_aggers(df_meas_2010, df_ext_2010):
+    pred_freq = "60s"
+        
+    with pytest.raises(ValueError) as e:
+        kw.gemiddeld_getijkromme_av_sp_np(df_meas=df_meas_2010, df_ext=df_ext_2010,
+                                          freq=pred_freq, nb=0, nf=10, 
+                                          scale_extremes=True, scale_period=True)
+    assert "contains aggers" in str(e.value)
