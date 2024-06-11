@@ -31,41 +31,42 @@ def test_retrieve_read_measurements_amount(tmp_path, extremes):
     assert np.allclose(df_amount["HOEKVHLD"].values, df_vals)
 
 
-@pytest.fixture(scope="session")
-def dir_meas_timeseries(tmp_path):
-    dir_meas_timeseries = tmp_path
-    start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
-    end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
-    current_station = "HOEKVHLD"
+# @pytest.fixture(scope="session")
+# def dir_meas_timeseries(tmp_path):
+#     dir_meas_timeseries = tmp_path
+#     start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
+#     end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
+#     current_station = "HOEKVHLD"
     
-    # retrieve meas
-    kw.retrieve_measurements(dir_output=dir_meas_timeseries, station=current_station, extremes=False,
-                             start_date=start_date, end_date=end_date)
-    return dir_meas_timeseries
+#     # retrieve meas
+#     kw.retrieve_measurements(dir_output=dir_meas_timeseries, station=current_station, extremes=False,
+#                              start_date=start_date, end_date=end_date)
+#     return dir_meas_timeseries
 
 
-@pytest.fixture(scope="session")
-def dir_meas_extremes(tmp_path):
-    dir_meas_extremes = tmp_path
-    start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
-    end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
-    current_station = "HOEKVHLD"
+# @pytest.fixture(scope="session")
+# def dir_meas_extremes(tmp_path):
+#     dir_meas_extremes = tmp_path
+#     start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
+#     end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
+#     current_station = "HOEKVHLD"
     
-    # retrieve meas
-    kw.retrieve_measurements(dir_output=dir_meas_extremes, station=current_station, extremes=True,
-                             start_date=start_date, end_date=end_date)
-    return dir_meas_extremes
+#     # retrieve meas
+#     kw.retrieve_measurements(dir_output=dir_meas_extremes, station=current_station, extremes=True,
+#                              start_date=start_date, end_date=end_date)
+#     return dir_meas_extremes
 
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.unittest
+@pytest.mark.systemtest
 @pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
-def test_derive_statistics(tmp_path, extremes, dir_meas_timeseries, dir_meas_extremes):
+def test_retrieve_measurements_derive_statistics(tmp_path, extremes):
+    start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
     current_station = "HOEKVHLD"
     station_list = [current_station]
     
     if extremes:
-        dir_meas = dir_meas_extremes
         cols_stats = ['WaarnemingMetadata.StatuswaardeLijst',
                'WaarnemingMetadata.KwaliteitswaardecodeLijst',
                'WaardeBepalingsmethode.Code', 'MeetApparaat.Code', 'Hoedanigheid.Code',
@@ -77,7 +78,6 @@ def test_derive_statistics(tmp_path, extremes, dir_meas_timeseries, dir_meas_ext
         timedif_min = pd.Timedelta('0 days 00:34:00')
         timedif_max = pd.Timedelta('0 days 08:57:00')
     else:
-        dir_meas = dir_meas_timeseries
         cols_stats = ['WaarnemingMetadata.StatuswaardeLijst',
                'WaarnemingMetadata.KwaliteitswaardecodeLijst',
                'WaardeBepalingsmethode.Code', 'MeetApparaat.Code', 'Hoedanigheid.Code',
@@ -88,8 +88,12 @@ def test_derive_statistics(tmp_path, extremes, dir_meas_timeseries, dir_meas_ext
         timedif_min = pd.Timedelta('0 days 00:10:00')
         timedif_max = pd.Timedelta('0 days 00:10:00')
     
+    # retrieve measurements
+    kw.retrieve_measurements(dir_output=tmp_path, station=current_station, extremes=extremes,
+                             start_date=start_date, end_date=end_date)
+
     
-    stats = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, extremes=extremes)
+    stats = kw.derive_statistics(dir_output=tmp_path, station_list=station_list, extremes=extremes)
     
     # assert statistics columns
     assert set(stats.columns) == set(cols_stats)
