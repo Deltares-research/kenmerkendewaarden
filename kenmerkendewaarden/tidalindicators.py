@@ -8,6 +8,7 @@ import pandas as pd
 import datetime as dt
 import hatyan
 import logging
+from kenmerkendewaarden.utils import raise_extremes_with_aggers
 
 __all__ = ["calc_wltidalindicators",
            "calc_HWLWtidalindicators",
@@ -39,12 +40,7 @@ def calc_HWLWtidalindicators(df_ext, min_count=None):
     if df_ext.index.tz is not None:
         df_ext = df_ext.tz_localize(None)
     
-    # TODO: alternatively we can convert 12345 to 12 here
-    if len(df_ext["HWLWcode"].drop_duplicates()) != 2:
-        raise ValueError("df_ext should only contain extremes (HWLWcode 1/2), "
-                         "but it also contains aggers (HWLWcode 3/4/5). "
-                         "You can convert with `hatyan.calc_HWLW12345to12()`")
-    
+    raise_extremes_with_aggers(df_ext)
     
     #split to HW and LW separately, also groupby year
     data_pd_HW = df_ext.loc[df_ext['HWLWcode']==1]
@@ -151,11 +147,7 @@ def calc_HWLWtidalrange(ts_ext):
     """
     creates column 'tidalrange' in ts_ext dataframe
     """
-    # TODO: alternatively we can convert 12345 to 12 here
-    if len(ts_ext["HWLWcode"].drop_duplicates()) != 2:
-        raise ValueError("df_ext should only contain extremes (HWLWcode 1/2), "
-                         "but it also contains aggers (HWLWcode 3/4/5). "
-                         "You can convert with `hatyan.calc_HWLW12345to12()`")
+    raise_extremes_with_aggers(ts_ext)
     
     ts_ext = hatyan.calc_HWLWnumbering(ts_ext=ts_ext)
     ts_ext['times_backup'] = ts_ext.index

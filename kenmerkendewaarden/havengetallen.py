@@ -11,6 +11,7 @@ import logging
 from hatyan.astrog import astrog_culminations
 from hatyan.timeseries import calc_HWLWnumbering
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
+from kenmerkendewaarden.utils import raise_extremes_with_aggers
 
 __all__ = ["calc_havengetallen",
            "plot_HWLW_pertimeclass",
@@ -44,11 +45,7 @@ def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False):
         An enriched copy of the input DataFrame, mainly for plotting.
 
     """
-    # TODO: alternatively we can convert 12345 to 12 here
-    if len(df_ext["HWLWcode"].drop_duplicates()) != 2:
-        raise ValueError("df_ext should only contain extremes (HWLWcode 1/2), "
-                         "but it also contains aggers (HWLWcode 3/4/5)"
-                         "You can convert with `hatyan.calc_HWLW12345to12()`")
+    raise_extremes_with_aggers(df_ext)
     
     current_station = df_ext.attrs["station"]
     logger.info(f'computing havengetallen for {current_station}')
