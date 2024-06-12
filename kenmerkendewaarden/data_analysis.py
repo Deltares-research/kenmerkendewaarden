@@ -116,7 +116,7 @@ def plot_stations(station_list, crs=None, add_labels=False):
     fig.tight_layout()
     
     if add_labels:
-        for iR, row in locs_ts.iterrows():
+        for irow, row in locs_ts.iterrows():
             ax.text(row['X'],row['Y'],row.name)
 
     return fig, ax
