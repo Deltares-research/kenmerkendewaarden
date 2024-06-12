@@ -50,3 +50,25 @@ def test_retrieve_read_measurements(dir_meas):
     assert df_meas.index[-1] == pd.Timestamp('2011-01-01 00:00:00+0100', tz='Etc/GMT-1')
     assert df_ext.index[0] == pd.Timestamp('2010-01-01 02:35:00+0100', tz='Etc/GMT-1')
     assert df_ext.index[-1] == pd.Timestamp('2010-12-31 23:50:00+0100', tz='Etc/GMT-1')
+
+
+@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.unittest
+def test_check_locations_amount_toomuch():
+    locs_meas_ts, _, _ = kw.data_retrieve.retrieve_catalog()
+    bool_stations = locs_meas_ts.index.isin(["BATH"])
+    locs_sel = locs_meas_ts.loc[bool_stations]
+    with pytest.raises(ValueError) as e:
+        kw.data_retrieve.check_locations_amount(locs_sel)
+    assert "multiple stations present after station subsetting" in str(e.value)
+
+
+@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.unittest
+def test_check_locations_amount_toolittle():
+    locs_meas_ts, _, _ = kw.data_retrieve.retrieve_catalog()
+    bool_stations = locs_meas_ts.index.isin(["NONEXISTENTSTATION"])
+    locs_sel = locs_meas_ts.loc[bool_stations]
+    # this will silently continue the process, returing None
+    returned_value = kw.data_retrieve.check_locations_amount(locs_sel)
+    assert returned_value is None

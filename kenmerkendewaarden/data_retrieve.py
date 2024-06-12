@@ -83,7 +83,7 @@ def check_locations_amount(locations):
         logger.info(f"no stations present after station subsetting, skipping station:\n{locations}")
         return
     elif len(locations)!=1:
-        raise ValueError(f"no or multiple stations present after station subsetting:\n{locations}")
+        raise ValueError(f"multiple stations present after station subsetting:\n{locations}")
 
 
 def retrieve_measurements_amount(dir_output, station_list, extremes:bool, start_date, end_date):
