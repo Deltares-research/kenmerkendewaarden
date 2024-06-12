@@ -40,7 +40,7 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
         dictionary with yearly means and model fits, optionally also for extremes.
 
     """
-
+    # TODO: assert if station of both timeseries is the same (if df_ext is present)
     # TODO: prevent hardcoded min_count argument for tidalindicators functions: https://github.com/Deltares-research/kenmerkendewaarden/issues/58
     if only_valid:
         min_count_ext = 1400 # 2*24*365/12.42=1410.6 (12.42 hourly extreme)
