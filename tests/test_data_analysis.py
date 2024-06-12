@@ -60,3 +60,8 @@ def test_df_amount_pcolormesh(dir_meas_amount, extremes):
 @pytest.mark.unittest
 def test_plot_measurements(df_meas_2010, df_ext_2010):
     kw.plot_measurements(df=df_meas_2010, df_ext=df_ext_2010)
+
+
+@pytest.mark.unittest
+def test_plot_stations():
+    kw.plot_stations(station_list=["HOEKVHLD"], crs=None, add_labels=True)

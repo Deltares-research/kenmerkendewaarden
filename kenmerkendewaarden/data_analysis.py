@@ -6,13 +6,16 @@ Data analysis like missings, duplicates, outliers and several other statistics
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from kenmerkendewaarden.data_retrieve import read_measurements, xarray_to_hatyan
+from kenmerkendewaarden.data_retrieve import (read_measurements,
+                                              xarray_to_hatyan,
+                                              retrieve_catalog)
 import hatyan
 import logging
 
 __all__ = [
     "df_amount_pcolormesh",
     "plot_measurements",
+    "plot_stations",
     "derive_statistics",
     ]
 
@@ -78,6 +81,45 @@ def plot_measurements(df, df_ext=None):
     ax2.legend(loc=1)
     ax2.set_ylim(-0.5,0.5)
     return fig, (ax1,ax2)
+
+
+def plot_stations(station_list, crs=None, add_labels=False):
+    locs_meas_ts_all, locs_meas_ext_all, _ = retrieve_catalog(crs=crs)
+    locs_ts = locs_meas_ts_all.loc[locs_meas_ts_all.index.isin(station_list)]
+    locs_ext = locs_meas_ext_all.loc[locs_meas_ext_all.index.isin(station_list)]
+    if crs is None:
+        crs = int(locs_ts["Coordinatenstelsel"].iloc[0])
+    
+    fig, ax = plt.subplots(figsize=(8,8))
+    ax.plot(locs_ts['X'], locs_ts['Y'],'xk', label="timeseries")
+    ax.plot(locs_ext['X'], locs_ext['Y'],'+r', label="extremes")
+    ax.legend()
+    
+    ax.set_title('stations with timeseries/extremes data')
+    ax.set_aspect('equal')
+    ax.set_xlabel(f'X (EPSG:{crs})')
+    ax.set_ylabel(f'Y (EPSG:{crs})')
+    ax.grid(alpha=0.5)
+    
+    # optionally add basemap/coastlines
+    try:
+        import dfm_tools as dfmt # pip install dfm_tools
+        dfmt.plot_coastlines(ax=ax, crs=crs)
+        dfmt.plot_borders(ax=ax, crs=crs)
+    except ModuleNotFoundError:
+        try:
+            import contextily as ctx # pip install contextily
+            ctx.add_basemap(ax, source=ctx.providers.Esri.WorldImagery, crs=crs, attribution=False)
+        except ModuleNotFoundError:
+            pass
+        
+    fig.tight_layout()
+    
+    if add_labels:
+        for irow, row in locs_ts.iterrows():
+            ax.text(row['X'],row['Y'],row.name)
+
+    return fig, ax
 
 
 def get_flat_meta_from_dataset(ds):
