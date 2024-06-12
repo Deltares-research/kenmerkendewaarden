@@ -54,6 +54,14 @@ def test_retrieve_read_measurements(dir_meas):
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
+def test_read_measurements_amount_notfound(tmp_path):
+    with pytest.raises(FileNotFoundError) as e:
+        kw.read_measurements_amount(dir_output=tmp_path, extremes=False)
+    assert "data_amount_ts.csv does not exist" in str(e.value)
+
+
+@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.unittest
 def test_read_measurements_notfound(tmp_path):
     # this will silently continue the process, returing None
     df_meas = kw.read_measurements(dir_output=tmp_path, station="HOEKVHLD", extremes=False)
