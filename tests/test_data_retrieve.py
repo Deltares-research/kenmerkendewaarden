@@ -118,4 +118,4 @@ def test_napcorrection_notdefined(df_meas_2010):
     df_meas_2010.attrs["station"] = "NONEXISTENTSTATION"
     with pytest.raises(KeyError) as e:
         kw.data_retrieve.nap2005_correction(df_meas=df_meas_2010)
-    assert "nap2005 correction not implemented for NONEXISTENTSTATION" in str(e.value)
+    assert "NAP2005 correction not defined for NONEXISTENTSTATION" in str(e.value)
