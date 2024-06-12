@@ -54,6 +54,39 @@ def test_retrieve_read_measurements(dir_meas):
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
+def test_read_measurements_notfound(tmp_path):
+    # this will silently continue the process, returing None
+    df_meas = kw.read_measurements(dir_output=tmp_path, station="HOEKVHLD", extremes=False)
+    assert df_meas is None
+
+
+@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.unittest
+def test_napcorrection(df_meas):
+    df_meas_sel = df_meas.loc["2004":"2005"]
+    df_meas_sel_nap = kw.data_retrieve.nap2005_correction(df_meas=df_meas_sel, station="HOEKVHLD")
+    assert (df_meas_sel.index == df_meas_sel_nap.index).all()
+    assert np.isclose(df_meas_sel["values"].iloc[0] - df_meas_sel_nap["values"].iloc[0], 0.0277)
+    assert np.isclose(df_meas_sel["values"].iloc[-1] - df_meas_sel_nap["values"].iloc[-1], 0)
+
+
+@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.unittest
+def test_retrieve_measurements_wrongperiod():
+    dir_meas = '.'
+    start_date = pd.Timestamp(3010,1,1, tz="UTC+01:00")
+    end_date = pd.Timestamp(3010,1,2, tz="UTC+01:00")
+    current_station = "HOEKVHLD"
+    
+    # retrieve measurements
+    with pytest.raises(ValueError) as e:
+        kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
+                                 start_date=start_date, end_date=end_date)
+    assert "[NO DATA]" in str(e.value)
+
+
+@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.unittest
 def test_check_locations_amount_toomuch():
     locs_meas_ts, _, _ = kw.data_retrieve.retrieve_catalog()
     bool_stations = locs_meas_ts.index.isin(["BATH"])

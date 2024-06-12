@@ -256,7 +256,6 @@ def nap2005_correction(df_meas, station):
     # TODO: check if ths make a difference (for havengetallen it makes a slight difference so yes. For gemgetijkromme it only makes a difference for spring/doodtij. (now only applied at gemgetij en havengetallen)). If so, make this flexible per station, where to get the data or is the RWS data already corrected for it?
     #herdefinitie van NAP (~20mm voor HvH in fig2, relevant?): https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_113484_31&versienummer=1
     #Dit is de rapportage waar het gebruik voor PSMSL data voor het eerst beschreven is: https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_137204_31&versienummer=1
-    before2005bool = df_meas.index < pd.Timestamp("2005-01-01")
     # TODO: maybe move dict to csv file and add as package data
     dict_correct_nap2005 = {'HOEKVHLD':-0.0277,
                             'HARVT10':-0.0210,
@@ -266,6 +265,8 @@ def nap2005_correction(df_meas, station):
 
     logger.info(f'applying NAP2005 correction for {station}')
     correct_value = dict_correct_nap2005[station]
-    df_meas.loc[before2005bool,'values'] = df_meas.loc[before2005bool,'values'] + correct_value
+    df_meas_corr = df_meas.copy(deep=True) # make copy to avoid altering the original dataframe
+    before2005bool = df_meas_corr.index < pd.Timestamp("2005-01-01 00:00:00 +01:00")
+    df_meas_corr.loc[before2005bool,'values'] = df_meas_corr.loc[before2005bool,'values'] + correct_value
     
-    return df_meas
+    return df_meas_corr
