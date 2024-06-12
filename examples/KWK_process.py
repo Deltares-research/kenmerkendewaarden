@@ -53,13 +53,6 @@ stat_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
 
 
 
-# TODO: move to csv file and add as package data
-#physical_break_dict for slotgemiddelden and overschrijdingsfrequenties TODO: maybe use everywhere to crop data?
-physical_break_dict = {'DENOVBTN':'1933', #laatste sluitgat afsluitdijk in 1932 
-                       'HARLGN':'1933', #laatste sluitgat afsluitdijk in 1932
-                       'VLIELHVN':'1933', #laatste sluitgat afsluitdijk in 1932
-                       } #TODO: add physical_break for STAVNSE and KATSBTN? (Oosterscheldekering)
-
 nap_correction = False
 
 compute_slotgem = True
@@ -101,18 +94,22 @@ for current_station in stat_list:
     if compute_slotgem and data_pd_meas_all is not None:
         print(f'slotgemiddelden for {current_station}')
         
+        # TODO: when creating a single slotgemiddelden function, make the physical_break optional via an argument to be able to compare
+        df_meas_clip = kw.data_retrieve.clip_timeseries_physical_break(data_pd_meas_all)
+        df_ext_clip = kw.data_retrieve.clip_timeseries_physical_break(data_pd_HWLW_all_12)
+        
         #calculate yearly mean
-        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all)
+        dict_wltidalindicators = kw.calc_wltidalindicators(df_meas_clip)
         wl_mean_peryear = dict_wltidalindicators['wl_mean_peryear']
-        dict_wltidalindicators_valid = kw.calc_wltidalindicators(data_pd_meas_all, min_count=2900) #24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
+        dict_wltidalindicators_valid = kw.calc_wltidalindicators(df_meas_clip, min_count=2900) #24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
         wl_mean_peryear_valid = dict_wltidalindicators_valid['wl_mean_peryear']
         
         #derive tidal indicators like yearmean HWLW from HWLW values
         if data_pd_HWLW_all is not None:
-            dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12)
+            dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(df_ext_clip)
             HW_mean_peryear = dict_HWLWtidalindicators['HW_mean_peryear']
             LW_mean_peryear = dict_HWLWtidalindicators['LW_mean_peryear']
-            dict_HWLWtidalindicators_valid = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12, min_count=1400) #2*24*365/12.42=1410.6 (12.42 hourly extreme)
+            dict_HWLWtidalindicators_valid = kw.calc_HWLWtidalindicators(df_ext_clip, min_count=1400) #2*24*365/12.42=1410.6 (12.42 hourly extreme)
             HW_mean_peryear_valid = dict_HWLWtidalindicators_valid['HW_mean_peryear']
             LW_mean_peryear_valid = dict_HWLWtidalindicators_valid['LW_mean_peryear']
         
@@ -148,14 +145,9 @@ for current_station in stat_list:
         ax1.set_title(f'yearly mean HW/wl/LW {current_station}')
         fig.tight_layout()
         
-        if current_station in physical_break_dict.keys():
-            tstart_dt_trend = physical_break_dict[current_station]
-        else:
-            tstart_dt_trend = None
-        
         #fit linear models over yearly mean values
         tstop_dt_naive = tstop_dt.tz_localize(None)
-        wl_mean_array_todate = wl_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
+        wl_mean_array_todate = wl_mean_peryear_valid.loc[:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
         pred_pd_wl = kw.fit_models(wl_mean_array_todate)
         ax1.plot(pred_pd_wl, ".-", label=pred_pd_wl.columns)
         ax1.set_prop_cycle(None) #reset matplotlib colors
@@ -166,12 +158,12 @@ for current_station in stat_list:
         ax1.legend(loc=2)
         
         if data_pd_HWLW_all is not None:
-            HW_mean_array_todate = HW_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
+            HW_mean_array_todate = HW_mean_peryear_valid.loc[:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
             pred_pd_HW = kw.fit_models(HW_mean_array_todate)
             ax1.plot(pred_pd_HW, ".-", label=pred_pd_HW.columns)
             ax1.set_prop_cycle(None) #reset matplotlib colors
             
-            LW_mean_array_todate = LW_mean_peryear_valid.loc[tstart_dt_trend:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
+            LW_mean_array_todate = LW_mean_peryear_valid.loc[:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
             pred_pd_LW = kw.fit_models(LW_mean_array_todate)
             ax1.plot(pred_pd_LW, ".-", label=pred_pd_LW.columns)
             ax1.set_prop_cycle(None) #reset matplotlib colors
@@ -295,8 +287,10 @@ for current_station in stat_list:
     
         print(f'overschrijdingsfrequenties for {current_station}')
         
-        #clip data #TODO: do at top?
-        data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt] # only include data up to year_slotgem
+        # exclude data before physical break # TODO: make optional with argument for overschrijdingsfreqs function
+        data_pd_measext = kw.data_retrieve.clip_timeseries_physical_break(data_pd_HWLW_all_12) 
+        # only include data up to year_slotgem
+        data_pd_measext = data_pd_measext.loc[:tstop_dt]
         
         data_pd_HW = data_pd_measext.loc[data_pd_measext['HWLWcode']==1]
         data_pd_LW = data_pd_measext.loc[data_pd_measext['HWLWcode']!=1]
@@ -324,10 +318,8 @@ for current_station in stat_list:
     
         #set station rules
         station_rule_type = 'break'
-        if current_station in physical_break_dict.keys(): 
-            station_break_value = physical_break_dict[current_station] #TODO: maybe better to just not select the data by doing data_pd_measext.loc[station_break_value:tstop] instead of data_pd_measext.loc[:tstop]
-        else:
-            station_break_value = data_pd_measext.index.min()
+        #TODO: we already excluded the data before the physical_break, so can just supply the starttime here
+        station_break_value = data_pd_measext.index.min()
     
         # 1. Exceedance
         print('Exceedance')

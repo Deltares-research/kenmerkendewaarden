@@ -251,6 +251,27 @@ def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=
     return df_meas
 
 
+def clip_timeseries_physical_break(df_meas):
+    # TODO: move to csv file and add as package data
+    #physical_break_dict for slotgemiddelden and overschrijdingsfrequenties TODO: maybe use everywhere to crop data?
+    physical_break_dict = {'DENOVBTN':'1933', #laatste sluitgat afsluitdijk in 1932 
+                           'HARLGN':'1933', #laatste sluitgat afsluitdijk in 1932
+                           'VLIELHVN':'1933', #laatste sluitgat afsluitdijk in 1932
+                           } #TODO: add physical_break for STAVNSE and KATSBTN? (Oosterscheldekering)
+    
+    station = df_meas.attrs["station"]
+    if station not in physical_break_dict.keys():
+        logger.info(f'no physical_break defined for {station}, returning input timeseries')
+        return df_meas
+    
+    physical_break = physical_break_dict[station]
+    assert isinstance(physical_break, str)
+    logger.info(f'clipping timeseries for {station} before physical_break={physical_break}')
+    df_meas = df_meas.loc[physical_break:]
+    
+    return df_meas
+
+
 def nap2005_correction(df_meas):
     #NAP correction for dates before 1-1-2005
     # TODO: check if ths make a difference (for havengetallen it makes a slight difference so yes. For gemgetijkromme it only makes a difference for spring/doodtij. (now only applied at gemgetij en havengetallen)). If so, make this flexible per station, where to get the data or is the RWS data already corrected for it?
@@ -262,7 +283,7 @@ def nap2005_correction(df_meas):
                             'VLISSGN':-0.0297}
     
     station = df_meas.attrs["station"]
-    if not station in dict_correct_nap2005.keys():
+    if station not in dict_correct_nap2005.keys():
         raise KeyError(f'NAP2005 correction not defined for {station}')
 
     logger.info(f'applying NAP2005 correction for {station}')
