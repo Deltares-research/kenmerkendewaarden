@@ -15,10 +15,32 @@ __all__ = ["calc_slotgemiddelden"]
 logger = logging.getLogger(__name__)
 
 
-def calc_slotgemiddelden(df_meas, df_ext=None, tstop_dt=None, only_valid=False, clip_physical_break=False):
-    
-    # TODO: add nodal=True/False argument instead of always fitting both
-    
+def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None, 
+                         only_valid: pd.Timestamp = False, clip_physical_break: bool = False, 
+                         with_nodal: bool = True):
+    """
+    Compute slotgemiddelden from measurement timeseries and optionally also from extremes timeseries.
+
+    Parameters
+    ----------
+    df_meas : pd.DataFrame
+        the timeseries of measured waterlevels.
+    df_ext : pd.DataFrame, optional
+        the timeseries of extremes (high and low waters). The default is None.
+    only_valid : pd.Timestamp, optional
+        Whether to set yearly means to nans for years that do not have sufficient data coverage. The default is False.
+    clip_physical_break : bool, optional
+        Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
+    with_nodal : bool, optional
+        Whether to include a nodal cycle in the linear trend model. The default is True.
+
+    Returns
+    -------
+    slotgemiddelden_dict : dict
+        dictionary with yearly means and model fits, optionally also for extremes.
+
+    """
+
     # TODO: prevent hardcoded min_count argument for tidalindicators functions: https://github.com/Deltares-research/kenmerkendewaarden/issues/58
     if only_valid:
         min_count_ext = 1400 # 2*24*365/12.42=1410.6 (12.42 hourly extreme)
@@ -40,7 +62,7 @@ def calc_slotgemiddelden(df_meas, df_ext=None, tstop_dt=None, only_valid=False, 
     wl_mean_peryear = dict_wltidalindicators['wl_mean_peryear']
     
     # fit linear models over yearly mean values
-    pred_pd_wl = fit_models(wl_mean_peryear)
+    pred_pd_wl = fit_models(wl_mean_peryear, with_nodal=with_nodal)
     
     # add to dict
     slotgemiddelden_dict = {}
@@ -61,8 +83,8 @@ def calc_slotgemiddelden(df_meas, df_ext=None, tstop_dt=None, only_valid=False, 
         LW_mean_peryear = dict_HWLWtidalindicators['LW_mean_peryear']
     
         # fit linear models over yearly mean values
-        pred_pd_HW = fit_models(HW_mean_peryear)
-        pred_pd_LW = fit_models(LW_mean_peryear)
+        pred_pd_HW = fit_models(HW_mean_peryear, with_nodal=with_nodal)
+        pred_pd_LW = fit_models(LW_mean_peryear, with_nodal=with_nodal)
         
         # add to dict
         slotgemiddelden_dict["HW_mean_peryear"] = HW_mean_peryear
@@ -107,30 +129,6 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     
     linear_fit = pd.Series(pred_linear, index=allyears_DTI)
     return linear_fit
-
-
-# copied from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py
-def broken_linear_model(df, with_wind=True, quantity='height', start_acceleration=1993):
-    """This model fits the sea-level rise has started to rise faster in 1993."""
-    y = df[quantity]
-    X = np.c_[
-        df['year']-1970,
-        (df['year'] > start_acceleration),# * (df['year'] - start_acceleration),
-        np.cos(2*np.pi*(df['year']-1970)/18.613),
-        np.sin(2*np.pi*(df['year']-1970)/18.613)
-    ]
-    names = ['Constant', 'Trend', f'+trend ({start_acceleration})', 'Nodal U', 'Nodal V']
-    if with_wind:
-        X = np.c_[
-            X,
-            df['u2'],
-            df['v2']
-        ]
-        names.extend(['Wind $u^2$', 'Wind $v^2$'])
-    X = sm.add_constant(X)
-    model_broken_linear = sm.GLSAR(y, X, rho=1, missing='drop')
-    fit = model_broken_linear.iterative_fit(cov_type='HC0', missing='drop')
-    return fit, names, X
 
 
 # copied from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py
