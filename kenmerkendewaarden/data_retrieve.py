@@ -260,7 +260,7 @@ def clip_timeseries_physical_break(df_meas):
                            } #TODO: add physical_break for STAVNSE and KATSBTN? (Oosterscheldekering)
     
     station = df_meas.attrs["station"]
-    if not station in physical_break_dict.keys():
+    if station not in physical_break_dict.keys():
         logger.info(f'no physical_break defined for {station}, returning input timeseries')
         return df_meas
     
@@ -283,7 +283,7 @@ def nap2005_correction(df_meas):
                             'VLISSGN':-0.0297}
     
     station = df_meas.attrs["station"]
-    if not station in dict_correct_nap2005.keys():
+    if station not in dict_correct_nap2005.keys():
         raise KeyError(f'NAP2005 correction not defined for {station}')
 
     logger.info(f'applying NAP2005 correction for {station}')
