@@ -18,6 +18,7 @@ def test_havengetallen(df_ext_12_2010):
     hw_values_median_expected = np.array([1.345, 1.31 , 1.225, 1.17 , 1.04 , 0.925, 0.865, 0.9  , 1.045,
            1.135, 1.25 , 1.35 , 1.13 ])
     assert np.allclose(hw_values_median, hw_values_median_expected)
+    assert len(data_pd_hwlw) == len(df_ext_12_2010)
 
 
 @pytest.mark.unittest
