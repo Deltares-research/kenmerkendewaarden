@@ -73,7 +73,7 @@ def gemiddeld_getijkromme_av_sp_np(df_meas: pd.DataFrame, df_ext: pd.DataFrame =
     # scale extremes with havengetallen, or not
     if scale_extremes:
         if df_ext is None:
-            raise TypeError("df_ext should be provided if scale_extremes=True")
+            raise ValueError("df_ext should be provided if scale_extremes=True")
         df_havengetallen = calc_havengetallen(df_ext=df_ext)
         HW_sp, LW_sp = df_havengetallen.loc[0,['HW_values_median','LW_values_median']] # spring
         HW_np, LW_np = df_havengetallen.loc[6,['HW_values_median','LW_values_median']] # neap
@@ -199,7 +199,7 @@ def get_gemgetij_components(data_pd_meas):
     
     #check if nans in analysis
     if comp_frommeasurements_avg.isnull()['A'].any():
-        raise Exception('ERROR: analysis result contains nan values')
+        raise ValueError('analysis result contains nan values')
     
     # =============================================================================
     # gemiddelde getijkromme

@@ -80,3 +80,26 @@ def test_gemiddeld_getijkromme_av_sp_np_aggers(df_meas_2010, df_ext_2010):
                                           freq=pred_freq, nb=0, nf=10, 
                                           scale_extremes=True, scale_period=True)
     assert "contains aggers" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_gemiddeld_getijkromme_av_sp_np_noext(df_meas_2010):
+    pred_freq = "60s"
+    
+    with pytest.raises(ValueError) as e:
+        kw.gemiddeld_getijkromme_av_sp_np(df_meas=df_meas_2010, df_ext=None,
+                                          freq=pred_freq, nb=0, nf=0, 
+                                          scale_extremes=True, scale_period=False)
+    assert "df_ext should be provided if scale_extremes=True" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_gemiddeld_getijkromme_av_sp_np_failedanalysis(df_meas_2010_2014):
+    df_meas_2010_extra = df_meas_2010_2014.loc["2010":"2011-01-02"]
+    pred_freq = "60s"
+    
+    with pytest.raises(ValueError) as e:
+        kw.gemiddeld_getijkromme_av_sp_np(df_meas=df_meas_2010_extra, df_ext=None,
+                                          freq=pred_freq, nb=0, nf=0, 
+                                          scale_extremes=False, scale_period=False)
+    assert "analysis result contains nan values" in str(e.value)
