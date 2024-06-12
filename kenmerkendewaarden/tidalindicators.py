@@ -131,7 +131,8 @@ def calc_wltidalindicators(data_wl_pd, min_count=None):
         wl_mean_peryear.loc[wl_count_peryear<min_count] = np.nan
         wl_mean_permonth.loc[wl_count_permonth<min_count_permonth] = np.nan
         
-    dict_wltidalindicators = {'wl_mean_peryear':wl_mean_peryear['values'], #yearly mean wl
+    dict_wltidalindicators = {'wl_mean':data_wl_pd['values'].mean(),
+                              'wl_mean_peryear':wl_mean_peryear['values'], #yearly mean wl
                               'wl_mean_permonth':wl_mean_permonth['values'], #monthly mean wl
                               }
     

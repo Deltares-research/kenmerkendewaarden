@@ -17,13 +17,13 @@ def test_calc_HWLWtidalrange(df_ext_12_2010):
 
 @pytest.mark.unittest
 def test_calc_HWLWtidalindicators(df_meas_2010_2014):
-    wl_stats = kw.calc_wltidalindicators(df_meas_2010_2014.tz_localize(None))
-    wl_stats_tzone = kw.calc_wltidalindicators(df_meas_2010_2014)
+    wl_stats_notimezone = kw.calc_wltidalindicators(df_meas_2010_2014.tz_localize(None))
+    wl_stats = kw.calc_wltidalindicators(df_meas_2010_2014)
     
     expected_keys = ['wl_mean_peryear', 'wl_mean_permonth']
     for key in expected_keys:
         assert key in wl_stats.keys()
-        assert (wl_stats[key] == wl_stats_tzone[key]).all()
+        assert (wl_stats[key] == wl_stats_notimezone[key]).all()
     
     wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051 , 0.07010864, 0.10051922])
     wl_mean_permonth_expected = np.array([-0.00227151,  0.089313  ,  0.04443996, -0.03440509, -0.00206317,
@@ -43,9 +43,15 @@ def test_calc_HWLWtidalindicators(df_meas_2010_2014):
 
 
 @pytest.mark.unittest
+def test_calc_HWLWtidalindicators_mincount(df_meas_2010_2014):
+    wl_stats = kw.calc_wltidalindicators(df_meas_2010_2014, min_count=52561)
+    assert wl_stats['wl_mean_peryear'].isnull().sum() == 4
+
+
+@pytest.mark.unittest
 def test_calc_wltidalindicators(df_ext_12_2010_2014):
-    ext_stats = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014.tz_localize(None))
-    ext_stats_tzone = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014)
+    ext_stats_notimezone = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014.tz_localize(None))
+    ext_stats = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014)
     expected_keys = ['HW_mean', 'LW_mean', 
                      'HW_mean_peryear', 'LW_mean_peryear', 
                      'HW_monthmax_permonth', 'LW_monthmin_permonth', 
@@ -53,7 +59,7 @@ def test_calc_wltidalindicators(df_ext_12_2010_2014):
                      'HW_monthmin_mean_peryear', 'LW_monthmax_mean_peryear']
     for key in expected_keys:
         assert key in ext_stats.keys()
-        assert (ext_stats[key] == ext_stats_tzone[key]).all()
+        assert (ext_stats[key] == ext_stats_notimezone[key]).all()
     
     assert np.isclose(ext_stats['HW_mean'], 1.147976763955795)
     assert np.isclose(ext_stats['LW_mean'],-0.5967063492063492)
@@ -87,6 +93,12 @@ def test_calc_wltidalindicators(df_ext_12_2010_2014):
     assert np.allclose(ext_stats['LW_monthmin_mean_peryear'].values, lw_monthmin_mean_peryear_expected)
     assert np.allclose(ext_stats['HW_monthmin_mean_peryear'].values, hw_monthmin_mean_peryear_expected)
     assert np.allclose(ext_stats['LW_monthmax_mean_peryear'].values, lw_monthmax_mean_peryear_expected)
+    
+
+@pytest.mark.unittest
+def test_calc_wltidalindicators_mincount(df_ext_12_2010_2014):
+    ext_stats = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014, min_count=1411)
+    assert ext_stats['HW_mean_peryear'].isnull().sum() == 1
 
 
 @pytest.mark.unittest
