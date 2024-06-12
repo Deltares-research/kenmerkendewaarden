@@ -122,11 +122,13 @@ def test_napcorrection(df_meas):
     assert np.isclose(df_meas_sel["values"].iloc[0] - df_meas_sel_nap["values"].iloc[0], 0.0277)
     assert np.isclose(df_meas_sel["values"].iloc[-1] - df_meas_sel_nap["values"].iloc[-1], 0)
 
+
 @pytest.mark.unittest
 def test_napcorrection_notdefined(df_meas_2010):
-    df_meas_2010.attrs["station"] = "NONEXISTENTSTATION"
+    df_meas_nonexistentstation = df_meas_2010.copy() # only change attributes on a copy of the dataframe
+    df_meas_nonexistentstation.attrs["station"] = "NONEXISTENTSTATION"
     with pytest.raises(KeyError) as e:
-        kw.data_retrieve.nap2005_correction(df_meas=df_meas_2010)
+        kw.data_retrieve.nap2005_correction(df_meas=df_meas_nonexistentstation)
     assert "NAP2005 correction not defined for NONEXISTENTSTATION" in str(e.value)
 
 
