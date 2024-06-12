@@ -12,7 +12,8 @@
 - simplified methods for gemiddeld getij and reducing public functions to `kw.gemiddeld_getijkromme_av_sp_np()` in [#46](https://github.com/Deltares-research/kenmerkendewaarden/pull/46)
 - simplified methods for havengetallen and reducing public functions to `kw.havengetallen()` in [#48](https://github.com/Deltares-research/kenmerkendewaarden/pull/48)
 - increased test coverage in [#50](https://github.com/Deltares-research/kenmerkendewaarden/pull/50) and [#55](https://github.com/Deltares-research/kenmerkendewaarden/pull/55)
-- added `kw.plot_stations()` in [#57](https://github.com/Deltares-research/kenmerkendewaarden/pull/57)
+- created `kw.plot_stations()` in [#57](https://github.com/Deltares-research/kenmerkendewaarden/pull/57)
+- clipping of timeseries on physical breaks with `kw.data_retrieve.clip_timeseries_physical_break()` (private) in [#61](https://github.com/Deltares-research/kenmerkendewaarden/pull/61)
 
 
 ## 0.1.0 (2024-03-11)
