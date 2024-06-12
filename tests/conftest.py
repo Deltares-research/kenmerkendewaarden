@@ -92,3 +92,19 @@ def dir_meas(tmp_path):
     kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=True,
                              start_date=start_date, end_date=end_date)
     return dir_meas
+
+
+@pytest.fixture
+def dir_meas_amount(tmp_path):
+    dir_meas_amount = tmp_path
+    start_date = pd.Timestamp(2010,11,1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2011,2,1, tz="UTC+01:00")
+    station_list = ["HOEKVHLD"]
+    
+    kw.retrieve_measurements_amount(dir_output=dir_meas_amount, station_list=station_list, 
+                                    start_date=start_date, end_date=end_date,
+                                    extremes=False)
+    kw.retrieve_measurements_amount(dir_output=dir_meas_amount, station_list=station_list, 
+                                    start_date=start_date, end_date=end_date,
+                                    extremes=True)
+    return dir_meas_amount

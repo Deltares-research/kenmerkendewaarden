@@ -49,5 +49,14 @@ def test_derive_statistics(dir_meas, extremes):
     assert stats.loc[current_station, "timediff_max"] == timedif_max
 
 
+@pytest.mark.timeout(120) # useful in case of ddl failure
+@pytest.mark.unittest
+@pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
+def test_df_amount_pcolormesh(dir_meas_amount, extremes):
+    df_amount = kw.read_measurements_amount(dir_output=dir_meas_amount, extremes=extremes)
+    kw.df_amount_pcolormesh(df=df_amount)
+
+
+@pytest.mark.unittest
 def test_plot_measurements(df_meas_2010, df_ext_2010):
     kw.plot_measurements(df=df_meas_2010, df_ext=df_ext_2010)

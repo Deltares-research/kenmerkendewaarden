@@ -22,19 +22,11 @@ def test_retrieve_catalog():
     assert int(df_crs[0]) == crs
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.timeout(120) # useful in case of ddl failure
 @pytest.mark.systemtest
 @pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
-def test_retrieve_read_measurements_amount(tmp_path, extremes):
-    start_date = pd.Timestamp(2010,11,1, tz="UTC+01:00")
-    end_date = pd.Timestamp(2011,2,1, tz="UTC+01:00")
-    station_list = ["HOEKVHLD"]
-    
-    kw.retrieve_measurements_amount(dir_output=tmp_path, station_list=station_list, 
-                                    start_date=start_date, end_date=end_date,
-                                    extremes=extremes)
-
-    df_amount = kw.read_measurements_amount(dir_output=tmp_path, extremes=extremes)
+def test_retrieve_read_measurements_amount(dir_meas_amount, extremes):
+    df_amount = kw.read_measurements_amount(dir_output=dir_meas_amount, extremes=extremes)
     
     # assert amounts, this might change if ddl data is updated
     assert df_amount.columns.tolist() == ["HOEKVHLD"]
@@ -49,7 +41,7 @@ def test_retrieve_read_measurements_amount(tmp_path, extremes):
  
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_retrieve_measurements(dir_meas):
+def test_retrieve_read_measurements(dir_meas):
     df_meas = kw.read_measurements(dir_output=dir_meas, station="HOEKVHLD", extremes=False)
     df_ext = kw.read_measurements(dir_output=dir_meas, station="HOEKVHLD", extremes=True)
     assert df_meas.index.tz.zone == 'Etc/GMT-1'
