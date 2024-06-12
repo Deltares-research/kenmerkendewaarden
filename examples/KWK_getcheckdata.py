@@ -135,41 +135,11 @@ for current_station in station_list:
 
 ### PLOT SELECTION OF AVAILABLE STATIONS ON MAP
 if plot_stations:
-    crs = 28992
-    locs_meas_ts, locs_meas_ext, _ = kw.data_retrieve.retrieve_catalog(crs=crs)
-    locs_ts_sel = locs_meas_ts.loc[station_list]
-    locs_ext_sel = locs_meas_ext.loc[locs_meas_ext.index.isin(station_list)]
+    station_list_map = station_list.copy()
+    if "NORTHCMRT" in station_list_map:
+        northcmrt_idx = station_list_map.index("NORTHCMRT")
+        station_list_map.pop(northcmrt_idx)
     
-    fig_map,ax_map = plt.subplots(figsize=(8,8))
-    ax_map.plot(locs_ts_sel['X'], locs_ts_sel['Y'],'xk', label="timeseries")
-    ax_map.plot(locs_ext_sel['X'], locs_ext_sel['Y'],'xr', label="extremes")
-    ax_map.legend()
-    
-    """
-    for iR, row in locs_ts_sel.iterrows():
-        ax_map.text(row['X'],row['Y'],row.name)
-    """
-    ax_map.set_xlim(-50000,300000) # RD
-    ax_map.set_ylim(350000,850000) # RD
-    ax_map.set_title('stations with timeseries/extremes data')
-    ax_map.set_aspect('equal')
-    ax_map.set_xlabel(f'X (EPSG:{crs})')
-    ax_map.set_ylabel(f'Y (EPSG:{crs})')
-    ax_map.grid(alpha=0.5)
-    
-    # optionally add basemap/coastlines
-    try:
-        import dfm_tools as dfmt # pip install dfm_tools
-        dfmt.plot_coastlines(ax=ax_map, crs=crs)
-        dfmt.plot_borders(ax=ax_map, crs=crs)
-    except ModuleNotFoundError:
-        try:
-            import contextily as ctx # pip install contextily
-            ctx.add_basemap(ax_map, source=ctx.providers.Esri.WorldImagery, crs=crs, attribution=False)
-        except ModuleNotFoundError:
-            pass
-    
-    fig_map.tight_layout()
-    fig_map.savefig(os.path.join(dir_base,'stations_map.png'), dpi=200)
-
+    fig, ax = kw.plot_stations(station_list=station_list_map, crs=28992, add_labels=False)
+    fig.savefig(os.path.join(dir_base,'stations_map.png'), dpi=200)
 
