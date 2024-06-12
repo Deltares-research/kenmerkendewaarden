@@ -117,17 +117,17 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     logger.info(f"fit linear model for {start} to {end}")
     
     # We'll just use the years. This assumes that annual waterlevels are used that are stored left-padded, the mean waterlevel for 2020 is stored as 2020-1-1. This is not logical, but common practice.
-    allyears_DTI = pd.date_range(start=start, end=end, freq='YS')
-    mean_array_allyears = pd.Series(mean_array_todate, index=allyears_DTI)
+    allyears_dt = pd.date_range(start=start, end=end, freq='YS')
+    mean_array_allyears = pd.Series(mean_array_todate, index=allyears_dt)
     
     df = pd.DataFrame({'year':mean_array_allyears.index.year, 'height':mean_array_allyears.values}) #TODO: make functions accept mean_array instead of df as argument?
     
     # below methods are copied from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py #TODO: install slr package as dependency or keep separate?
     
-    fit, names, X = linear_model(df, with_wind=False, with_nodal=with_nodal)
+    fit, _, X = linear_model(df, with_wind=False, with_nodal=with_nodal)
     pred_linear = fit.predict(X)
     
-    linear_fit = pd.Series(pred_linear, index=allyears_DTI)
+    linear_fit = pd.Series(pred_linear, index=allyears_dt)
     return linear_fit
 
 

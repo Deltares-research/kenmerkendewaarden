@@ -10,14 +10,14 @@ import kenmerkendewaarden as kw
 def test_fit_models(df_meas_2010_2014):
     dict_wltidalindicators_valid = kw.calc_wltidalindicators(df_meas_2010_2014, min_count=2900) #24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
     wl_mean_peryear_valid = dict_wltidalindicators_valid['wl_mean_peryear']
-    pred_pd_wl = kw.slotgemiddelden.fit_models(wl_mean_peryear_valid)
     
-    # TODO: maybe add nonodal
-    # nonodal_expected = np.array([0.07851414, 0.0813139 , 0.08411366, 0.08691342, 0.08971318,
-    #        0.09251294, 0.0953127 , 0.09811246, 0.10091222])
-    winodal_expected = np.array([0.0141927 , 0.08612119, 0.0853051 , 0.07010864, 0.10051922, 0.23137634])
-    # assert np.allclose(pred_pd_wl['pred_linear_nonodal'].values, nonodal_expected)
-    assert np.allclose(pred_pd_wl.values, winodal_expected)
+    wl_model_fit_nodal = kw.slotgemiddelden.fit_models(wl_mean_peryear_valid, with_nodal=True)
+    nodal_expected = np.array([0.0141927 , 0.08612119, 0.0853051 , 0.07010864, 0.10051922, 0.23137634])
+    assert np.allclose(wl_model_fit_nodal.values, nodal_expected)
+    
+    wl_model_fit_linear = kw.slotgemiddelden.fit_models(wl_mean_peryear_valid, with_nodal=False)
+    linear_expected = np.array([0.07851414, 0.0813139 , 0.08411366, 0.08691342, 0.08971318, 0.09251294])
+    assert np.allclose(wl_model_fit_linear.values, linear_expected)
 
 
 @pytest.mark.unittest
@@ -35,7 +35,7 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     for key in expected_keys_inclext:
         assert isinstance(slotgemiddelden_dict_inclext[key], pd.Series)
     
-    # assert values
+    # assertion of values
     wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051 , 0.07010864, 0.10051922])
     hw_mean_peryear_expected = np.array([1.13968839, 1.12875177, 1.13988685, 1.1415461 , 1.18998584])
     lw_mean_peryear_expected = np.array([-0.60561702, -0.59089362, -0.59342291, -0.61334278, -0.58024113])
