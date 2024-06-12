@@ -11,6 +11,7 @@ import logging
 from hatyan.astrog import astrog_culminations
 from hatyan.timeseries import calc_HWLWnumbering
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
+from kenmerkendewaarden.utils import raise_extremes_with_aggers
 
 __all__ = ["calc_havengetallen",
            "plot_HWLW_pertimeclass",
@@ -44,8 +45,7 @@ def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False):
         An enriched copy of the input DataFrame, mainly for plotting.
 
     """
-    # TODO: alternatively we can convert 12345 to 12 here
-    assert len(df_ext["HWLWcode"].drop_duplicates()) == 2
+    raise_extremes_with_aggers(df_ext)
     
     current_station = df_ext.attrs["station"]
     logger.info(f'computing havengetallen for {current_station}')
@@ -125,10 +125,12 @@ def calc_HWLW_culmhr_summary(data_pd_HWLW):
     return HWLW_culmhr_summary
 
 
-def calc_HWLW_culmhr_summary_tidalcoeff(data_pd_HWLW_12):
+def calc_HWLW_culmhr_summary_tidalcoeff(df_ext):
     #TODO: use tidal coefficient instead?: The tidal coefficient is the size of the tide in relation to its mean. It usually varies between 20 and 120. The higher the tidal coefficient, the larger the tidal range – i.e. the difference in water height between high and low tide. This means that the sea level rises and falls back a long way. The mean value is 70. We talk of strong tides – called spring tides – from coefficient 95.  Conversely, weak tides are called neap tides. https://escales.ponant.com/en/high-low-tide/ en https://www.manche-toerisme.com/springtij
     #for HOEKVHLD, sp=0 is approx tc=1.2, np=6 is approx tc=0.8, av=mean is approx tc=1.0 (for HW, for LW it is different)
-    data_pd_HWLW = data_pd_HWLW_12.copy()
+    raise_extremes_with_aggers(df_ext)
+    
+    data_pd_HWLW = df_ext.copy()
     data_pd_HWLW = calc_HWLWtidalrange(data_pd_HWLW)
     data_pd_HWLW['tidalcoeff'] = data_pd_HWLW['tidalrange']/data_pd_HWLW['tidalrange'].mean()
     data_pd_HWLW['tidalcoeff_round'] = data_pd_HWLW['tidalcoeff'].round(1)
@@ -146,15 +148,17 @@ def calc_HWLW_culmhr_summary_tidalcoeff(data_pd_HWLW_12):
     return HWLW_culmhr_summary
 
 
-def plot_HWLW_pertimeclass(data_pd_HWLW, HWLW_culmhr_summary):
+def plot_HWLW_pertimeclass(df_ext, df_havengetallen):
     
-    station = data_pd_HWLW.attrs["station"]
+    assert 'culm_hr' in df_ext.columns
     
-    HWLW_culmhr_summary = HWLW_culmhr_summary.loc[:11].copy() #remove mean column
+    station = df_ext.attrs["station"]
+    
+    HWLW_culmhr_summary = df_havengetallen.loc[:11].copy() #remove mean column
     
     fig, ((ax1,ax2),(ax3,ax4)) = plt.subplots(2,2,figsize=(18,8), sharex=True)
-    data_pd_HW = data_pd_HWLW.loc[data_pd_HWLW['HWLWcode']==1]
-    data_pd_LW = data_pd_HWLW.loc[data_pd_HWLW['HWLWcode']==2]
+    data_pd_HW = df_ext.loc[df_ext['HWLWcode']==1]
+    data_pd_LW = df_ext.loc[df_ext['HWLWcode']==2]
     ax1.set_title(f'HW values {station}')
     ax1.plot(data_pd_HW['culm_hr'],data_pd_HW['values'],'.')
     ax1.plot(HWLW_culmhr_summary['HW_values_median'],'.-')
@@ -174,9 +178,9 @@ def plot_HWLW_pertimeclass(data_pd_HWLW, HWLW_culmhr_summary):
     return fig, axs
 
 
-def plot_aardappelgrafiek(HWLW_culmhr_summary):
+def plot_aardappelgrafiek(df_havengetallen):
     
-    HWLW_culmhr_summary = HWLW_culmhr_summary.loc[:11].copy() #remove mean column
+    HWLW_culmhr_summary = df_havengetallen.loc[:11].copy() #remove mean column
     
     def timeTicks(x, pos):
         d = dt.timedelta(hours=np.abs(x))

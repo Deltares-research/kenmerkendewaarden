@@ -2,19 +2,15 @@
 
 import pytest
 import kenmerkendewaarden as kw
-import hatyan
 import numpy as np
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_gemiddeld_getijkromme_av_sp_np_raw(dir_meas_timeseries):
+def test_gemiddeld_getijkromme_av_sp_np_raw(df_meas_2010):
     pred_freq = "60s"
-    df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
-    df_meas = df_meas.loc["2010":"2010"]
     
     prediction_av_raw, prediction_sp_raw, prediction_np_raw = kw.gemiddeld_getijkromme_av_sp_np(
-                                    df_meas=df_meas, df_ext=None,
+                                    df_meas=df_meas_2010, df_ext=None,
                                     freq=pred_freq, nb=0, nf=0, 
                                     scale_extremes=False, scale_period=False)
     
@@ -31,17 +27,12 @@ def test_gemiddeld_getijkromme_av_sp_np_raw(dir_meas_timeseries):
     assert np.isclose(prediction_np_raw["values"].max(), 0.8044625899304197)
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_gemiddeld_getijkromme_av_sp_np_corr(dir_meas_timeseries, dir_meas_extremes):
+def test_gemiddeld_getijkromme_av_sp_np_corr(df_meas_2010, df_ext_12_2010):
     pred_freq = "60s"
-    df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
-    df_meas = df_meas.loc["2010":"2010"]
-    df_ext = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
-    df_ext_12 = hatyan.calc_HWLW12345to12(df_ext)
     
     prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.gemiddeld_getijkromme_av_sp_np(
-                                    df_meas=df_meas, df_ext=df_ext_12,
+                                    df_meas=df_meas_2010, df_ext=df_ext_12_2010,
                                     freq=pred_freq, nb=2, nf=2, 
                                     scale_extremes=True, scale_period=False)
     
@@ -58,17 +49,12 @@ def test_gemiddeld_getijkromme_av_sp_np_corr(dir_meas_timeseries, dir_meas_extre
     assert np.isclose(prediction_np_corr["values"].max(), 0.8650000000000001) # 0.89 in pandas>=2.2
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_gemiddeld_getijkromme_av_sp_np_corr_boi(dir_meas_timeseries, dir_meas_extremes):
+def test_gemiddeld_getijkromme_av_sp_np_corr_boi(df_meas_2010, df_ext_12_2010):
     pred_freq = "60s"
-    df_meas = kw.read_measurements(dir_output=dir_meas_timeseries, station="HOEKVHLD", extremes=False)
-    df_meas = df_meas.loc["2010":"2010"]
-    df_ext = kw.read_measurements(dir_output=dir_meas_extremes, station="HOEKVHLD", extremes=True)
-    df_ext_12 = hatyan.calc_HWLW12345to12(df_ext)
     
     prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.gemiddeld_getijkromme_av_sp_np(
-                                    df_meas=df_meas, df_ext=df_ext_12,
+                                    df_meas=df_meas_2010, df_ext=df_ext_12_2010,
                                     freq=pred_freq, nb=0, nf=10, 
                                     scale_extremes=True, scale_period=True)
     
@@ -84,3 +70,36 @@ def test_gemiddeld_getijkromme_av_sp_np_corr_boi(dir_meas_timeseries, dir_meas_e
     assert np.isclose(prediction_np_corr_boi["values"].min(), -0.61)
     assert np.isclose(prediction_np_corr_boi["values"].max(), 0.8650000000000001) # 0.89 in pandas>=2.2
 
+
+@pytest.mark.unittest
+def test_gemiddeld_getijkromme_av_sp_np_aggers(df_meas_2010, df_ext_2010):
+    pred_freq = "60s"
+        
+    with pytest.raises(ValueError) as e:
+        kw.gemiddeld_getijkromme_av_sp_np(df_meas=df_meas_2010, df_ext=df_ext_2010,
+                                          freq=pred_freq, nb=0, nf=10, 
+                                          scale_extremes=True, scale_period=True)
+    assert "contains aggers" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_gemiddeld_getijkromme_av_sp_np_noext(df_meas_2010):
+    pred_freq = "60s"
+    
+    with pytest.raises(ValueError) as e:
+        kw.gemiddeld_getijkromme_av_sp_np(df_meas=df_meas_2010, df_ext=None,
+                                          freq=pred_freq, nb=0, nf=0, 
+                                          scale_extremes=True, scale_period=False)
+    assert "df_ext should be provided if scale_extremes=True" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_gemiddeld_getijkromme_av_sp_np_failedanalysis(df_meas_2010_2014):
+    df_meas_2010_extra = df_meas_2010_2014.loc["2010":"2011-01-02"]
+    pred_freq = "60s"
+    
+    with pytest.raises(ValueError) as e:
+        kw.gemiddeld_getijkromme_av_sp_np(df_meas=df_meas_2010_extra, df_ext=None,
+                                          freq=pred_freq, nb=0, nf=0, 
+                                          scale_extremes=False, scale_period=False)
+    assert "analysis result contains nan values" in str(e.value)
