@@ -113,6 +113,7 @@ def calc_wltidalindicators(data_wl_pd, min_count=None):
         DESCRIPTION.
 
     """
+    
     # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
     if data_wl_pd.index.tz is not None:
         data_wl_pd = data_wl_pd.tz_localize(None)

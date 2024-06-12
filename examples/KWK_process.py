@@ -62,9 +62,9 @@ compute_overschrijding = True
 
 
 for current_station in stat_list:
+    print(f'starting process for {current_station}')
     plt.close('all')
     
-    print(f'loading data for {current_station}')
     # timeseries are used for slotgemiddelden, gemgetijkrommen (needs slotgem+havget)
     data_pd_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False, nap_correction=nap_correction)
     if data_pd_meas_all is not None:
@@ -89,34 +89,71 @@ for current_station in stat_list:
 
 
     #### SLOTGEMIDDELDEN
-    #TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
-    #TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
+    # TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
+    # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
+    # TODO: simplify plot and maybe move to function
     if compute_slotgem and data_pd_meas_all is not None:
         print(f'slotgemiddelden for {current_station}')
         
-        # TODO: when creating a single slotgemiddelden function, make the physical_break optional via an argument to be able to compare
-        df_meas_clip = kw.data_retrieve.clip_timeseries_physical_break(data_pd_meas_all)
-        df_ext_clip = kw.data_retrieve.clip_timeseries_physical_break(data_pd_HWLW_all_12)
+        # compute slotgemiddelden, exclude all values after tstop_dt (is year_slotgem)
+        # including years with too little values and years before physical break
+        slotgemiddelden_all = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
+                                                      df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
+                                                      only_valid=False, clip_physical_break=False)
+        # only years with enough values and after potential physical break
+        slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
+                                                        df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
+                                                        only_valid=True, clip_physical_break=True)
+        # same but linear fit without nodal cycle # TODO: maybe not useful to include this here
+        slotgemiddelden_linear = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
+                                                         df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
+                                                         only_valid=True, clip_physical_break=True, with_nodal=False)
         
-        #calculate yearly mean
-        dict_wltidalindicators = kw.calc_wltidalindicators(df_meas_clip)
-        wl_mean_peryear = dict_wltidalindicators['wl_mean_peryear']
-        dict_wltidalindicators_valid = kw.calc_wltidalindicators(df_meas_clip, min_count=2900) #24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
-        wl_mean_peryear_valid = dict_wltidalindicators_valid['wl_mean_peryear']
-        
-        #derive tidal indicators like yearmean HWLW from HWLW values
-        if data_pd_HWLW_all is not None:
-            dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(df_ext_clip)
-            HW_mean_peryear = dict_HWLWtidalindicators['HW_mean_peryear']
-            LW_mean_peryear = dict_HWLWtidalindicators['LW_mean_peryear']
-            dict_HWLWtidalindicators_valid = kw.calc_HWLWtidalindicators(df_ext_clip, min_count=1400) #2*24*365/12.42=1410.6 (12.42 hourly extreme)
-            HW_mean_peryear_valid = dict_HWLWtidalindicators_valid['HW_mean_peryear']
-            LW_mean_peryear_valid = dict_HWLWtidalindicators_valid['LW_mean_peryear']
-        
-        #plotting (yearly averages are plotted on 1jan)
         fig,ax1 = plt.subplots(figsize=(12,6))
         
-        #get and plot validation timeseries (yearly mean wl/HW/LW)
+        # plot timeseries of average waterlevels
+        wl_mean_peryear_all = slotgemiddelden_all["wl_mean_peryear"]
+        wl_mean_peryear_valid = slotgemiddelden_valid["wl_mean_peryear"]
+        ax1.plot(wl_mean_peryear_all, 'x', color='grey', label='yearly means incl invalid')
+        ax1.plot(wl_mean_peryear_valid, 'xr', label='yearly means')
+        
+        # plot model fits of average waterlevels
+        wl_model_fit = slotgemiddelden_valid["wl_model_fit"]
+        wl_model_fit_linear = slotgemiddelden_linear["wl_model_fit"]
+        ax1.plot(wl_model_fit_linear, ".-", label='model fit linear')
+        ax1.plot(wl_model_fit, ".-", label='model fit with nodal')
+        ax1.set_prop_cycle(None) #reset matplotlib colors
+        
+        if data_pd_HWLW_all is not None:
+            # plot timeseries of average extremes
+            HW_mean_peryear = slotgemiddelden_all["HW_mean_peryear"]
+            LW_mean_peryear = slotgemiddelden_all["LW_mean_peryear"]
+            HW_mean_peryear_valid = slotgemiddelden_valid["HW_mean_peryear"]
+            LW_mean_peryear_valid = slotgemiddelden_valid["LW_mean_peryear"]
+            ax1.plot(HW_mean_peryear, 'x', color='grey')
+            ax1.plot(LW_mean_peryear, 'x', color='grey')
+            ax1.plot(HW_mean_peryear_valid, 'xr')
+            ax1.plot(LW_mean_peryear_valid, 'xr')
+            
+            # plot model fits of average extremes
+            HW_model_fit = slotgemiddelden_valid["HW_model_fit"]
+            LW_model_fit = slotgemiddelden_valid["LW_model_fit"]
+            HW_model_fit_linear = slotgemiddelden_linear["HW_model_fit"]
+            LW_model_fit_linear = slotgemiddelden_linear["LW_model_fit"]
+            ax1.plot(HW_model_fit_linear, ".-", label=None)
+            ax1.plot(HW_model_fit, ".-", label=None)
+            ax1.set_prop_cycle(None) #reset matplotlib colors
+            ax1.plot(LW_model_fit_linear, ".-", label=None)
+            ax1.plot(LW_model_fit, ".-", label=None)
+            ax1.set_prop_cycle(None) #reset matplotlib colors
+        
+        # plot and write slotgemiddelde value (for waterlevels only)
+        slotgem_time_value = wl_model_fit.iloc[[-1]]
+        ax1.plot(slotgem_time_value, ".k", label=f'slotgemiddelde for {year_slotgem}')
+        # TODO: is upcasted to dataframe before csv writing which results in 0-column, avoid this
+        slotgem_time_value.to_csv(os.path.join(dir_slotgem,f'slotgem_value_{current_station}.txt'))
+        
+        # get and plot validation timeseries (yearly mean wl/HW/LW)
         station_name_dict = {'HOEKVHLD':'hoek',
                              'HARVT10':'ha10'}
         if current_station in station_name_dict.keys():
@@ -127,46 +164,16 @@ for current_station in stat_list:
             yearmeanHW = pd.read_csv(file_yearmeanHW, sep='\\s+', skiprows=1, names=['datetime','values'], parse_dates=['datetime'], na_values=-999.9, index_col='datetime')/100
             yearmeanLW = pd.read_csv(file_yearmeanLW, sep='\\s+', skiprows=1, names=['datetime','values'], parse_dates=['datetime'], na_values=-999.9, index_col='datetime')/100
             yearmeanwl = pd.read_csv(file_yearmeanwl, sep='\\s+', skiprows=1, names=['datetime','values'], parse_dates=['datetime'], na_values=-999.9, index_col='datetime')/100
-            ax1.plot(yearmeanHW['values'],'+g')
-            ax1.plot(yearmeanLW['values'],'+g')
-            ax1.plot(yearmeanwl['values'],'+g',label='yearmean validation')
+            ax1.plot(yearmeanHW['values'],'+g', zorder=0)
+            ax1.plot(yearmeanLW['values'],'+g', zorder=0)
+            ax1.plot(yearmeanwl['values'],'+g',label='yearmean validation', zorder=0)
         
-        #plot values
-        if data_pd_HWLW_all is not None:
-            ax1.plot(HW_mean_peryear,'x',color='grey')
-            ax1.plot(LW_mean_peryear,'x',color='grey')
-            ax1.plot(HW_mean_peryear_valid,'xr')
-            ax1.plot(LW_mean_peryear_valid,'xr')
-        ax1.plot(wl_mean_peryear,'x',color='grey',label='yearmean')
-        ax1.plot(wl_mean_peryear_valid,'xr',label='yearmean significant')
-        ax1.grid()
-        ax1.set_xlim(fig_alltimes_ext) # entire period
+        ax1.set_xlim(fig_alltimes_ext)
         ax1.set_ylabel('waterstand [m]')
-        ax1.set_title(f'yearly mean HW/wl/LW {current_station}')
-        fig.tight_layout()
-        
-        #fit linear models over yearly mean values
-        tstop_dt_naive = tstop_dt.tz_localize(None)
-        wl_mean_array_todate = wl_mean_peryear_valid.loc[:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
-        pred_pd_wl = kw.fit_models(wl_mean_array_todate)
-        ax1.plot(pred_pd_wl, ".-", label=pred_pd_wl.columns)
-        ax1.set_prop_cycle(None) #reset matplotlib colors
-        #2021.0 value (and future)
-        ax1.plot(pred_pd_wl.loc[tstop_dt_naive:,'pred_linear_winodal'], ".k", label=f'pred_linear from {year_slotgem}')
-        pred_slotgem = pred_pd_wl.loc[[tstop_dt_naive],['pred_linear_winodal']]
-        pred_slotgem.to_csv(os.path.join(dir_slotgem,f'slotgem_value_{current_station}.txt'))
+        ax1.set_title(f'yearly mean HW/wl/LW for {current_station}')
+        ax1.grid()
         ax1.legend(loc=2)
-        
-        if data_pd_HWLW_all is not None:
-            HW_mean_array_todate = HW_mean_peryear_valid.loc[:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
-            pred_pd_HW = kw.fit_models(HW_mean_array_todate)
-            ax1.plot(pred_pd_HW, ".-", label=pred_pd_HW.columns)
-            ax1.set_prop_cycle(None) #reset matplotlib colors
-            
-            LW_mean_array_todate = LW_mean_peryear_valid.loc[:tstop_dt_naive] #remove all values after tstop_dt (is year_slotgem)
-            pred_pd_LW = kw.fit_models(LW_mean_array_todate)
-            ax1.plot(pred_pd_LW, ".-", label=pred_pd_LW.columns)
-            ax1.set_prop_cycle(None) #reset matplotlib colors
+        fig.tight_layout()
 
         fig.savefig(os.path.join(dir_slotgem,f'yearly_values_{current_station}'))
     
