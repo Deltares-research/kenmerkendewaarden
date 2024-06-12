@@ -128,3 +128,18 @@ def test_napcorrection_notdefined(df_meas_2010):
     with pytest.raises(KeyError) as e:
         kw.data_retrieve.nap2005_correction(df_meas=df_meas_2010)
     assert "NAP2005 correction not defined for NONEXISTENTSTATION" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_clip_timeseries_physical_break(df_ext):
+    df_ext.attrs["station"] = "VLIELHVN"
+    df_ext_clipped = kw.data_retrieve.clip_timeseries_physical_break(df_meas=df_ext)
+    assert len(df_ext_clipped) != len(df_ext)
+    assert df_ext_clipped.index[0] >= pd.Timestamp("1933-01-01 00:00:00 +01:00")
+
+
+@pytest.mark.unittest
+def test_clip_timeseries_physical_break_notdefined(df_ext):
+    df_ext_clipped = kw.data_retrieve.clip_timeseries_physical_break(df_meas=df_ext)
+    assert len(df_ext_clipped) == len(df_ext)
+    assert df_ext_clipped.index[0] == df_ext.index[0]
