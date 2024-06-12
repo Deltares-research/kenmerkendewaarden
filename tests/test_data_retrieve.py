@@ -70,16 +70,6 @@ def test_read_measurements_notfound(tmp_path):
 
 @pytest.mark.timeout(60) # useful in case of ddl failure
 @pytest.mark.unittest
-def test_napcorrection(df_meas):
-    df_meas_sel = df_meas.loc["2004":"2005"]
-    df_meas_sel_nap = kw.data_retrieve.nap2005_correction(df_meas=df_meas_sel, station="HOEKVHLD")
-    assert (df_meas_sel.index == df_meas_sel_nap.index).all()
-    assert np.isclose(df_meas_sel["values"].iloc[0] - df_meas_sel_nap["values"].iloc[0], 0.0277)
-    assert np.isclose(df_meas_sel["values"].iloc[-1] - df_meas_sel_nap["values"].iloc[-1], 0)
-
-
-@pytest.mark.timeout(60) # useful in case of ddl failure
-@pytest.mark.unittest
 def test_retrieve_measurements_wrongperiod():
     dir_meas = '.'
     start_date = pd.Timestamp(3010,1,1, tz="UTC+01:00")
@@ -113,3 +103,19 @@ def test_check_locations_amount_toolittle():
     # this will silently continue the process, returing None
     returned_value = kw.data_retrieve.check_locations_amount(locs_sel)
     assert returned_value is None
+
+
+@pytest.mark.unittest
+def test_napcorrection(df_meas):
+    df_meas_sel = df_meas.loc["2004":"2005"]
+    df_meas_sel_nap = kw.data_retrieve.nap2005_correction(df_meas=df_meas_sel)
+    assert (df_meas_sel.index == df_meas_sel_nap.index).all()
+    assert np.isclose(df_meas_sel["values"].iloc[0] - df_meas_sel_nap["values"].iloc[0], 0.0277)
+    assert np.isclose(df_meas_sel["values"].iloc[-1] - df_meas_sel_nap["values"].iloc[-1], 0)
+
+@pytest.mark.unittest
+def test_napcorrection_notdefined(df_meas_2010):
+    df_meas_2010.attrs["station"] = "NONEXISTENTSTATION"
+    with pytest.raises(KeyError) as e:
+        kw.data_retrieve.nap2005_correction(df_meas=df_meas_2010)
+    assert "nap2005 correction not implemented for NONEXISTENTSTATION" in str(e.value)

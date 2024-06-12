@@ -251,7 +251,7 @@ def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=
     return df_meas
 
 
-def nap2005_correction(df_meas, station):
+def nap2005_correction(df_meas):
     #NAP correction for dates before 1-1-2005
     # TODO: check if ths make a difference (for havengetallen it makes a slight difference so yes. For gemgetijkromme it only makes a difference for spring/doodtij. (now only applied at gemgetij en havengetallen)). If so, make this flexible per station, where to get the data or is the RWS data already corrected for it?
     #herdefinitie van NAP (~20mm voor HvH in fig2, relevant?): https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_113484_31&versienummer=1
@@ -260,8 +260,10 @@ def nap2005_correction(df_meas, station):
     dict_correct_nap2005 = {'HOEKVHLD':-0.0277,
                             'HARVT10':-0.0210,
                             'VLISSGN':-0.0297}
+    
+    station = df_meas.attrs["station"]
     if not station in dict_correct_nap2005.keys():
-        raise Exception('ERROR nap2005 correction not implemented for this station')
+        raise KeyError(f'NAP2005 correction not defined for {station}')
 
     logger.info(f'applying NAP2005 correction for {station}')
     correct_value = dict_correct_nap2005[station]
