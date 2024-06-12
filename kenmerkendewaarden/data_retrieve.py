@@ -247,7 +247,7 @@ def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=
     
     if nap_correction:
         # TODO: not available for all stations
-        df_meas = nap2005_correction(df_meas, station)
+        df_meas = nap2005_correction(df_meas)
     return df_meas
 
 

@@ -105,6 +105,15 @@ def test_check_locations_amount_toolittle():
     assert returned_value is None
 
 
+@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.unittest
+def test_read_measurements_napcorrection(dir_meas):
+    """
+    the necessary assertions are done in non-ddl tests below
+    """
+    kw.read_measurements(dir_output=dir_meas, station="HOEKVHLD", extremes=True, nap_correction=True)
+
+
 @pytest.mark.unittest
 def test_napcorrection(df_meas):
     df_meas_sel = df_meas.loc["2004":"2005"]
