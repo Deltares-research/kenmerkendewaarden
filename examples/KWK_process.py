@@ -178,58 +178,33 @@ for current_station in stat_list:
         pred_freq = "10s" # frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
         
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
-        prediction_av_raw, prediction_sp_raw, prediction_np_raw = kw.gemiddeld_getijkromme_av_sp_np(
-                                        df_meas=data_pd_meas_10y, df_ext=None,
-                                        freq=pred_freq, nb=0, nf=0, 
-                                        scale_extremes=False, scale_period=False)
-        prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.gemiddeld_getijkromme_av_sp_np(
-                                        df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
-                                        freq=pred_freq, nb=2, nf=2, 
-                                        scale_extremes=True, scale_period=False)
-        prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.gemiddeld_getijkromme_av_sp_np(
-                                        df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
-                                        freq=pred_freq, nb=0, nf=10, 
-                                        scale_extremes=True, scale_period=True)
+        gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=None,
+                                              freq=pred_freq, nb=0, nf=0, 
+                                              scale_extremes=False, scale_period=False)
+        gemgetij_corr = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
+                                               freq=pred_freq, nb=1, nf=1, 
+                                               scale_extremes=True, scale_period=False)
+        gemgetij_corr_boi = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
+                                                   freq=pred_freq, nb=0, nf=4, 
+                                                   scale_extremes=True, scale_period=True)
 
         # write boi timeseries to csv files # TODO: maybe convert timedeltaIndex to minutes instead?
-        prediction_av_corr_boi.to_csv(os.path.join(dir_gemgetij,f'gemGetijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
-        prediction_sp_corr_boi.to_csv(os.path.join(dir_gemgetij,f'springtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
-        prediction_np_corr_boi.to_csv(os.path.join(dir_gemgetij,f'doodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
+        for key in gemgetij_corr_boi.keys():
+            file_boi_csv = os.path.join(dir_gemgetij, f'Getijkromme_BOI_{key}_{current_station}_slotgem{year_slotgem}.csv')
+            gemgetij_corr_boi[key].to_csv(file_boi_csv, float_format='%.3f')
         
-        
-        cmap = plt.get_cmap("tab10")
-            
-        print(f'plot getijkromme trefHW: {current_station}')
-        fig_sum,ax_sum = plt.subplots(figsize=(14,7))
-        ax_sum.set_title(f'getijkromme trefHW {current_station}')
-        prediction_av_raw['values'].plot(ax=ax_sum, linestyle='--', color=cmap(0), linewidth=0.7, label='gem kromme, one')
-        prediction_av_corr['values'].plot(ax=ax_sum, color=cmap(0), label='gem kromme, corr')
-        prediction_sp_raw['values'].plot(ax=ax_sum, linestyle='--', color=cmap(1), linewidth=0.7, label='sp kromme, one')
-        prediction_sp_corr['values'].plot(ax=ax_sum, color=cmap(1), label='sp kromme, corr')
-        prediction_np_raw['values'].plot(ax=ax_sum, linestyle='--', color=cmap(2), linewidth=0.7, label='np kromme, one')
-        prediction_np_corr['values'].plot(ax=ax_sum, color=cmap(2), label='np kromme, corr')
-        ax_sum.set_xticks([x*3600e9 for x in range(-15, 25, 5)]) # nanoseconds units # TODO: make multiple of 12
-        ax_sum.legend(loc=4)
-        ax_sum.grid()
-        ax_sum.set_xlim([x*3600e9 for x in [-15.5,15.5]])
-        ax_sum.set_xlabel('hours since HW (ts are shifted to this reference)')
-        fig_sum.tight_layout()
+        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, station=current_station, tick_hours=6)
         fig_sum.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
         
         print(f'plot BOI figure and compare to KW2020: {current_station}')
-        fig_boi,ax1_boi = plt.subplots(figsize=(14,7))
-        ax1_boi.set_title(f'getijkromme BOI {current_station}')
-        #plot gemtij/springtij/doodtij
-        prediction_av_corr_boi['values'].plot(ax=ax1_boi,color=cmap(0),label='prediction gemtij')
-        prediction_sp_corr_boi['values'].plot(ax=ax1_boi,color=cmap(1),label='prediction springtij')
-        prediction_np_corr_boi['values'].plot(ax=ax1_boi,color=cmap(2),label='prediction doodtij')
-        ax1_boi.set_xticks([x*3600e9 for x in range(0, 6*24, 12)]) # nanoseconds units
+        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, station=current_station, tick_hours=12)
         
-        #plot validation lines if available
+        # plot validation lines if available
         dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
         file_vali_doodtijkromme = os.path.join(dir_vali_krommen,f'doodtijkromme_{current_station}_havengetallen{year_slotgem}.csv')
         file_vali_gemtijkromme = os.path.join(dir_vali_krommen,f'gemGetijkromme_{current_station}_havengetallen{year_slotgem}.csv')
         file_vali_springtijkromme = os.path.join(dir_vali_krommen,f'springtijkromme_{current_station}_havengetallen{year_slotgem}.csv')        
+        cmap = plt.get_cmap("tab10")
         if os.path.exists(file_vali_gemtijkromme):
             data_vali_gemtij = pd.read_csv(file_vali_gemtijkromme,index_col=0,parse_dates=True)
             ax1_boi.plot(data_vali_gemtij['Water Level [m]'],'--',color=cmap(0),linewidth=0.7,label='validation KW2020 gemtij')
@@ -240,11 +215,6 @@ for current_station in stat_list:
             data_vali_doodtij = pd.read_csv(file_vali_doodtijkromme,index_col=0,parse_dates=True)
             ax1_boi.plot(data_vali_doodtij['Water Level [m]'],'--',color=cmap(2),linewidth=0.7, label='validation KW2020 doodtij')
         
-        ax1_boi.grid()
-        ax1_boi.legend(loc=4)
-        ax1_boi.set_xlabel('times since first av HW (start of ts)')
-        ax1_boi.set_xlim([x*3600e9 for x in [-2-4, 48-4]]) # TODO: make nicer xrange
-        fig_boi.tight_layout()
         fig_boi.savefig(os.path.join(dir_gemgetij,f'gemspringdoodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.png'))
     
     
