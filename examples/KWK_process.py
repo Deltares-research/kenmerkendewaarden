@@ -146,7 +146,7 @@ for current_station in stat_list:
         
         fig1.savefig(os.path.join(dir_slotgem,f'yearly_values_{current_station}'))
     
-    aa
+    
     
     
     ### HAVENGETALLEN 
