@@ -190,7 +190,7 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
     return gemgetij_dict
 
 
-def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_raw_dict:dict = None, station:str = None, ticks_12h:bool = False):
+def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, station:str = None, ticks_12h:bool = False):
     """
     Default plotting function for gemiddeldgetij dictionaries.
 
@@ -218,10 +218,10 @@ def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_raw_dict:dict = None, stati
     fig, ax = plt.subplots(figsize=(14,7))
     cmap = plt.get_cmap("tab10")
     
-    if gemgetij_raw_dict is not None:
-        prediction_av_raw = gemgetij_raw_dict["mean"]
-        prediction_sp_raw = gemgetij_raw_dict["spring"]
-        prediction_np_raw = gemgetij_raw_dict["neap"]
+    if gemgetij_dict_raw is not None:
+        prediction_av_raw = gemgetij_dict_raw["mean"]
+        prediction_sp_raw = gemgetij_dict_raw["spring"]
+        prediction_np_raw = gemgetij_dict_raw["neap"]
         prediction_av_raw['values'].plot(ax=ax, linestyle='--', color=cmap(0), linewidth=0.7, label='gemiddeldgetij mean (raw)')
         prediction_sp_raw['values'].plot(ax=ax, linestyle='--', color=cmap(1), linewidth=0.7, label='gemiddeldgetij spring (raw)')
         prediction_np_raw['values'].plot(ax=ax, linestyle='--', color=cmap(2), linewidth=0.7, label='gemiddeldgetij neap (raw)')
