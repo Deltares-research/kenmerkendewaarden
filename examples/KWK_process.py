@@ -91,64 +91,24 @@ for current_station in stat_list:
     #### SLOTGEMIDDELDEN
     # TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
     # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
-    # TODO: simplify plot and maybe move to function
     if compute_slotgem and data_pd_meas_all is not None:
         print(f'slotgemiddelden for {current_station}')
-        
         # compute slotgemiddelden, exclude all values after tstop_dt (is year_slotgem)
         # including years with too little values and years before physical break
         slotgemiddelden_all = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
                                                       df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
-                                                      only_valid=False, clip_physical_break=False)
+                                                      only_valid=False, clip_physical_break=True)
         # only years with enough values and after potential physical break
         slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
                                                         df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
                                                         only_valid=True, clip_physical_break=True)
-        # same but linear fit without nodal cycle # TODO: maybe not useful to include this here
-        slotgemiddelden_linear = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
-                                                         df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
-                                                         only_valid=True, clip_physical_break=True, with_nodal=False)
         
-        fig,ax1 = plt.subplots(figsize=(12,6))
-        
-        # plot timeseries of average waterlevels
-        wl_mean_peryear_all = slotgemiddelden_all["wl_mean_peryear"]
-        wl_mean_peryear_valid = slotgemiddelden_valid["wl_mean_peryear"]
-        ax1.plot(wl_mean_peryear_all, 'x', color='grey', label='yearly means incl invalid')
-        ax1.plot(wl_mean_peryear_valid, 'xr', label='yearly means')
-        
-        # plot model fits of average waterlevels
-        wl_model_fit = slotgemiddelden_valid["wl_model_fit"]
-        wl_model_fit_linear = slotgemiddelden_linear["wl_model_fit"]
-        ax1.plot(wl_model_fit_linear, ".-", label='model fit linear')
-        ax1.plot(wl_model_fit, ".-", label='model fit with nodal')
-        ax1.set_prop_cycle(None) #reset matplotlib colors
-        
-        if data_pd_HWLW_all is not None:
-            # plot timeseries of average extremes
-            HW_mean_peryear = slotgemiddelden_all["HW_mean_peryear"]
-            LW_mean_peryear = slotgemiddelden_all["LW_mean_peryear"]
-            HW_mean_peryear_valid = slotgemiddelden_valid["HW_mean_peryear"]
-            LW_mean_peryear_valid = slotgemiddelden_valid["LW_mean_peryear"]
-            ax1.plot(HW_mean_peryear, 'x', color='grey')
-            ax1.plot(LW_mean_peryear, 'x', color='grey')
-            ax1.plot(HW_mean_peryear_valid, 'xr')
-            ax1.plot(LW_mean_peryear_valid, 'xr')
-            
-            # plot model fits of average extremes
-            HW_model_fit = slotgemiddelden_valid["HW_model_fit"]
-            LW_model_fit = slotgemiddelden_valid["LW_model_fit"]
-            HW_model_fit_linear = slotgemiddelden_linear["HW_model_fit"]
-            LW_model_fit_linear = slotgemiddelden_linear["LW_model_fit"]
-            ax1.plot(HW_model_fit_linear, ".-", label=None)
-            ax1.plot(HW_model_fit, ".-", label=None)
-            ax1.set_prop_cycle(None) #reset matplotlib colors
-            ax1.plot(LW_model_fit_linear, ".-", label=None)
-            ax1.plot(LW_model_fit, ".-", label=None)
-            ax1.set_prop_cycle(None) #reset matplotlib colors
-        
+        # plot slotgemiddelden
+        fig1, ax1 = kw.plot_slotgemiddelden(slotgemiddelden_valid, slotgemiddelden_all)
+        ax1.set_xlim(fig_alltimes_ext)
+
         # plot and write slotgemiddelde value (for waterlevels only)
-        slotgem_time_value = wl_model_fit.iloc[[-1]]
+        slotgem_time_value = slotgemiddelden_valid["wl_model_fit"].iloc[[-1]]
         ax1.plot(slotgem_time_value, ".k", label=f'slotgemiddelde for {year_slotgem}')
         # TODO: is upcasted to dataframe before csv writing which results in 0-column, avoid this
         slotgem_time_value.to_csv(os.path.join(dir_slotgem,f'slotgem_value_{current_station}.txt'))
@@ -167,15 +127,9 @@ for current_station in stat_list:
             ax1.plot(yearmeanHW['values'],'+g', zorder=0)
             ax1.plot(yearmeanLW['values'],'+g', zorder=0)
             ax1.plot(yearmeanwl['values'],'+g',label='yearmean validation', zorder=0)
-        
-        ax1.set_xlim(fig_alltimes_ext)
-        ax1.set_ylabel('waterstand [m]')
-        ax1.set_title(f'yearly mean HW/wl/LW for {current_station}')
-        ax1.grid()
         ax1.legend(loc=2)
-        fig.tight_layout()
-
-        fig.savefig(os.path.join(dir_slotgem,f'yearly_values_{current_station}'))
+        
+        fig1.savefig(os.path.join(dir_slotgem,f'yearly_values_{current_station}'))
     
     
     

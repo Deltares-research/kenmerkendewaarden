@@ -6,11 +6,14 @@ Computation of slotgemiddelden of waterlevels and extremes
 import numpy as np
 import statsmodels.api as sm
 import pandas as pd
+import matplotlib.pyplot as plt
 from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
 from kenmerkendewaarden.tidalindicators import calc_wltidalindicators, calc_HWLWtidalindicators
 import logging
 
-__all__ = ["calc_slotgemiddelden"]
+__all__ = ["calc_slotgemiddelden",
+           "plot_slotgemiddelden",
+           ]
 
 logger = logging.getLogger(__name__)
 
@@ -49,24 +52,24 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
         min_count_ext = None
         min_count_wl = None
     
+    # initialize dict
+    slotgemiddelden_dict = {}
+    
     # clip last value of the timeseries if this is exactly newyearsday
     if df_meas.index[-1] == pd.Timestamp(df_meas.index[-1].year,1,1, tz=df_meas.index.tz):
         df_meas = df_meas.iloc[:-1]
     
-    if clip_physical_break:
-        df_meas = clip_timeseries_physical_break(df_meas)
-    
-    
     # calculate yearly means
     dict_wltidalindicators = calc_wltidalindicators(df_meas, min_count=min_count_wl)
     wl_mean_peryear = dict_wltidalindicators['wl_mean_peryear']
+    slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
+    
+    # clip part of mean timeseries before physical break to supply to model
+    if clip_physical_break:
+        wl_mean_peryear = clip_timeseries_physical_break(wl_mean_peryear)
     
     # fit linear models over yearly mean values
     pred_pd_wl = fit_models(wl_mean_peryear, with_nodal=with_nodal)
-    
-    # add to dict
-    slotgemiddelden_dict = {}
-    slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
     slotgemiddelden_dict["wl_model_fit"] = pred_pd_wl
     
     if df_ext is not None:
@@ -74,25 +77,92 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
         if df_ext.index[-1] == pd.Timestamp(df_ext.index[-1].year,1,1, tz=df_ext.index.tz):
             df_ext = df_ext.iloc[:-1]
         
-        if clip_physical_break:
-            df_ext = clip_timeseries_physical_break(df_ext)
-    
         # calculate yearly means
         dict_HWLWtidalindicators = calc_HWLWtidalindicators(df_ext, min_count=min_count_ext)
         HW_mean_peryear = dict_HWLWtidalindicators['HW_mean_peryear']
         LW_mean_peryear = dict_HWLWtidalindicators['LW_mean_peryear']
+        slotgemiddelden_dict["HW_mean_peryear"] = HW_mean_peryear
+        slotgemiddelden_dict["LW_mean_peryear"] = LW_mean_peryear
     
+        # clip part of mean timeseries before physical break to supply to model
+        if clip_physical_break:
+            HW_mean_peryear = clip_timeseries_physical_break(HW_mean_peryear)
+            LW_mean_peryear = clip_timeseries_physical_break(LW_mean_peryear)
+        
         # fit linear models over yearly mean values
         pred_pd_HW = fit_models(HW_mean_peryear, with_nodal=with_nodal)
         pred_pd_LW = fit_models(LW_mean_peryear, with_nodal=with_nodal)
-        
-        # add to dict
-        slotgemiddelden_dict["HW_mean_peryear"] = HW_mean_peryear
-        slotgemiddelden_dict["LW_mean_peryear"] = LW_mean_peryear
         slotgemiddelden_dict["HW_model_fit"] = pred_pd_HW
         slotgemiddelden_dict["LW_model_fit"] = pred_pd_LW
     
     return slotgemiddelden_dict
+
+
+def plot_slotgemiddelden(slotgemiddelden_dict:dict, slotgemiddelden_dict_all:dict = None):
+    """
+    plot timeseries of yearly mean waterlevels and corresponding model fits.
+
+    Parameters
+    ----------
+    slotgemiddelden_dict : dict
+        Output from `kw.calc_slotgemiddelden` containing timeseries 
+        of yearly mean waterlevels and corresponding model fits.
+    slotgemiddelden_dict_all : dict, optional
+        Optionally provide another dictionary with unfiltered mean waterlevls. 
+        Only used to plot the mean waterlevels (in grey). The default is None.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure handle.
+    ax : matplotlib.axes._axes.Axes
+        Figure axis handle.
+    
+    """
+    # TODO: maybe add an escape for if the station attr is not present
+    station = slotgemiddelden_dict['wl_mean_peryear'].attrs["station"]
+    
+    fig,ax = plt.subplots(figsize=(12,6))
+    cmap = plt.get_cmap("tab10")
+    
+    # plot timeseries of average waterlevels
+    if slotgemiddelden_dict_all is not None:
+        wl_mean_peryear_all = slotgemiddelden_dict_all["wl_mean_peryear"]
+        ax.plot(wl_mean_peryear_all, 'x', color='grey', label='yearly means incl invalid')
+    wl_mean_peryear = slotgemiddelden_dict["wl_mean_peryear"]
+    ax.plot(wl_mean_peryear, 'xr', label='yearly means')
+    
+    # plot model fits of average waterlevels
+    wl_model_fit = slotgemiddelden_dict["wl_model_fit"]
+    ax.plot(wl_model_fit, ".-", color=cmap(0), label='model fit')
+    
+    # plot timeseries of average extremes
+    if slotgemiddelden_dict_all is not None:
+        if "HW_mean_peryear" in slotgemiddelden_dict_all.keys():
+            HW_mean_peryear_all = slotgemiddelden_dict_all["HW_mean_peryear"]
+            LW_mean_peryear_all = slotgemiddelden_dict_all["LW_mean_peryear"]
+            ax.plot(HW_mean_peryear_all, 'x', color='grey')
+            ax.plot(LW_mean_peryear_all, 'x', color='grey')
+    
+    if "HW_mean_peryear" in slotgemiddelden_dict.keys():
+        HW_mean_peryear = slotgemiddelden_dict["HW_mean_peryear"]
+        LW_mean_peryear = slotgemiddelden_dict["LW_mean_peryear"]
+        ax.plot(HW_mean_peryear, 'xr')
+        ax.plot(LW_mean_peryear, 'xr')
+        
+    if "HW_model_fit" in slotgemiddelden_dict.keys():
+        # plot model fits of average extremes
+        HW_model_fit = slotgemiddelden_dict["HW_model_fit"]
+        LW_model_fit = slotgemiddelden_dict["LW_model_fit"]
+        ax.plot(HW_model_fit, ".-", color=cmap(0), label=None)
+        ax.plot(LW_model_fit, ".-", color=cmap(0), label=None)
+    
+    ax.set_ylabel('waterstand [m]')
+    ax.set_title(f'yearly mean HW/wl/LW for {station}')
+    ax.grid()
+    ax.legend(loc=2)
+    fig.tight_layout()
+    return fig, ax
 
 
 def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
@@ -114,7 +184,7 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     start = mean_array_todate.index.min()
     end = mean_array_todate.index.max() + pd.Timedelta(days=370)
     
-    logger.info(f"fit linear model for {start} to {end}")
+    logger.info(f"fit linear model (with_nodal={with_nodal}) for {start} to {end}")
     
     # We'll just use the years. This assumes that annual waterlevels are used that are stored left-padded, the mean waterlevel for 2020 is stored as 2020-1-1. This is not logical, but common practice.
     allyears_dt = pd.date_range(start=start, end=end, freq='YS')

@@ -55,6 +55,14 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
 
 
 @pytest.mark.unittest
+def test_plot_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
+    slotgemiddelden_dict_inclext = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=df_ext_12_2010_2014)
+    slotgemiddelden_dict_noext = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=None)
+    kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext)
+    kw.plot_slotgemiddelden(slotgemiddelden_dict_noext)
+
+
+@pytest.mark.unittest
 def test_calc_slotgemiddelden_correct_tstop(df_meas_2010_2014):
     df_meas_upto_2013 = df_meas_2010_2014.loc[:"2013"]
     slotgemiddelden_upto_2013 = kw.calc_slotgemiddelden(df_meas=df_meas_upto_2013, df_ext=None)
@@ -68,23 +76,47 @@ def test_calc_slotgemiddelden_correct_tstop(df_meas_2010_2014):
 
 
 @pytest.mark.unittest
-def test_calc_slotgemiddelden_physical_break(df_meas_2010_2014):
+def test_calc_slotgemiddelden_physical_break(df_meas_2010_2014, df_ext_12_2010_2014):
     # construct fake timeseries for VLIELHVN around physical break
+    tstart_2010 = df_meas_2010_2014.index[0]
+    tstart_1931 = pd.Timestamp(1931, 1, 1, tz=tstart_2010.tz)
+    tdiff = tstart_2010 - tstart_1931
+    
     df_meas_1931_1935 = df_meas_2010_2014.copy()
-    df_meas_1931_1935.index = pd.date_range(start="1931-01-01", end="1935-01-01", periods=len(df_meas_2010_2014.index))
+    df_meas_1931_1935.index = df_meas_1931_1935.index - tdiff
     df_meas_1931_1935.attrs["station"] = "VLIELHVN"
     
+    df_ext_12_1931_1935 = df_ext_12_2010_2014.copy()
+    df_ext_12_1931_1935.index = df_ext_12_1931_1935.index - tdiff
+    df_ext_12_1931_1935.attrs["station"] = "VLIELHVN"
+    
+    # check if the timeseries do not extend over the expected slotgemiddelden value
+    assert df_meas_1931_1935.index[-1] <= pd.Timestamp("1936-01-01 00:00:00 +01:00")
+    assert df_ext_12_1931_1935.index[-1] <= pd.Timestamp("1936-01-01 00:00:00 +01:00")
+    
     # compute slotgemiddelden
-    slotgemiddelden_no_clip = kw.calc_slotgemiddelden(df_meas=df_meas_1931_1935, df_ext=None,
+    slotgemiddelden_no_clip = kw.calc_slotgemiddelden(df_meas=df_meas_1931_1935, df_ext=df_ext_12_1931_1935,
                                                       clip_physical_break=False)
-    slotgemiddelden_with_clip = kw.calc_slotgemiddelden(df_meas=df_meas_1931_1935, df_ext=None,
+    slotgemiddelden_with_clip = kw.calc_slotgemiddelden(df_meas=df_meas_1931_1935, df_ext=df_ext_12_1931_1935,
                                                         clip_physical_break=True)
     
     
-    # assert if results are different
-    assert len(slotgemiddelden_no_clip["wl_model_fit"]) == 5
-    assert len(slotgemiddelden_with_clip["wl_model_fit"]) == 3
+    # assert if yearly means are original lengths and modelfits are shorter with clip_physical_break=True
+    assert len(slotgemiddelden_no_clip["wl_mean_peryear"]) == 5
+    assert len(slotgemiddelden_with_clip["wl_mean_peryear"]) == 5
+    assert len(slotgemiddelden_no_clip["wl_model_fit"]) == 6
+    assert len(slotgemiddelden_with_clip["wl_model_fit"]) == 4
+    
+    assert len(slotgemiddelden_no_clip["HW_mean_peryear"]) == 5
+    assert len(slotgemiddelden_with_clip["HW_mean_peryear"]) == 5
+    assert len(slotgemiddelden_no_clip["HW_model_fit"]) == 6
+    assert len(slotgemiddelden_with_clip["HW_model_fit"]) == 4
+    
+    # assert tstart/tstop of model fits
     assert slotgemiddelden_with_clip["wl_model_fit"].index[0] == pd.Timestamp('1933-01-01')
+    assert slotgemiddelden_with_clip["wl_model_fit"].index[-1] == pd.Timestamp('1936-01-01')
+    assert slotgemiddelden_with_clip["HW_model_fit"].index[0] == pd.Timestamp('1933-01-01')
+    assert slotgemiddelden_with_clip["HW_model_fit"].index[-1] == pd.Timestamp('1936-01-01')
 
 
 @pytest.mark.unittest
