@@ -127,4 +127,4 @@ def test_plot_gemiddeldgetij(df_meas_2010):
                                     scale_extremes=False, scale_period=False)
     kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_dict_raw,
                            gemgetij_dict_raw=gemgetij_dict_raw,
-                           ticks_12h=True)
+                           tick_hours=12)
