@@ -179,25 +179,25 @@ for current_station in stat_list:
         
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
         gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=None,
-                                                freq=pred_freq, nb=0, nf=0, 
-                                                scale_extremes=False, scale_period=False)
+                                              freq=pred_freq, nb=0, nf=0, 
+                                              scale_extremes=False, scale_period=False)
         gemgetij_corr = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
-                                                 freq=pred_freq, nb=2, nf=2, 
-                                                 scale_extremes=True, scale_period=False)
+                                               freq=pred_freq, nb=1, nf=1, 
+                                               scale_extremes=True, scale_period=False)
         gemgetij_corr_boi = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
-                                                     freq=pred_freq, nb=0, nf=5, 
-                                                     scale_extremes=True, scale_period=True)
+                                                   freq=pred_freq, nb=0, nf=4, 
+                                                   scale_extremes=True, scale_period=True)
 
         # write boi timeseries to csv files # TODO: maybe convert timedeltaIndex to minutes instead?
         for key in gemgetij_corr_boi.keys():
             file_boi_csv = os.path.join(dir_gemgetij, f'Getijkromme_BOI_{key}_{current_station}_slotgem{year_slotgem}.csv')
             gemgetij_corr_boi[key].to_csv(file_boi_csv, float_format='%.3f')
         
-        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_corr, gemgetij_raw, station=current_station, ticks_12h=True)
+        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, station=current_station, tick_hours=6)
         fig_sum.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
         
         print(f'plot BOI figure and compare to KW2020: {current_station}')
-        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_corr_boi, station=current_station, ticks_12h=True)
+        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, station=current_station, tick_hours=12)
         
         # plot validation lines if available
         dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'

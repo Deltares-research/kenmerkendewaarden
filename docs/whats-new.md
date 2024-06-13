@@ -15,6 +15,7 @@
 - increased test coverage in [#50](https://github.com/Deltares-research/kenmerkendewaarden/pull/50) and [#55](https://github.com/Deltares-research/kenmerkendewaarden/pull/55)
 - created `kw.plot_stations()` in [#57](https://github.com/Deltares-research/kenmerkendewaarden/pull/57)
 - clipping of timeseries on physical breaks with `kw.data_retrieve.clip_timeseries_physical_break()` (private) in [#61](https://github.com/Deltares-research/kenmerkendewaarden/pull/61) and [#64](https://github.com/Deltares-research/kenmerkendewaarden/pull/64)
+- added dedicated plotting functions in [#64](https://github.com/Deltares-research/kenmerkendewaarden/pull/64), [#66](https://github.com/Deltares-research/kenmerkendewaarden/pull/66) and [#68](https://github.com/Deltares-research/kenmerkendewaarden/pull/68)
 
 
 ## 0.1.0 (2024-03-11)

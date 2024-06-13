@@ -190,7 +190,7 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
     return gemgetij_dict
 
 
-def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, station:str = None, ticks_12h:bool = False):
+def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, station:str = None, tick_hours:int = None):
     """
     Default plotting function for gemiddeldgetij dictionaries.
 
@@ -242,9 +242,9 @@ def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, stati
     ax.xaxis.set_major_formatter(TimeSeries_TimedeltaFormatter_improved())
     # put ticks at intervals of multiples of 3 and 6, resulting in whole seconds
     ax.xaxis.set_major_locator(MaxNLocator(steps=[3,6], integer=True))
-    if ticks_12h:
+    if tick_hours is not None:
         # put ticks at fixed 12-hour intervals
-        ax.xaxis.set_major_locator(MultipleLocator(base=12*3600e9))
+        ax.xaxis.set_major_locator(MultipleLocator(base=tick_hours*3600e9))
     # the above avoids having to manually set tick locations based on hourly intervals (3600e9 nanoseconds)
     # ax.set_xticks([x*3600e9 for x in range(-15, 25, 5)])
     # ax.set_xlim([x*3600e9 for x in [-15.5,15.5]])
