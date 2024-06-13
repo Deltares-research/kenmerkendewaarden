@@ -55,6 +55,14 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
 
 
 @pytest.mark.unittest
+def test_plot_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
+    slotgemiddelden_dict_inclext = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=df_ext_12_2010_2014)
+    slotgemiddelden_dict_noext = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=None)
+    kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext)
+    kw.plot_slotgemiddelden(slotgemiddelden_dict_noext)
+
+
+@pytest.mark.unittest
 def test_calc_slotgemiddelden_correct_tstop(df_meas_2010_2014):
     df_meas_upto_2013 = df_meas_2010_2014.loc[:"2013"]
     slotgemiddelden_upto_2013 = kw.calc_slotgemiddelden(df_meas=df_meas_upto_2013, df_ext=None)

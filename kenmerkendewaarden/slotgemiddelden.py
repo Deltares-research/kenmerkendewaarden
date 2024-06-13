@@ -184,7 +184,7 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     start = mean_array_todate.index.min()
     end = mean_array_todate.index.max() + pd.Timedelta(days=370)
     
-    logger.info(f"fit linear model for {start} to {end}")
+    logger.info(f"fit linear model (with_nodal={with_nodal}) for {start} to {end}")
     
     # We'll just use the years. This assumes that annual waterlevels are used that are stored left-padded, the mean waterlevel for 2020 is stored as 2020-1-1. This is not logical, but common practice.
     allyears_dt = pd.date_range(start=start, end=end, freq='YS')
