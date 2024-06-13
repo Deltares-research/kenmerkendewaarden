@@ -10,6 +10,9 @@ import logging
 import matplotlib.pyplot as plt
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
 from kenmerkendewaarden.havengetallen import calc_havengetallen
+from kenmerkendewaarden.utils import TimeSeries_TimedeltaFormatter_improved
+from matplotlib.ticker import MaxNLocator, MultipleLocator
+
 
 __all__ = ["calc_gemiddeldgetij",
            "plot_gemiddeldgetij",
@@ -50,12 +53,8 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
 
     Returns
     -------
-    prediction_av : pd.DataFrame
-        Dataframe with prediction for average tide.
-    prediction_sp : pd.DataFrame
-        Dataframe with prediction for spring tide.
-    prediction_np : pd.DataFrame
-        Dataframe with prediction for neap tide.
+    gemgetij_dict : dict
+        dictionary with Dataframes with gemiddeld getij for mean, spring and neap tide.
 
     """
     data_pd_meas_10y = df_meas
@@ -182,12 +181,18 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
         prediction_np_corr_one = prediction_np_corr_one.resample(freq).nearest()
     prediction_np = repeat_signal(prediction_np_corr_one, nb=nb, nf=nf)
     
-    return prediction_av, prediction_sp, prediction_np
+    # combine in single dictionary
+    gemgetij_dict = {}
+    gemgetij_dict["mean"] = prediction_av
+    gemgetij_dict["spring"] = prediction_sp
+    gemgetij_dict["neap"] = prediction_np
+    
+    return gemgetij_dict
 
 
-def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_raw_dict:dict = None, station:str = None):
+def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_raw_dict:dict = None, station:str = None, ticks_12h:bool = False):
     """
-    Plot gemiddeldgetij.
+    Default plotting function for gemiddeldgetij dictionaries.
 
     Parameters
     ----------
@@ -197,6 +202,8 @@ def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_raw_dict:dict = None, stati
         dictionary as returned from `kw.calc_gemiddeldgetij()` e.g. with uncorrected values. The default is None.
     station : str, optional
         station name, used in figure title. The default is None.
+    ticks_12h : bool, optional
+        whether to use xaxis ticks of 12 hours, otherwise automatic but less nice values
 
     Returns
     -------
@@ -230,7 +237,20 @@ def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_raw_dict:dict = None, stati
     ax.legend(loc=4)
     ax.grid()
     ax.set_xlabel('time since high water')
+    
+    # fix timedelta ticks
+    ax.xaxis.set_major_formatter(TimeSeries_TimedeltaFormatter_improved())
+    # put ticks at intervals of multiples of 3 and 6, resulting in whole seconds
+    ax.xaxis.set_major_locator(MaxNLocator(steps=[3,6], integer=True))
+    if ticks_12h:
+        # put ticks at fixed 12-hour intervals
+        ax.xaxis.set_major_locator(MultipleLocator(base=12*3600e9))
+    # the above avoids having to manually set tick locations based on hourly intervals (3600e9 nanoseconds)
+    # ax.set_xticks([x*3600e9 for x in range(-15, 25, 5)])
+    # ax.set_xlim([x*3600e9 for x in [-15.5,15.5]])
+
     fig.tight_layout()
+
     return fig, ax
 
 

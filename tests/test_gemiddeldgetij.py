@@ -9,11 +9,15 @@ import numpy as np
 def test_calc_gemiddeldgetij_raw(df_meas_2010):
     pred_freq = "60s"
     
-    prediction_av_raw, prediction_sp_raw, prediction_np_raw = kw.calc_gemiddeldgetij(
+    gemgetij_dict_raw = kw.calc_gemiddeldgetij(
                                     df_meas=df_meas_2010, df_ext=None,
                                     freq=pred_freq, nb=0, nf=0, 
                                     scale_extremes=False, scale_period=False)
     
+    prediction_av_raw = gemgetij_dict_raw["mean"]
+    prediction_sp_raw = gemgetij_dict_raw["spring"]
+    prediction_np_raw = gemgetij_dict_raw["neap"]
+
     assert len(prediction_av_raw) == 746
     assert np.isclose(prediction_av_raw["values"].min(), -0.567608885905236)
     assert np.isclose(prediction_av_raw["values"].max(), 1.1665100442336331)
@@ -31,10 +35,14 @@ def test_calc_gemiddeldgetij_raw(df_meas_2010):
 def test_calc_gemiddeldgetij_corr(df_meas_2010, df_ext_12_2010):
     pred_freq = "60s"
     
-    prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.calc_gemiddeldgetij(
+    gemgetij_dict_corr = kw.calc_gemiddeldgetij(
                                     df_meas=df_meas_2010, df_ext=df_ext_12_2010,
                                     freq=pred_freq, nb=2, nf=2, 
                                     scale_extremes=True, scale_period=False)
+    
+    prediction_av_corr = gemgetij_dict_corr["mean"]
+    prediction_sp_corr = gemgetij_dict_corr["spring"]
+    prediction_np_corr = gemgetij_dict_corr["neap"]
     
     assert len(prediction_av_corr) == 3726
     assert np.isclose(prediction_av_corr["values"].min(), -0.6095833333333333)
@@ -53,10 +61,14 @@ def test_calc_gemiddeldgetij_corr(df_meas_2010, df_ext_12_2010):
 def test_calc_gemiddeldgetij_corr_boi(df_meas_2010, df_ext_12_2010):
     pred_freq = "60s"
     
-    prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.calc_gemiddeldgetij(
+    gemgetij_dict_corr_boi = kw.calc_gemiddeldgetij(
                                     df_meas=df_meas_2010, df_ext=df_ext_12_2010,
                                     freq=pred_freq, nb=0, nf=10, 
                                     scale_extremes=True, scale_period=True)
+    
+    prediction_av_corr_boi = gemgetij_dict_corr_boi["mean"]
+    prediction_sp_corr_boi = gemgetij_dict_corr_boi["spring"]
+    prediction_np_corr_boi = gemgetij_dict_corr_boi["neap"]
     
     assert len(prediction_av_corr_boi) == 8196
     assert np.isclose(prediction_av_corr_boi["values"].min(), -0.6095833333333333)
@@ -103,3 +115,16 @@ def test_calc_gemiddeldgetij_failedanalysis(df_meas_2010_2014):
                                freq=pred_freq, nb=0, nf=0, 
                                scale_extremes=False, scale_period=False)
     assert "analysis result contains nan values" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_plot_gemiddeldgetij(df_meas_2010):
+    pred_freq = "60s"
+    
+    gemgetij_dict_raw = kw.calc_gemiddeldgetij(
+                                    df_meas=df_meas_2010, df_ext=None,
+                                    freq=pred_freq, nb=0, nf=0, 
+                                    scale_extremes=False, scale_period=False)
+    kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_dict_raw,
+                           gemgetij_dict_raw=gemgetij_dict_raw,
+                           ticks_12h=True)

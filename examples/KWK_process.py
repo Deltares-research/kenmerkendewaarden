@@ -178,48 +178,26 @@ for current_station in stat_list:
         pred_freq = "10s" # frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
         
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
-        prediction_av_raw, prediction_sp_raw, prediction_np_raw = kw.calc_gemiddeldgetij(
-                                        df_meas=data_pd_meas_10y, df_ext=None,
-                                        freq=pred_freq, nb=0, nf=0, 
-                                        scale_extremes=False, scale_period=False)
-        prediction_av_corr, prediction_sp_corr, prediction_np_corr = kw.calc_gemiddeldgetij(
-                                        df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
-                                        freq=pred_freq, nb=2, nf=2, 
-                                        scale_extremes=True, scale_period=False)
-        prediction_av_corr_boi, prediction_sp_corr_boi, prediction_np_corr_boi = kw.calc_gemiddeldgetij(
-                                        df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
-                                        freq=pred_freq, nb=0, nf=10, 
-                                        scale_extremes=True, scale_period=True)
+        gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=None,
+                                                freq=pred_freq, nb=0, nf=0, 
+                                                scale_extremes=False, scale_period=False)
+        gemgetij_corr = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
+                                                 freq=pred_freq, nb=2, nf=2, 
+                                                 scale_extremes=True, scale_period=False)
+        gemgetij_corr_boi = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
+                                                     freq=pred_freq, nb=0, nf=5, 
+                                                     scale_extremes=True, scale_period=True)
 
         # write boi timeseries to csv files # TODO: maybe convert timedeltaIndex to minutes instead?
-        prediction_av_corr_boi.to_csv(os.path.join(dir_gemgetij,f'gemGetijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
-        prediction_sp_corr_boi.to_csv(os.path.join(dir_gemgetij,f'springtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
-        prediction_np_corr_boi.to_csv(os.path.join(dir_gemgetij,f'doodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.csv'),float_format='%.3f',date_format='%Y-%m-%d %H:%M:%S')
+        for key in gemgetij_corr_boi.keys():
+            file_boi_csv = os.path.join(dir_gemgetij, f'Getijkromme_BOI_{key}_{current_station}_slotgem{year_slotgem}.csv')
+            gemgetij_corr_boi[key].to_csv(file_boi_csv, float_format='%.3f')
         
-        # TODO: improve output of kw.calc_gemiddeldgetij() instead
-        gemgetij_dict = {}
-        gemgetij_dict["mean"] = prediction_av_corr
-        gemgetij_dict["spring"] = prediction_sp_corr
-        gemgetij_dict["neap"] = prediction_np_corr
-        gemgetij_raw_dict = {}
-        gemgetij_raw_dict["mean"] = prediction_av_raw
-        gemgetij_raw_dict["spring"] = prediction_sp_raw
-        gemgetij_raw_dict["neap"] = prediction_np_raw
-        gemgetij_boi_dict = {}
-        gemgetij_boi_dict["mean"] = prediction_av_corr_boi
-        gemgetij_boi_dict["spring"] = prediction_sp_corr_boi
-        gemgetij_boi_dict["neap"] = prediction_np_corr_boi
-        
-        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_dict, gemgetij_raw_dict, station=current_station)
-        ax_sum.set_xticks([x*3600e9 for x in range(-15, 25, 5)]) # nanoseconds units # TODO: make multiple of 12
-        ax_sum.set_xlim([x*3600e9 for x in [-15.5,15.5]])
+        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_corr, gemgetij_raw, station=current_station, ticks_12h=True)
         fig_sum.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
         
         print(f'plot BOI figure and compare to KW2020: {current_station}')
-        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict, station=current_station)
-        #TODO: generalize xlim/xticks
-        ax1_boi.set_xticks([x*3600e9 for x in range(0, 6*24, 12)]) # nanoseconds units
-        ax1_boi.set_xlim([x*3600e9 for x in [-2-4, 48-4]]) # TODO: make nicer xrange
+        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_corr_boi, station=current_station, ticks_12h=True)
         
         # plot validation lines if available
         dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
