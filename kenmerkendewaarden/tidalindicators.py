@@ -6,12 +6,15 @@ Computation of tidal indicators from waterlevel extremes or timeseries
 import numpy as np
 import pandas as pd
 import datetime as dt
+import matplotlib.pyplot as plt
 import hatyan
 import logging
 from kenmerkendewaarden.utils import raise_extremes_with_aggers
 
+
 __all__ = ["calc_wltidalindicators",
            "calc_HWLWtidalindicators",
+           "plot_tidalindicators",
            "calc_HWLWtidalrange",
            "calc_hat_lat_fromcomponents",
            ]
@@ -143,6 +146,56 @@ def calc_wltidalindicators(data_wl_pd, min_count=None):
         dict_wltidalindicators[key].index = dict_wltidalindicators[key].index.to_timestamp()
         
     return dict_wltidalindicators
+
+
+def plot_tidalindicators(indicators_wl:dict = None, indicators_ext = None):
+    """
+    plot tidalindicators
+
+    Parameters
+    ----------
+    indicators_wl : dict, optional
+        Dictionary as returned from `kw.calc_wltidalindicators()`. The default is None.
+    indicators_ext : TYPE, optional
+        Dictionary as returned from `kw.calc_HWLWtidalindicators()`. The default is None.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure handle.
+    ax : matplotlib.axes._axes.Axes
+        Figure axis handle.
+
+    """
+        
+    fig, ax = plt.subplots(figsize=(12,6))
+    
+    def plot_pd_series(indicators_dict, ax):
+    
+        for key in indicators_dict.keys():
+            value = indicators_dict[key]
+            if not isinstance(value, pd.Series):
+                continue
+            if key.endswith("peryear"):
+                linestyle = "-"
+            elif key.endswith("permonth"):
+                linestyle = "--"
+            value.plot(ax=ax, label=key, linestyle=linestyle)
+    
+    if indicators_wl is not None:
+        # TODO: maybe add an escape for if the station attr is not present
+        station = indicators_wl['wl_mean_peryear'].attrs["station"]
+        plot_pd_series(indicators_wl, ax)
+    if indicators_ext is not None:
+        # TODO: maybe add an escape for if the station attr is not present
+        station = indicators_ext['HW_mean_peryear'].attrs["station"]
+        plot_pd_series(indicators_ext, ax)
+    
+    ax.grid()
+    ax.legend(loc=1)
+    ax.set_title(f"tidal indicators for {station}")
+    fig.tight_layout()
+    return fig, ax
 
 
 def calc_HWLWtidalrange(ts_ext):

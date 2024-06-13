@@ -122,7 +122,7 @@ def plot_slotgemiddelden(slotgemiddelden_dict:dict, slotgemiddelden_dict_all:dic
     # TODO: maybe add an escape for if the station attr is not present
     station = slotgemiddelden_dict['wl_mean_peryear'].attrs["station"]
     
-    fig,ax = plt.subplots(figsize=(12,6))
+    fig, ax = plt.subplots(figsize=(12,6))
     cmap = plt.get_cmap("tab10")
     
     # plot timeseries of average waterlevels
