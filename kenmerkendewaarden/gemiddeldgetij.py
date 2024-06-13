@@ -7,18 +7,20 @@ import numpy as np
 import pandas as pd
 import hatyan
 import logging
+import matplotlib.pyplot as plt
 from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
 from kenmerkendewaarden.havengetallen import calc_havengetallen
 
-__all__ = ["gemiddeld_getijkromme_av_sp_np",
+__all__ = ["calc_gemiddeldgetij",
+           "plot_gemiddeldgetij",
            ]
 
 logger = logging.getLogger(__name__)
 
 
-def gemiddeld_getijkromme_av_sp_np(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, 
-                             freq: str = "60sec", nb: int = 0, nf: int  = 0, 
-                             scale_extremes: bool = False, scale_period: bool = False, debug: bool = False):
+def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, 
+                        freq: str = "60sec", nb: int = 0, nf: int  = 0, 
+                        scale_extremes: bool = False, scale_period: bool = False, debug: bool = False):
     """
     Generate an average tidal signal for average/spring/neap tide by doing a tidal 
     analysis on a timeseries of measurements. The (subsets/adjusted) resulting tidal components 
@@ -181,6 +183,55 @@ def gemiddeld_getijkromme_av_sp_np(df_meas: pd.DataFrame, df_ext: pd.DataFrame =
     prediction_np = repeat_signal(prediction_np_corr_one, nb=nb, nf=nf)
     
     return prediction_av, prediction_sp, prediction_np
+
+
+def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_raw_dict:dict = None, station:str = None):
+    """
+    Plot gemiddeldgetij.
+
+    Parameters
+    ----------
+    gemgetij_dict : dict
+        dictionary as returned from `kw.calc_gemiddeldgetij()`.
+    gemgetij_raw_dict : dict, optional
+        dictionary as returned from `kw.calc_gemiddeldgetij()` e.g. with uncorrected values. The default is None.
+    station : str, optional
+        station name, used in figure title. The default is None.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure handle.
+    ax : matplotlib.axes._axes.Axes
+        Figure axis handle.
+
+    """
+    # TODO: prevent station argument
+    logger.info(f'plot getijkromme trefHW: {station}')
+    fig, ax = plt.subplots(figsize=(14,7))
+    cmap = plt.get_cmap("tab10")
+    
+    if gemgetij_raw_dict is not None:
+        prediction_av_raw = gemgetij_raw_dict["mean"]
+        prediction_sp_raw = gemgetij_raw_dict["spring"]
+        prediction_np_raw = gemgetij_raw_dict["neap"]
+        prediction_av_raw['values'].plot(ax=ax, linestyle='--', color=cmap(0), linewidth=0.7, label='gemiddeldgetij mean (raw)')
+        prediction_sp_raw['values'].plot(ax=ax, linestyle='--', color=cmap(1), linewidth=0.7, label='gemiddeldgetij spring (raw)')
+        prediction_np_raw['values'].plot(ax=ax, linestyle='--', color=cmap(2), linewidth=0.7, label='gemiddeldgetij neap (raw)')
+    
+    prediction_av_corr = gemgetij_dict["mean"]
+    prediction_sp_corr = gemgetij_dict["spring"]
+    prediction_np_corr = gemgetij_dict["neap"]
+    prediction_av_corr['values'].plot(ax=ax, color=cmap(0), label='gemiddeldgetij mean')
+    prediction_sp_corr['values'].plot(ax=ax, color=cmap(1), label='gemiddeldgetij spring')
+    prediction_np_corr['values'].plot(ax=ax, color=cmap(2), label='gemiddeldgetij neap')
+    
+    ax.set_title(f'getijkrommes for {station}')
+    ax.legend(loc=4)
+    ax.grid()
+    ax.set_xlabel('time since high water')
+    fig.tight_layout()
+    return fig, ax
 
 
 def get_gemgetij_components(data_pd_meas):
