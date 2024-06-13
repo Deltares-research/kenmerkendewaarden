@@ -30,12 +30,14 @@ dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
 # TODO: move to full data folder (otherwise overschrijding and slotgemiddelde is completely wrong)
 # dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
 
-dir_havget = os.path.join(dir_base,f'out_havengetallen_{year_slotgem}')
+dir_indicators = os.path.join(dir_base,f'out_tidalindicators_{year_slotgem}')
 dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
+dir_havget = os.path.join(dir_base,f'out_havengetallen_{year_slotgem}')
 dir_gemgetij = os.path.join(dir_base,f'out_gemgetij_{year_slotgem}')
 dir_overschrijding = os.path.join(dir_base,f'out_overschrijding_{year_slotgem}')
-os.makedirs(dir_havget, exist_ok=True)
+os.makedirs(dir_indicators, exist_ok=True)
 os.makedirs(dir_slotgem, exist_ok=True)
+os.makedirs(dir_havget, exist_ok=True)
 os.makedirs(dir_gemgetij, exist_ok=True)
 os.makedirs(dir_overschrijding, exist_ok=True)
 
@@ -55,6 +57,7 @@ stat_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
 
 nap_correction = False
 
+compute_indicators = True
 compute_slotgem = True
 compute_havengetallen = True
 compute_gemgetij = True
@@ -88,11 +91,23 @@ for current_station in stat_list:
 
 
 
+    #### TIDAL INDICATORS
+    if compute_indicators and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
+        print(f'tidal indicators for {current_station}')
+        # compute and plot tidal indicators
+        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all)
+        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12)
+        fig,ax = kw.plot_tidalindicators(dict_wltidalindicators, dict_HWLWtidalindicators)
+        fig.savefig(os.path.join(dir_indicators,f'tidal_indicators_{current_station}'))
+        
+
+        
     #### SLOTGEMIDDELDEN
     # TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
     # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
-    if compute_slotgem and data_pd_meas_all is not None:
+    if compute_slotgem and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         print(f'slotgemiddelden for {current_station}')
+                
         # compute slotgemiddelden, exclude all values after tstop_dt (is year_slotgem)
         # including years with too little values and years before physical break
         slotgemiddelden_all = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
@@ -131,7 +146,7 @@ for current_station in stat_list:
         
         fig1.savefig(os.path.join(dir_slotgem,f'yearly_values_{current_station}'))
     
-    
+    aa
     
     
     ### HAVENGETALLEN 
@@ -157,7 +172,7 @@ for current_station in stat_list:
     
     
     ##### GEMIDDELDE GETIJKROMMEN
-    if compute_gemgetij and data_pd_meas_all is not None:
+    if compute_gemgetij and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         
         print(f'gem getijkrommen for {current_station}')
         pred_freq = "10s" # frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
