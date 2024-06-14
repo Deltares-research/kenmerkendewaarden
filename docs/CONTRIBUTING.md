@@ -14,7 +14,7 @@
 
 - download and install Anaconda 64 bit from [anaconda.com](https://www.anaconda.com/download/success)
 - open anaconda prompt and navigate to the local checkout folder of the repository
-- ``conda create --name kw_env python=3.11 git spyder -y`` (``git`` and ``spyder``)
+- ``conda create --name kw_env python=3.11 git spyder -y`` (``git`` and ``spyder`` are optional)
 - ``conda activate kw_env``
 - ``python -m pip install -e .[dev,docs,examples]`` (pip developer mode, any updates to the local folder are immediately available in your python. It also installs all requirements via pip, square brackets are to install optional dependency groups)
 - ``conda deactivate``
