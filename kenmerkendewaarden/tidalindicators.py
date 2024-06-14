@@ -23,7 +23,7 @@ __all__ = ["calc_wltidalindicators",
 logger = logging.getLogger(__name__)
 
 
-def calc_HWLWtidalindicators(df_ext, min_count=None):
+def calc_HWLWtidalindicators(df_ext, min_coverage:float = None):
     """
     computes several tidal extreme indicators from tidal extreme dataset
 
@@ -31,8 +31,8 @@ def calc_HWLWtidalindicators(df_ext, min_count=None):
     ----------
     data_pd_HWLW_all : TYPE
         DESCRIPTION.
-    min_count : int
-        The minimum amount of timeseries values per year to consider the statistics to be valid.
+     min_coverage : float, optional
+         The minimum percentage (from 0 to 1) of timeseries coverage to consider the statistics to be valid. The default is None.
 
     Returns
     -------
@@ -50,10 +50,6 @@ def calc_HWLWtidalindicators(df_ext, min_count=None):
     data_pd_HW = df_ext.loc[df_ext['HWLWcode']==1]
     data_pd_LW = df_ext.loc[df_ext['HWLWcode']==2]
     
-    #count HWLW values per year/month
-    HWLW_count_peryear = df_ext.groupby(pd.PeriodIndex(df_ext.index, freq="Y"))['values'].count()
-    HWLW_count_permonth = df_ext.groupby(pd.PeriodIndex(df_ext.index, freq="M"))['values'].count()
-    
     #yearmean HWLW from HWLW values #maybe also add *_mean_permonth
     HW_mean_peryear = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="Y"))[['values']].mean()
     LW_mean_peryear = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="Y"))[['values']].mean()
@@ -65,14 +61,23 @@ def calc_HWLWtidalindicators(df_ext, min_count=None):
     LW_monthmax_permonth = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="M"))[['values']].max() #proxy for LW at neap tide
     
     #replace invalids with nan (in case of too less values per month or year)
-    if min_count is not None:
-        min_count_permonth = min_count/13 #not 13 but 12, to also make the threshold valid in short months
-        HW_mean_peryear.loc[HWLW_count_peryear<min_count] = np.nan
-        LW_mean_peryear.loc[HWLW_count_peryear<min_count] = np.nan
-        HW_monthmax_permonth.loc[HWLW_count_permonth<min_count_permonth] = np.nan
-        LW_monthmin_permonth.loc[HWLW_count_permonth<min_count_permonth] = np.nan
-        HW_monthmin_permonth.loc[HWLW_count_permonth<min_count_permonth] = np.nan
-        LW_monthmax_permonth.loc[HWLW_count_permonth<min_count_permonth] = np.nan
+    if min_coverage is not None:
+        # count timeseries values per year/month (first drop nans)
+        df_ext_nonan = df_ext.loc[~df_ext["values"].isnull()]
+        ext_count_peryear = df_ext_nonan.groupby(pd.PeriodIndex(df_ext_nonan.index, freq="Y"))['values'].count()
+        ext_count_permonth = df_ext_nonan.groupby(pd.PeriodIndex(df_ext_nonan.index, freq="M"))['values'].count()
+        
+        # compute expected counts and multiply with min_coverage to get minimal counts
+        min_count_peryear = compute_expected_counts(df_ext, freq="Y") * min_coverage
+        min_count_permonth = compute_expected_counts(df_ext, freq="M") * min_coverage
+        
+        # set all statistics that were based on too little values to nan
+        HW_mean_peryear.loc[ext_count_peryear<min_count_peryear] = np.nan
+        LW_mean_peryear.loc[ext_count_peryear<min_count_peryear] = np.nan
+        HW_monthmax_permonth.loc[ext_count_permonth<min_count_permonth] = np.nan
+        LW_monthmin_permonth.loc[ext_count_permonth<min_count_permonth] = np.nan
+        HW_monthmin_permonth.loc[ext_count_permonth<min_count_permonth] = np.nan
+        LW_monthmax_permonth.loc[ext_count_permonth<min_count_permonth] = np.nan
     
     #derive GHHW/GHWS (gemiddeld hoogwater springtij)
     HW_monthmax_mean_peryear = HW_monthmax_permonth.groupby(pd.PeriodIndex(HW_monthmax_permonth.index, freq="Y"))[['values']].mean()
@@ -100,7 +105,7 @@ def calc_HWLWtidalindicators(df_ext, min_count=None):
     return dict_HWLWtidalindicators
 
 
-def calc_wltidalindicators(data_wl_pd, min_count=None):
+def calc_wltidalindicators(data_wl_pd, min_coverage:float = None):
     """
     computes monthly and yearly means from waterlevel timeseries
 
@@ -108,8 +113,8 @@ def calc_wltidalindicators(data_wl_pd, min_count=None):
     ----------
     data_wl_pd : TYPE
         DESCRIPTION.
-    min_count : int
-        The minimum amount of timeseries values per year to consider the statistics to be valid.
+    min_coverage : float, optional
+        The minimum percentage (from 0 to 1) of timeseries coverage to consider the statistics to be valid. The default is None.
 
     Returns
     -------
@@ -122,18 +127,23 @@ def calc_wltidalindicators(data_wl_pd, min_count=None):
     if data_wl_pd.index.tz is not None:
         data_wl_pd = data_wl_pd.tz_localize(None)
     
-    #count wl values per year/month
-    wl_count_peryear = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="Y"))['values'].count()
-    wl_count_permonth = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="M"))['values'].count()
-    
-    #yearmean wl from wl values
+    # yearmean wl from wl values
     wl_mean_peryear = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="Y"))[['values']].mean()
     wl_mean_permonth = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="M"))[['values']].mean()
     
-    #replace invalids with nan (in case of too less values per month or year)
-    if min_count is not None:
-        min_count_permonth = min_count/12
-        wl_mean_peryear.loc[wl_count_peryear<min_count] = np.nan
+    # replace invalids with nan (in case of too less values per month or year)
+    if min_coverage is not None:
+        # count timeseries values per year/month (first drop nans)
+        data_wl_pd_nonan = data_wl_pd.loc[~data_wl_pd["values"].isnull()]
+        wl_count_peryear = data_wl_pd_nonan.groupby(pd.PeriodIndex(data_wl_pd_nonan.index, freq="Y"))['values'].count()
+        wl_count_permonth = data_wl_pd_nonan.groupby(pd.PeriodIndex(data_wl_pd_nonan.index, freq="M"))['values'].count()
+        
+        # compute expected counts and multiply with min_coverage to get minimal counts
+        min_count_peryear = compute_expected_counts(data_wl_pd, freq="Y") * min_coverage
+        min_count_permonth = compute_expected_counts(data_wl_pd, freq="M") * min_coverage
+        
+        # set all statistics that were based on too little values to nan
+        wl_mean_peryear.loc[wl_count_peryear<min_count_peryear] = np.nan
         wl_mean_permonth.loc[wl_count_permonth<min_count_permonth] = np.nan
         
     dict_wltidalindicators = {'wl_mean':data_wl_pd['values'].mean(),
@@ -149,6 +159,27 @@ def calc_wltidalindicators(data_wl_pd, min_count=None):
     return dict_wltidalindicators
 
 
+def compute_expected_counts(df_meas, freq):
+    """
+    Compute the expected number of values for all years/months in a timeseries index,
+    by taking the number of days for each year/month and dividing it by the median frequency in that period.
+    """
+    # TODO: beware of series with e.g. only first and last value of month, this will result in freq=30days and then expected count of 1, it will pass even if there is almost no data
+    df_meas = df_meas.copy()
+    df_meas["timediff"] = df_meas.index.diff() # TODO: not supported by pandas<2.2.0: https://github.com/Deltares-research/kenmerkendewaarden/blob/d7f8f5f3f915dd897e9aa037fad67e1920ff5cbf/kenmerkendewaarden/data_analysis.py#L152
+    period_index = pd.PeriodIndex(df_meas.index, freq=freq)
+    median_freq = df_meas.groupby(period_index)['timediff'].median()
+    if freq=="Y":
+        days_inperiod = median_freq.index.dayofyear
+    elif freq=="M":
+        days_inperiod = median_freq.index.daysinmonth
+    else:
+        raise ValueError(f"invalid freq: '{freq}'")
+    days_inperiod_td = pd.to_timedelta(days_inperiod, unit='D')
+    expected_count = days_inperiod_td / median_freq
+    return expected_count
+
+
 def plot_pd_series(indicators_dict, ax):
     for key in indicators_dict.keys():
         value = indicators_dict[key]
@@ -158,7 +189,7 @@ def plot_pd_series(indicators_dict, ax):
             linestyle = "-"
         elif key.endswith("permonth"):
             linestyle = "--"
-        value.plot(ax=ax, label=key, linestyle=linestyle)
+        value.plot(ax=ax, label=key, linestyle=linestyle, markerstyle='.')
         xmin = value.index.min()
         xmax = value.index.max()
     
