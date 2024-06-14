@@ -79,14 +79,7 @@ for current_station in stat_list:
         data_pd_HWLW_all_12 = hatyan.calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
         #crop timeseries to 10y
         data_pd_HWLW_10y_12 = hatyan.crop_timeseries(data_pd_HWLW_all_12, times=slice(tstart_dt,tstop_dt),onlyfull=False)
-        
-        #check if amount of HWs is enough
-        M2_period_timedelta = pd.Timedelta(hours=hatyan.schureman.get_schureman_freqs(['M2']).loc['M2','period [hr]'])
-        numHWs_expected = (tstop_dt-tstart_dt).total_seconds()/M2_period_timedelta.total_seconds()
-        numHWs = (data_pd_HWLW_10y_12['HWLWcode']==1).sum()
-        if numHWs < 0.95*numHWs_expected:
-            raise Exception(f'ERROR: not enough high waters present in period, {numHWs} instead of >=0.95*{int(numHWs_expected):d}')
-
+    
 
 
     #### TIDAL INDICATORS
