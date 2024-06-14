@@ -288,7 +288,7 @@ def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> tuple:
     
     # TODO: fu_alltimes=False makes the process significantly faster (default is True)
     # TODO: xfac actually varies between stations (default is False), but different xfac has only very limited impact on the resulting hat/lat values
-    comp_avg, comp_all = hatyan.analysis(df_meas_19y, const_list="year", analysis_perperiod="Y", return_allperiods=True, fu_alltimes=False)
+    _, comp_all = hatyan.analysis(df_meas_19y, const_list="year", analysis_perperiod="Y", return_allperiods=True, fu_alltimes=False)
     
     # TODO: a frequency of 1min is better in theory, but 10min is faster and hat/lat values differ only 2mm for HOEKVHLD
     df_pred = hatyan.prediction(comp_all, timestep="10min")
