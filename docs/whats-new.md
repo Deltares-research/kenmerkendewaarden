@@ -17,6 +17,9 @@
 - clipping of timeseries on physical breaks with `kw.data_retrieve.clip_timeseries_physical_break()` (private) in [#61](https://github.com/Deltares-research/kenmerkendewaarden/pull/61) and [#64](https://github.com/Deltares-research/kenmerkendewaarden/pull/64)
 - added dedicated plotting functions in [#64](https://github.com/Deltares-research/kenmerkendewaarden/pull/64), [#66](https://github.com/Deltares-research/kenmerkendewaarden/pull/66) and [#68](https://github.com/Deltares-research/kenmerkendewaarden/pull/68)
 
+### Fix
+- implemented workaround for pandas 2.2.0 with different rounding behaviour in [#69](https://github.com/Deltares-research/kenmerkendewaarden/pull/69)
+
 
 ## 0.1.0 (2024-03-11)
 This is the set of kenmerkende waarden kust scripts and functions as transfered from hatyan and how they were applied in the kwk-2022 project.
