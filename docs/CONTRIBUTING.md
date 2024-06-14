@@ -23,7 +23,7 @@
 ## Contributing
 
 - open an existing issue or create a new issue at https://github.com/Deltares/kenmerkendewaarden/issues
-- create a branch via ``Development`` on the right. This branch is now linked to the issue and the issue will be closed once the branch is merged with main again
+- create a branch via ``Development`` on the right. This branch is now linked to the issue and the issue will be closed once the branch is merged with main again via a PR.
 - open git bash window in the local checkout folder of the repository
 - ``git fetch origin`` followed by ``git checkout [branchname]``
 - make your local changes to the code (including docstrings and unittests for functions), after each subtask do ``git commit -am 'description of what you did'`` (``-am`` adds all changed files to the commit)
@@ -31,8 +31,12 @@
 - ``git push`` to push your committed changes your branch on github
 - open a pull request at the branch on github, there you can see what you just pushed and the automated checks will show up (testbank and code quality analysis).
 - optionally make additional local changes (+commit+push) untill you are done with the issue and the automated checks have passed
+- update/add the docstring if you work on public functions, it will end up in the html documentation
+- add tests to make sure your code does what you expect, this is automatically tested on github for several python/package versions.
+- check if there are no conflics, this can often be avoided by working in not too many files at the same time, so by making issues+PRs of each significant subtask.
+- update ``docs/whats-new.md`` if there are any changes that are relevant to users (added features or bug fixes)
 - request a review on the pull request
-- after review, squash+merge the branch into main
+- after review, squash+merge the branch into main (with cleaned up commit messages)
 
 ## Running the testbank
 
