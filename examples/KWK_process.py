@@ -93,8 +93,8 @@ for current_station in stat_list:
     if compute_indicators and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         print(f'tidal indicators for {current_station}')
         # compute and plot tidal indicators
-        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all)
-        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12)
+        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all, min_coverage=1)
+        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12, min_coverage=1)
         
         # add hat/lat
         df_meas_19y = data_pd_meas_all.loc["2001":"2019"]

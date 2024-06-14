@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None, 
-                         only_valid: pd.Timestamp = False, clip_physical_break: bool = False, 
+                         min_coverage:float = None, clip_physical_break: bool = False, 
                          with_nodal: bool = True):
     """
     Compute slotgemiddelden from measurement timeseries and optionally also from extremes timeseries.
@@ -30,8 +30,8 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
         the timeseries of measured waterlevels.
     df_ext : pd.DataFrame, optional
         the timeseries of extremes (high and low waters). The default is None.
-    only_valid : pd.Timestamp, optional
-        Whether to set yearly means to nans for years that do not have sufficient data coverage. The default is False.
+    min_coverage : float, optional
+        Set yearly means to nans for years that do not have sufficient data coverage. The default is None.
     clip_physical_break : bool, optional
         Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
     with_nodal : bool, optional
@@ -44,13 +44,6 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
 
     """
     # TODO: assert if station of both timeseries is the same (if df_ext is present)
-    # TODO: prevent hardcoded min_count argument for tidalindicators functions: https://github.com/Deltares-research/kenmerkendewaarden/issues/58
-    if only_valid:
-        min_count_ext = 1400 # 2*24*365/12.42=1410.6 (12.42 hourly extreme)
-        min_count_wl = 2900 # 24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
-    else:
-        min_count_ext = None
-        min_count_wl = None
     
     # initialize dict
     slotgemiddelden_dict = {}
@@ -60,7 +53,7 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
         df_meas = df_meas.iloc[:-1]
     
     # calculate yearly means
-    dict_wltidalindicators = calc_wltidalindicators(df_meas, min_count=min_count_wl)
+    dict_wltidalindicators = calc_wltidalindicators(df_meas, min_coverage=min_coverage)
     wl_mean_peryear = dict_wltidalindicators['wl_mean_peryear']
     slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
     
@@ -78,7 +71,7 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
             df_ext = df_ext.iloc[:-1]
         
         # calculate yearly means
-        dict_HWLWtidalindicators = calc_HWLWtidalindicators(df_ext, min_count=min_count_ext)
+        dict_HWLWtidalindicators = calc_HWLWtidalindicators(df_ext, min_coverage=min_coverage)
         HW_mean_peryear = dict_HWLWtidalindicators['HW_mean_peryear']
         LW_mean_peryear = dict_HWLWtidalindicators['LW_mean_peryear']
         slotgemiddelden_dict["HW_mean_peryear"] = HW_mean_peryear

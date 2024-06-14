@@ -62,6 +62,7 @@ def calc_HWLWtidalindicators(df_ext, min_coverage:float = None):
     
     #replace invalids with nan (in case of too less values per month or year)
     if min_coverage is not None:
+        assert 0 <= min_coverage <= 1
         # count timeseries values per year/month (first drop nans)
         df_ext_nonan = df_ext.loc[~df_ext["values"].isnull()]
         ext_count_peryear = df_ext_nonan.groupby(pd.PeriodIndex(df_ext_nonan.index, freq="Y"))['values'].count()
@@ -133,6 +134,7 @@ def calc_wltidalindicators(data_wl_pd, min_coverage:float = None):
     
     # replace invalids with nan (in case of too less values per month or year)
     if min_coverage is not None:
+        assert 0 <= min_coverage <= 1
         # count timeseries values per year/month (first drop nans)
         data_wl_pd_nonan = data_wl_pd.loc[~data_wl_pd["values"].isnull()]
         wl_count_peryear = data_wl_pd_nonan.groupby(pd.PeriodIndex(data_wl_pd_nonan.index, freq="Y"))['values'].count()
