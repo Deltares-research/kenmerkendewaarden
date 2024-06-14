@@ -98,7 +98,7 @@ for current_station in stat_list:
         
         # add hat/lat
         df_meas_19y = data_pd_meas_all.loc["2001":"2019"]
-        hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_19y, freq="10min")
+        hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_19y)
         dict_HWLWtidalindicators["hat"] = hat
         dict_HWLWtidalindicators["lat"] = lat
         

@@ -223,10 +223,10 @@ def calc_HWLWtidalrange(ts_ext):
     return ts_ext
 
 
-def calc_hat_lat_fromcomponents(comp: pd.DataFrame, freq:str = "10min") -> tuple:
+def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     """
     Derive highest and lowest astronomical tide (HAT/LAT) from a component set.
-    The component set is used to make a tidal prediction for an arbitrary period of 19 years with a 10 minute interval by default. 
+    The component set is used to make a tidal prediction for an arbitrary period of 19 years with a 10 minute interval. 
     The max/min values of the predictions of all years are the HAT/LAT values.
     The HAT/LAT is very dependent on the A0 of the component set. Therefore, the HAT/LAT values are 
     relevant for the same year as the slotgemiddelde that is used to replace A0 in the component set. 
@@ -237,8 +237,6 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame, freq:str = "10min") -> tuple
     ----------
     comp : pd.DataFrame
         DESCRIPTION.
-    freq : str, optional
-        Frequency/timestep of the prediction timeseries, this has some impact on the results. The default is "10min".
 
     Returns
     -------
@@ -251,7 +249,7 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame, freq:str = "10min") -> tuple
     max_vallist_allyears = pd.Series(dtype=float)
     logger.info("generating prediction for 19 years")
     for year in range(2020,2039): # 19 arbitrary consequtive years to capture entire nodal cycle
-        times_pred_all = pd.date_range(start=dt.datetime(year,1,1), end=dt.datetime(year+1,1,1), freq=freq)
+        times_pred_all = pd.date_range(start=dt.datetime(year,1,1), end=dt.datetime(year+1,1,1), freq="10min")
         ts_prediction = hatyan.prediction(comp=comp, times=times_pred_all)
         
         min_vallist_allyears.loc[year] = ts_prediction['values'].min()
@@ -263,11 +261,11 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame, freq:str = "10min") -> tuple
     return hat, lat
 
 
-def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame, freq:str = "10min") -> tuple:
+def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> tuple:
     """
     Derive highest and lowest astronomical tide (HAT/LAT) from a measurement timeseries of 19 years.
     Tidal components are derived for each year of the measurement timeseries.
-    The resulting component sets are used to make a tidal prediction each year of the measurement timeseries. 
+    The resulting component sets are used to make a tidal prediction each year of the measurement timeseries with a 10 minute interval. 
     The max/min values of the predictions of all years are the HAT/LAT values.
     The HAT/LAT is very dependent on the A0 of the component sets. Therefore, the HAT/LAT values are 
     relevant for the same period as the measurement timeseries. 
@@ -276,8 +274,6 @@ def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame, freq:str = "10min")
     ----------
     df_meas_19y : pd.DataFrame
         Measurements timeseries of 19 years.
-    freq : str, optional
-        Frequency/timestep of the prediction timeseries, this has some impact on the results. The default is "10min".
 
     Returns
     -------
@@ -295,7 +291,7 @@ def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame, freq:str = "10min")
     comp_avg, comp_all = hatyan.analysis(df_meas_19y, const_list="year", analysis_perperiod="Y", return_allperiods=True, fu_alltimes=False)
     
     # TODO: a frequency of 1min is better in theory, but 10min is faster and hat/lat values differ only 2mm for HOEKVHLD
-    df_pred = hatyan.prediction(comp_all, timestep=freq)
+    df_pred = hatyan.prediction(comp_all, timestep="10min")
     
     lat = df_pred["values"].min()
     hat = df_pred["values"].max()
