@@ -120,7 +120,6 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
     dummy,shallowrel,dummy = hatyan.foreman.get_foreman_shallowrelations()
     bool_M2S2only = shallowrel[1].isin([1,2]) & shallowrel[3].isin(['M2','S2']) & shallowrel[5].isin(['M2','S2',np.nan]) & shallowrel.index.isin(const_list_year)
     shallowdeps_M2S2 = shallowrel.loc[bool_M2S2only,:5]
-    print(shallowdeps_M2S2)
     """
     components_sn = ['A0','SM','3MS2','MU2','M2','S2','2SM2','3MS4','M4','MS4','4MS6','M6','2MS6','M8','3MS8','M10','4MS10','M12','5MS12']
     
