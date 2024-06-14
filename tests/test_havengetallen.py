@@ -8,17 +8,38 @@ import numpy as np
 @pytest.mark.unittest
 def test_havengetallen(df_ext_12_2010):
     df_havengetallen, data_pd_hwlw = kw.calc_havengetallen(df_ext=df_ext_12_2010, return_df_ext=True)
+    
+    # check if all expected columns are present
     df_columns = ['HW_values_median', 'HW_delay_median', 'LW_values_median',
            'LW_delay_median', 'tijverschil', 'getijperiod_median',
            'duurdaling_median']
     assert set(df_havengetallen.columns) == set(df_columns)
+    
+    # check if mean row is present
+    assert len(df_havengetallen.index) == 13
+    assert "mean" in df_havengetallen.index
+    
+    # check if extremes dataframe length has not changed
+    assert len(data_pd_hwlw) == len(df_ext_12_2010)
     
     # assert the havengetallen values
     hw_values_median = df_havengetallen["HW_values_median"].values
     hw_values_median_expected = np.array([1.345, 1.31 , 1.225, 1.17 , 1.04 , 0.925, 0.865, 0.9  , 1.045,
            1.135, 1.25 , 1.35 , 1.13 ])
     assert np.allclose(hw_values_median, hw_values_median_expected)
-    assert len(data_pd_hwlw) == len(df_ext_12_2010)
+    
+    # test time delays
+    hw_delay_median = df_havengetallen["HW_delay_median"].values.astype(float)
+    hw_delay_median_expected = np.array([5697000000000, 4763000000000, 3792000000000, 3230000000000,
+           2985000000000, 3729000000000, 5722000000000, 7830000000000,
+           8335000000000, 7995000000000, 7501000000000, 6628000000000,
+           5684000000000]) #nanoseconds representation
+    assert np.allclose(hw_delay_median, hw_delay_median_expected)
+    
+    # test time rounding to seconds
+    for colname in df_havengetallen.columns: #round timedelta to make outputformat nicer
+        if df_havengetallen[colname].dtype == 'timedelta64[ns]':
+            assert(df_havengetallen[colname].dt.nanoseconds == 0).all()
 
 
 @pytest.mark.unittest

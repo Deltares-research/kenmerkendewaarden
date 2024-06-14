@@ -110,17 +110,19 @@ def calc_HWLW_culmhr_summary(data_pd_HWLW):
     
     HWLW_culmhr_summary = pd.DataFrame()
     HWLW_culmhr_summary['HW_values_median'] = data_pd_HW.groupby(data_pd_HW['culm_hr'])['values'].median()
-    HWLW_culmhr_summary['HW_delay_median'] = data_pd_HW.groupby(data_pd_HW['culm_hr'])['HWLW_delay'].median().round('S')
+    HWLW_culmhr_summary['HW_delay_median'] = data_pd_HW.groupby(data_pd_HW['culm_hr'])['HWLW_delay'].median()
     HWLW_culmhr_summary['LW_values_median'] = data_pd_LW.groupby(data_pd_LW['culm_hr'])['values'].median()
-    HWLW_culmhr_summary['LW_delay_median'] = data_pd_LW.groupby(data_pd_LW['culm_hr'])['HWLW_delay'].median().round('S')
+    HWLW_culmhr_summary['LW_delay_median'] = data_pd_LW.groupby(data_pd_LW['culm_hr'])['HWLW_delay'].median()
     HWLW_culmhr_summary['tijverschil'] = HWLW_culmhr_summary['HW_values_median'] - HWLW_culmhr_summary['LW_values_median']
-    HWLW_culmhr_summary['getijperiod_median'] = data_pd_HW.groupby(data_pd_HW['culm_hr'])['getijperiod'].median().round('S')
-    HWLW_culmhr_summary['duurdaling_median'] = data_pd_HW.groupby(data_pd_HW['culm_hr'])['duurdaling'].median().round('S')
+    HWLW_culmhr_summary['getijperiod_median'] = data_pd_HW.groupby(data_pd_HW['culm_hr'])['getijperiod'].median()
+    HWLW_culmhr_summary['duurdaling_median'] = data_pd_HW.groupby(data_pd_HW['culm_hr'])['duurdaling'].median()
     
     HWLW_culmhr_summary.loc['mean',:] = HWLW_culmhr_summary.mean() #add mean row to dataframe (not convenient to add immediately due to plotting with index 0-11)
-    for colname in HWLW_culmhr_summary.columns: #round timedelta to make outputformat nicer
+    
+    # round all timedeltas to seconds to make outputformat nicer
+    for colname in HWLW_culmhr_summary.columns:
         if HWLW_culmhr_summary[colname].dtype == 'timedelta64[ns]':
-            HWLW_culmhr_summary[colname] = HWLW_culmhr_summary[colname].round('S')
+            HWLW_culmhr_summary[colname] = HWLW_culmhr_summary[colname].dt.round('s')
 
     return HWLW_culmhr_summary
 
