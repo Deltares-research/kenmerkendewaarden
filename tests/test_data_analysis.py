@@ -52,9 +52,9 @@ def test_derive_statistics(dir_meas, extremes):
 @pytest.mark.timeout(120) # useful in case of ddl failure
 @pytest.mark.unittest
 @pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
-def test_df_amount_pcolormesh(dir_meas_amount, extremes):
+def test_plot_measurements_amount(dir_meas_amount, extremes):
     df_amount = kw.read_measurements_amount(dir_output=dir_meas_amount, extremes=extremes)
-    kw.df_amount_pcolormesh(df=df_amount, relative=True)
+    kw.plot_measurements_amount(df=df_amount, relative=True)
 
 
 @pytest.mark.unittest
