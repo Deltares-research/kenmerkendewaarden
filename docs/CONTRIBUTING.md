@@ -20,7 +20,7 @@
 - ``conda deactivate``
 - to remove the environment when necessary: ``conda remove -n kw_env --all``
 
-## Contributing
+## Add your contributions
 
 - open an existing issue or create a new issue at https://github.com/Deltares/kenmerkendewaarden/issues
 - create a branch via ``Development`` on the right. This branch is now linked to the issue and the issue will be closed once the branch is merged with main again via a PR.
