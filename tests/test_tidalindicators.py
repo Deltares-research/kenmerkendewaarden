@@ -129,7 +129,7 @@ def test_calc_hat_lat_frommeasurements(df_meas):
 @pytest.mark.unittest
 def test_calc_hat_lat_frommeasurements_tooshortperiod(df_meas_2010_2014):
     with pytest.raises(ValueError) as e:
-        hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_2010_2014)
+        kw.calc_hat_lat_frommeasurements(df_meas_2010_2014)
     assert "please provide a timeseries of 19 years instead of 5 years" in str(e.value)
 
 
