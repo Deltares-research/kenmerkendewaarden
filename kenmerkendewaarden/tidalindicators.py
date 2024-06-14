@@ -189,7 +189,7 @@ def plot_pd_series(indicators_dict, ax):
             linestyle = "-"
         elif key.endswith("permonth"):
             linestyle = "--"
-        value.plot(ax=ax, label=key, linestyle=linestyle, markerstyle='.')
+        value.plot(ax=ax, label=key, linestyle=linestyle, marker='.')
         xmin = value.index.min()
         xmax = value.index.max()
     
