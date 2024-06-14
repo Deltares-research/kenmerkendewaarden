@@ -71,8 +71,8 @@ def plot_measurements(df, df_ext=None):
         data_pd_LW = df_ext.loc[df_ext['HWLWcode'].isin([2,3,5])]
         
         # calculate monthly/yearly mean for meas ext data
-        HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="y"))['values'].mean()
-        LW_mean_peryear_long = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="y"))['values'].mean()
+        HW_mean_peryear_long = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="Y"))['values'].mean()
+        LW_mean_peryear_long = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="Y"))['values'].mean()
         
         ax1.plot(HW_mean_peryear_long,'m',linewidth=0.7, label=None)
         ax1.plot(LW_mean_peryear_long,'m',linewidth=0.7, label=None)
