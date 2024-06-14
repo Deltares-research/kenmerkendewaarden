@@ -8,9 +8,7 @@ plt.close('all')
 import kenmerkendewaarden as kw
 
 # set logging level to INFO to get log messages
-# calling basicConfig is essential to set logging level of single module, format is optional
 import logging
-logging.basicConfig(format='%(message)s')
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 

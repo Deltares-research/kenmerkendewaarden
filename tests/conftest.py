@@ -6,7 +6,6 @@ import hatyan
 import pandas as pd
 import kenmerkendewaarden as kw
 import logging
-logging.basicConfig(format='%(message)s')
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 dir_tests = os.path.dirname(__file__) #F9 doesnt work, only F5 (F5 also only method to reload external definition scripts)
