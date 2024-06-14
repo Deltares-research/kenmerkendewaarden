@@ -199,6 +199,8 @@ for current_station in stat_list:
         fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, station=current_station, tick_hours=12)
         
         # plot validation lines if available
+        # TODO: these index of this line is converted from datetimes to timedeltas to get it in the same plot
+        # TODO: the validation tidal signals are not 12h25m, which is incorrect in case of BOI. We can still compare the shape a bit
         dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
         file_vali_doodtijkromme = os.path.join(dir_vali_krommen,f'doodtijkromme_{current_station}_havengetallen{year_slotgem}.csv')
         file_vali_gemtijkromme = os.path.join(dir_vali_krommen,f'gemGetijkromme_{current_station}_havengetallen{year_slotgem}.csv')
@@ -206,13 +208,17 @@ for current_station in stat_list:
         cmap = plt.get_cmap("tab10")
         if os.path.exists(file_vali_gemtijkromme):
             data_vali_gemtij = pd.read_csv(file_vali_gemtijkromme,index_col=0,parse_dates=True)
+            data_vali_gemtij.index = data_vali_gemtij.index - data_vali_gemtij.index[0]
             ax1_boi.plot(data_vali_gemtij['Water Level [m]'],'--',color=cmap(0),linewidth=0.7,label='validation KW2020 gemtij')
         if os.path.exists(file_vali_springtijkromme):
             data_vali_springtij = pd.read_csv(file_vali_springtijkromme,index_col=0,parse_dates=True)
+            data_vali_springtij.index = data_vali_springtij.index - data_vali_springtij.index[0]
             ax1_boi.plot(data_vali_springtij['Water Level [m]'],'--',color=cmap(1),linewidth=0.7,label='validation KW2020 springtij')
         if os.path.exists(file_vali_doodtijkromme):
             data_vali_doodtij = pd.read_csv(file_vali_doodtijkromme,index_col=0,parse_dates=True)
+            data_vali_doodtij.index = data_vali_doodtij.index - data_vali_doodtij.index[0]
             ax1_boi.plot(data_vali_doodtij['Water Level [m]'],'--',color=cmap(2),linewidth=0.7, label='validation KW2020 doodtij')
+        ax1_boi.legend(loc=4)
         
         fig_boi.savefig(os.path.join(dir_gemgetij,f'gemspringdoodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.png'))
     
