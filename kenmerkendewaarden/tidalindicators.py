@@ -149,6 +149,27 @@ def calc_wltidalindicators(data_wl_pd, min_count=None):
     return dict_wltidalindicators
 
 
+def plot_pd_series(indicators_dict, ax):
+    for key in indicators_dict.keys():
+        value = indicators_dict[key]
+        if not isinstance(value, pd.Series):
+            continue
+        if key.endswith("peryear"):
+            linestyle = "-"
+        elif key.endswith("permonth"):
+            linestyle = "--"
+        value.plot(ax=ax, label=key, linestyle=linestyle)
+        xmin = value.index.min()
+        xmax = value.index.max()
+    
+    # separate loop for floats to make sure the xlim is already correct
+    for key in indicators_dict.keys():
+        value = indicators_dict[key]
+        if not isinstance(value, float):
+            continue
+        ax.hlines(value, xmin, xmax, linestyle="--", color="k", label=key, zorder=1)
+
+
 def plot_tidalindicators(indicators_wl:dict = None, indicators_ext = None):
     """
     plot tidalindicators
@@ -170,28 +191,7 @@ def plot_tidalindicators(indicators_wl:dict = None, indicators_ext = None):
     """
         
     fig, ax = plt.subplots(figsize=(12,6))
-    
-    def plot_pd_series(indicators_dict, ax):
-    
-        for key in indicators_dict.keys():
-            value = indicators_dict[key]
-            if not isinstance(value, pd.Series):
-                continue
-            if key.endswith("peryear"):
-                linestyle = "-"
-            elif key.endswith("permonth"):
-                linestyle = "--"
-            value.plot(ax=ax, label=key, linestyle=linestyle)
-            xmin = value.index.min()
-            xmax = value.index.max()
         
-        # separate loop for floats to make sure the xlim is already correct
-        for key in indicators_dict.keys():
-            value = indicators_dict[key]
-            if not isinstance(value, float):
-                continue
-            ax.hlines(value, xmin, xmax, linestyle="--", color="k", label=key, zorder=1)
-    
     if indicators_wl is not None:
         # TODO: maybe add an escape for if the station attr is not present
         station = indicators_wl['wl_mean_peryear'].attrs["station"]
