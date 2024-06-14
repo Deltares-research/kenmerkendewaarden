@@ -182,6 +182,15 @@ def plot_tidalindicators(indicators_wl:dict = None, indicators_ext = None):
             elif key.endswith("permonth"):
                 linestyle = "--"
             value.plot(ax=ax, label=key, linestyle=linestyle)
+            xmin = value.index.min()
+            xmax = value.index.max()
+        
+        # separate loop for floats to make sure the xlim is already correct
+        for key in indicators_dict.keys():
+            value = indicators_dict[key]
+            if not isinstance(value, float):
+                continue
+            ax.hlines(value, xmin, xmax, linestyle="--", color="k", label=key, zorder=1)
     
     if indicators_wl is not None:
         # TODO: maybe add an escape for if the station attr is not present
