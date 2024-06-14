@@ -95,7 +95,7 @@ def calc_HWLW_moonculm_combi(data_pd_HWLW_12,culm_addtime=None):
     data_pd_HWLW_idxHWLWno.loc[HW_bool,'getijperiod'] = data_pd_HWLW_idxHWLWno.loc[HW_bool,'times'].iloc[1:].values - data_pd_HWLW_idxHWLWno.loc[HW_bool,'times'].iloc[:-1] #this works properly since index is HWLW
     data_pd_HWLW_idxHWLWno.loc[HW_bool,'duurdaling'] = data_pd_HWLW_idxHWLWno.loc[~HW_bool,'times'] - data_pd_HWLW_idxHWLWno.loc[HW_bool,'times']
     data_pd_HWLW_idxHWLWno['culm_time'] = moonculm_idxHWLWno['datetime'] #couple HWLW to moonculminations two days earlier (this works since index is HWLWno)
-    data_pd_HWLW_idxHWLWno['culm_hr'] = (data_pd_HWLW_idxHWLWno['culm_time'].round('h').dt.hour)%12
+    data_pd_HWLW_idxHWLWno['culm_hr'] = (data_pd_HWLW_idxHWLWno['culm_time'].dt.round('h').dt.hour)%12
     data_pd_HWLW_idxHWLWno['HWLW_delay'] = data_pd_HWLW_idxHWLWno['times'] - data_pd_HWLW_idxHWLWno['culm_time']
     if culm_addtime is not None:
         data_pd_HWLW_idxHWLWno['HWLW_delay'] -= culm_addtime
