@@ -80,6 +80,14 @@ def calc_HWLWtidalindicators(df_ext, min_coverage:float = None):
         HW_monthmin_permonth.loc[ext_count_permonth<min_count_permonth] = np.nan
         LW_monthmax_permonth.loc[ext_count_permonth<min_count_permonth] = np.nan
     
+    # make periodindex in all dataframes/series contiguous
+    HW_mean_peryear = make_periodindex_contiguous(HW_mean_peryear)
+    LW_mean_peryear = make_periodindex_contiguous(LW_mean_peryear)
+    HW_monthmax_permonth = make_periodindex_contiguous(HW_monthmax_permonth)
+    LW_monthmin_permonth = make_periodindex_contiguous(LW_monthmin_permonth)
+    HW_monthmin_permonth = make_periodindex_contiguous(HW_monthmin_permonth)
+    LW_monthmax_permonth = make_periodindex_contiguous(LW_monthmax_permonth)
+    
     #derive GHHW/GHWS (gemiddeld hoogwater springtij)
     HW_monthmax_mean_peryear = HW_monthmax_permonth.groupby(pd.PeriodIndex(HW_monthmax_permonth.index, freq="Y"))[['values']].mean()
     LW_monthmin_mean_peryear = LW_monthmin_permonth.groupby(pd.PeriodIndex(LW_monthmin_permonth.index, freq="Y"))[['values']].mean()
@@ -142,13 +150,30 @@ def calc_wltidalindicators(data_wl_pd, min_coverage:float = None):
         # set all statistics that were based on too little values to nan
         wl_mean_peryear.loc[wl_count_peryear<min_count_peryear] = np.nan
         wl_mean_permonth.loc[wl_count_permonth<min_count_permonth] = np.nan
-        
+    
+    # make periodindex in all dataframes/series contiguous
+    wl_mean_peryear = make_periodindex_contiguous(wl_mean_peryear)
+    wl_mean_permonth = make_periodindex_contiguous(wl_mean_permonth)
+
     dict_wltidalindicators = {'wl_mean':data_wl_pd['values'].mean(),
                               'wl_mean_peryear':wl_mean_peryear['values'], #yearly mean wl
                               'wl_mean_permonth':wl_mean_permonth['values'], #monthly mean wl
                               }
 
     return dict_wltidalindicators
+
+
+def make_periodindex_contiguous(df):
+    assert isinstance(df.index, pd.PeriodIndex)
+    period_index_full = pd.period_range(df.index.min(), df.index.max(), freq=df.index.freq)
+    if isinstance(df, pd.Series):
+        df_full = pd.Series(df, index=period_index_full)
+    elif isinstance(df, pd.DataFrame):
+        df_full = pd.DataFrame(df, index=period_index_full)
+    
+    # add attrs from input dataframe
+    df_full.attrs = df.attrs
+    return df_full
 
 
 def compute_expected_counts(df_meas, freq):
