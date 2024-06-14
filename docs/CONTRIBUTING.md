@@ -5,16 +5,16 @@
 - this is just a suggestion, feel free to work with VScode or any other git-compatible workflow
 - download git from [git-scm.com](https://git-scm.com/download/win), install with default settings
 - open git bash window where you want to clone the github repository (e.g. ``C:\DATA\``)
-- git clone https://github.com/deltares/kenmerkendewaarden (creates a local clone of the repository in a folder called kenmerkendewaarden)
+- ``git clone https://github.com/deltares-research/kenmerkendewaarden`` (creates a local clone of the repository in a folder called kenmerkendewaarden)
 - ``cd kenmerkendewaarden``
 - optional: ``git config --global user.email [emailaddress]``
 - optional: ``git config --global user.name [username]``
 
 ## Setup local developer environment
 
-- download and install Anaconda 64 bit Python 3.9 (or higher) from [anaconda.com](https://www.anaconda.com/distribution/#download-section) (miniconda should also be sufficient, but this is not yet tested). Install it with the recommended settings.
+- download and install Anaconda 64 bit from [anaconda.com](https://www.anaconda.com/download/success)
 - open anaconda prompt and navigate to the local checkout folder of the repository
-- ``conda create --name kw_env python=3.8.13 git spyder -y`` (``git`` and ``spyder``, python version should be the one at HMC)
+- ``conda create --name kw_env python=3.11 git spyder -y`` (``git`` and ``spyder``)
 - ``conda activate kw_env``
 - ``python -m pip install -e .[dev,docs,examples]`` (pip developer mode, any updates to the local folder are immediately available in your python. It also installs all requirements via pip, square brackets are to install optional dependency groups)
 - ``conda deactivate``
