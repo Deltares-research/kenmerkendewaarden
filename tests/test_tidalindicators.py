@@ -43,9 +43,20 @@ def test_calc_HWLWtidalindicators(df_meas_2010_2014):
 
 
 @pytest.mark.unittest
-def test_calc_HWLWtidalindicators_mincount(df_meas_2010_2014):
-    wl_stats = kw.calc_wltidalindicators(df_meas_2010_2014, min_count=52561)
-    assert wl_stats['wl_mean_peryear'].isnull().sum() == 4
+def test_calc_wltidalindicators_mincount(df_meas_2010_2014):
+    df_meas_withgap = df_meas_2010_2014.copy() # copy to prevent altering the original dataset
+    df_meas_withgap.loc["2012-01-01":"2012-01-15", "values"] = np.nan
+    df_meas_withgap.loc["2012-01-01":"2012-01-15", "qualitycode"] = 99
+    
+    # create dataset with a gap
+    slotgemiddelden_dict_nogap = kw.calc_wltidalindicators(df_meas_2010_2014, min_coverage=1)
+    slotgemiddelden_dict_withgap = kw.calc_wltidalindicators(df_meas_withgap, min_coverage=1)
+    slotgemiddelden_dict_withgap_lower_threshold = kw.calc_wltidalindicators(df_meas_withgap, min_coverage=0.95)
+    
+    # TODO: value to be updated, but should contain at least one nan value
+    assert slotgemiddelden_dict_nogap["wl_mean_peryear"].isnull().sum() == 0
+    assert slotgemiddelden_dict_withgap["wl_mean_peryear"].isnull().sum() == 1
+    assert slotgemiddelden_dict_withgap_lower_threshold["wl_mean_peryear"].isnull().sum() == 0
 
 
 @pytest.mark.unittest
@@ -94,12 +105,6 @@ def test_calc_wltidalindicators(df_ext_12_2010_2014):
     assert np.allclose(ext_stats['HW_monthmin_mean_peryear'].values, hw_monthmin_mean_peryear_expected)
     assert np.allclose(ext_stats['LW_monthmax_mean_peryear'].values, lw_monthmax_mean_peryear_expected)
     
-
-@pytest.mark.unittest
-def test_calc_wltidalindicators_mincount(df_ext_12_2010_2014):
-    ext_stats = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014, min_count=1411)
-    assert ext_stats['HW_mean_peryear'].isnull().sum() == 1
-
 
 @pytest.mark.unittest
 def test_plot_wltidalindicators(df_meas_2010_2014, df_ext_12_2010_2014):

@@ -75,7 +75,7 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
     if scale_extremes:
         if df_ext is None:
             raise ValueError("df_ext should be provided if scale_extremes=True")
-        df_havengetallen = calc_havengetallen(df_ext=df_ext)
+        df_havengetallen = calc_havengetallen(df_ext=df_ext, min_coverage=None) # TODO: also provide min_coverage here?
         HW_sp, LW_sp = df_havengetallen.loc[0,['HW_values_median','LW_values_median']] # spring
         HW_np, LW_np = df_havengetallen.loc[6,['HW_values_median','LW_values_median']] # neap
         HW_av, LW_av = df_havengetallen.loc['mean',['HW_values_median','LW_values_median']] # mean

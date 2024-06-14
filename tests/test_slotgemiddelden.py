@@ -8,8 +8,9 @@ import kenmerkendewaarden as kw
 
 @pytest.mark.unittest
 def test_fit_models(df_meas_2010_2014):
-    dict_wltidalindicators_valid = kw.calc_wltidalindicators(df_meas_2010_2014, min_count=2900) #24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
+    dict_wltidalindicators_valid = kw.calc_wltidalindicators(df_meas_2010_2014) #24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
     wl_mean_peryear_valid = dict_wltidalindicators_valid['wl_mean_peryear']
+    wl_mean_peryear_valid.index = wl_mean_peryear_valid.index.to_timestamp()
     
     wl_model_fit_nodal = kw.slotgemiddelden.fit_models(wl_mean_peryear_valid, with_nodal=True)
     nodal_expected = np.array([0.0141927 , 0.08612119, 0.0853051 , 0.07010864, 0.10051922, 0.23137634])
@@ -121,15 +122,16 @@ def test_calc_slotgemiddelden_physical_break(df_meas_2010_2014, df_ext_12_2010_2
 
 @pytest.mark.unittest
 def test_calc_slotgemiddelden_with_gap(df_meas_2010_2014):
-    # TODO: setting to nan does not work, since min_count counts these as valid: https://github.com/Deltares-research/kenmerkendewaarden/issues/58
-    # df_meas_withgap = df_meas.copy() # copy to prevent altering the original dataset
-    # df_meas_withgap.loc["2012-01-01":"2012-08-01", "values"] = np.nan
-    # df_meas_withgap.loc["2012-01-01":"2012-08-01", "qualitycode"] = 99
+    df_meas_withgap = df_meas_2010_2014.copy() # copy to prevent altering the original dataset
+    df_meas_withgap.loc["2012-01-01":"2012-01-15", "values"] = np.nan
+    df_meas_withgap.loc["2012-01-01":"2012-01-15", "qualitycode"] = 99
     
     # create dataset with a gap
-    # TODO: This requires now much to little values in a year for it to fail (to support 3hr timeseries): https://github.com/Deltares-research/kenmerkendewaarden/issues/58
-    df_meas_withgap = pd.concat([df_meas_2010_2014.loc[:"2012-01-01"], df_meas_2010_2014.loc["2012-12-15":]])
-    slotgemiddelden_dict = kw.calc_slotgemiddelden(df_meas=df_meas_withgap, df_ext=None, only_valid=True)
+    slotgemiddelden_dict_nogap = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=None, min_coverage=1)
+    slotgemiddelden_dict_withgap = kw.calc_slotgemiddelden(df_meas=df_meas_withgap, df_ext=None, min_coverage=1)
+    slotgemiddelden_dict_withgap_lower_threshold = kw.calc_slotgemiddelden(df_meas=df_meas_withgap, df_ext=None, min_coverage=0.95)
     
     # TODO: value to be updated, but should contain at least one nan value
-    assert slotgemiddelden_dict["wl_mean_peryear"].isnull().sum() == 1
+    assert slotgemiddelden_dict_nogap["wl_mean_peryear"].isnull().sum() == 0
+    assert slotgemiddelden_dict_withgap["wl_mean_peryear"].isnull().sum() == 1
+    assert slotgemiddelden_dict_withgap_lower_threshold["wl_mean_peryear"].isnull().sum() == 0

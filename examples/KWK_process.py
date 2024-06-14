@@ -79,22 +79,15 @@ for current_station in stat_list:
         data_pd_HWLW_all_12 = hatyan.calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
         #crop timeseries to 10y
         data_pd_HWLW_10y_12 = hatyan.crop_timeseries(data_pd_HWLW_all_12, times=slice(tstart_dt,tstop_dt),onlyfull=False)
-        
-        #check if amount of HWs is enough
-        M2_period_timedelta = pd.Timedelta(hours=hatyan.schureman.get_schureman_freqs(['M2']).loc['M2','period [hr]'])
-        numHWs_expected = (tstop_dt-tstart_dt).total_seconds()/M2_period_timedelta.total_seconds()
-        numHWs = (data_pd_HWLW_10y_12['HWLWcode']==1).sum()
-        if numHWs < 0.95*numHWs_expected:
-            raise Exception(f'ERROR: not enough high waters present in period, {numHWs} instead of >=0.95*{int(numHWs_expected):d}')
-
+    
 
 
     #### TIDAL INDICATORS
     if compute_indicators and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         print(f'tidal indicators for {current_station}')
         # compute and plot tidal indicators
-        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all)
-        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12)
+        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all, min_coverage=1)
+        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12, min_coverage=1)
         
         # add hat/lat
         df_meas_19y = data_pd_meas_all.loc["2001":"2019"]
@@ -118,11 +111,11 @@ for current_station in stat_list:
         # including years with too little values and years before physical break
         slotgemiddelden_all = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
                                                       df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
-                                                      only_valid=False, clip_physical_break=True)
+                                                      min_coverage=0, clip_physical_break=True)
         # only years with enough values and after potential physical break
         slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
                                                         df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
-                                                        only_valid=True, clip_physical_break=True)
+                                                        min_coverage=1, clip_physical_break=True)
         
         # plot slotgemiddelden
         fig1, ax1 = kw.plot_slotgemiddelden(slotgemiddelden_valid, slotgemiddelden_all)
@@ -181,7 +174,7 @@ for current_station in stat_list:
     if compute_gemgetij and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         
         print(f'gem getijkrommen for {current_station}')
-        pred_freq = "10s" # frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
+        pred_freq = "10s" # frequency influences the accuracy of havengetallen-scaling and is writing frequency of BOI timeseries
         
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
         gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=None,
