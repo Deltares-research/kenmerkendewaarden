@@ -53,6 +53,7 @@ def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False, min_coverage=No
     # check if coverage is high enough for havengetallen
     if min_coverage is not None:
         # TODO: compute_actual_counts only returns years for which there are no nans, so will have different length than expected counts if there is an all-nan year
+        # TODO: if we supply 4 years of complete data instead of 10 years, no error is raised
         df_actual_counts_peryear = compute_actual_counts(df_ext, freq="Y")
         df_expected_counts_peryear = compute_expected_counts(df_ext, freq="Y")
         df_min_counts_peryear = df_expected_counts_peryear * min_coverage
