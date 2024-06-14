@@ -76,9 +76,9 @@ if plot_meas_amount:
     
     file_plot = os.path.join(dir_meas_amount, "data_amount")
     
-    fig, ax = kw.df_amount_pcolormesh(df_amount_ts, relative=True)
+    fig, ax = kw.plot_measurements_amount(df_amount_ts, relative=True)
     fig.savefig(file_plot + "_ts_pcolormesh_relative", dpi=200)
-    fig, ax = kw.df_amount_pcolormesh(df_amount_ext, relative=True)
+    fig, ax = kw.plot_measurements_amount(df_amount_ext, relative=True)
     fig.savefig(file_plot + "_ext_pcolormesh_relative", dpi=200)
     
 

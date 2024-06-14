@@ -13,7 +13,7 @@ import hatyan
 import logging
 
 __all__ = [
-    "df_amount_pcolormesh",
+    "plot_measurements_amount",
     "plot_measurements",
     "plot_stations",
     "derive_statistics",
@@ -22,7 +22,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-def df_amount_pcolormesh(df, relative=False):
+def plot_measurements_amount(df, relative=False):
     df = df.copy()
     df[df==0] = np.nan
     
