@@ -114,8 +114,23 @@ def test_calc_hat_lat_fromcomponents(df_components_2010):
     df_components_2010_sel = df_components_2010.loc[["M2","M4","S2"]]
     # generate prediction and derive hat/lat
     hat, lat = kw.calc_hat_lat_fromcomponents(df_components_2010_sel)
-    assert np.isclose(hat, 1.2262061956302408)
-    assert np.isclose(lat, -0.8369650960044822)
+    assert np.isclose(hat, 1.2259179749801052)
+    assert np.isclose(lat, -0.8368954797393148)
+
+
+@pytest.mark.unittest
+def test_calc_hat_lat_frommeasurements(df_meas):
+    df_meas_19y = df_meas.loc["2001":"2019"]
+    hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_19y)
+    assert np.isclose(hat, 1.6856114961274238)
+    assert np.isclose(lat, -1.0395726747948162)
+
+
+@pytest.mark.unittest
+def test_calc_hat_lat_frommeasurements_tooshortperiod(df_meas_2010_2014):
+    with pytest.raises(ValueError) as e:
+        hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_2010_2014)
+    assert "please provide a timeseries of 19 years instead of 5 years" in str(e.value)
 
 
 @pytest.mark.unittest

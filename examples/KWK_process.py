@@ -95,9 +95,17 @@ for current_station in stat_list:
         # compute and plot tidal indicators
         dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all)
         dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12)
-        fig,ax = kw.plot_tidalindicators(dict_wltidalindicators, dict_HWLWtidalindicators)
-        fig.savefig(os.path.join(dir_indicators,f'tidal_indicators_{current_station}'))
         
+        # add hat/lat
+        df_meas_19y = data_pd_meas_all.loc["2001":"2019"]
+        hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_19y)
+        dict_HWLWtidalindicators["hat"] = hat
+        dict_HWLWtidalindicators["lat"] = lat
+        
+        # plot
+        fig, ax = kw.plot_tidalindicators(dict_wltidalindicators, dict_HWLWtidalindicators)
+        fig.savefig(os.path.join(dir_indicators,f'tidal_indicators_{current_station}'))
+
 
         
     #### SLOTGEMIDDELDEN
