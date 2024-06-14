@@ -10,7 +10,7 @@ import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-re
 
 # set logging level to INFO to get log messages
 import logging
-logging.getLogger("kenmerkendewaarden").setLevel(level="DEBUG")
+logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 # TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
 
