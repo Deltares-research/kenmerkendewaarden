@@ -4,5 +4,6 @@
    :titlesonly:
    :hidden:
 
-   modules
    whats-new.md
+   modules
+   CONTRIBUTING.md
