@@ -118,11 +118,11 @@ for current_station in stat_list:
         # including years with too little values and years before physical break
         slotgemiddelden_all = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
                                                       df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
-                                                      only_valid=False, clip_physical_break=True)
+                                                      min_coverage=0, clip_physical_break=True)
         # only years with enough values and after potential physical break
         slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
                                                         df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
-                                                        only_valid=True, clip_physical_break=True)
+                                                        min_coverage=1, clip_physical_break=True)
         
         # plot slotgemiddelden
         fig1, ax1 = kw.plot_slotgemiddelden(slotgemiddelden_valid, slotgemiddelden_all)

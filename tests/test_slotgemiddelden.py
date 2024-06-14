@@ -10,6 +10,7 @@ import kenmerkendewaarden as kw
 def test_fit_models(df_meas_2010_2014):
     dict_wltidalindicators_valid = kw.calc_wltidalindicators(df_meas_2010_2014) #24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
     wl_mean_peryear_valid = dict_wltidalindicators_valid['wl_mean_peryear']
+    wl_mean_peryear_valid.index = wl_mean_peryear_valid.index.to_timestamp()
     
     wl_model_fit_nodal = kw.slotgemiddelden.fit_models(wl_mean_peryear_valid, with_nodal=True)
     nodal_expected = np.array([0.0141927 , 0.08612119, 0.0853051 , 0.07010864, 0.10051922, 0.23137634])

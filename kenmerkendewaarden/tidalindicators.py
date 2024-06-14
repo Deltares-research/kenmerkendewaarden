@@ -97,12 +97,7 @@ def calc_HWLWtidalindicators(df_ext, min_coverage:float = None):
                                 'HW_monthmin_mean_peryear':HW_monthmin_mean_peryear['values'], #GLHW/GHWN peryear
                                 'LW_monthmax_mean_peryear':LW_monthmax_mean_peryear['values'], #GHLW/GLWN peryear
                                 }
-    
-    for key in dict_HWLWtidalindicators.keys():
-        if not hasattr(dict_HWLWtidalindicators[key],'index'):
-            continue
-        dict_HWLWtidalindicators[key].index = dict_HWLWtidalindicators[key].index.to_timestamp()
-        
+
     return dict_HWLWtidalindicators
 
 
@@ -152,12 +147,7 @@ def calc_wltidalindicators(data_wl_pd, min_coverage:float = None):
                               'wl_mean_peryear':wl_mean_peryear['values'], #yearly mean wl
                               'wl_mean_permonth':wl_mean_permonth['values'], #monthly mean wl
                               }
-    
-    for key in dict_wltidalindicators.keys():
-        if not hasattr(dict_wltidalindicators[key],'index'):
-            continue
-        dict_wltidalindicators[key].index = dict_wltidalindicators[key].index.to_timestamp()
-        
+
     return dict_wltidalindicators
 
 
@@ -170,6 +160,7 @@ def compute_expected_counts(df_meas, freq):
     df_meas = df_meas.copy()
     df_meas["timediff"] = df_meas.index.diff() # TODO: not supported by pandas<2.2.0: https://github.com/Deltares-research/kenmerkendewaarden/blob/d7f8f5f3f915dd897e9aa037fad67e1920ff5cbf/kenmerkendewaarden/data_analysis.py#L152
     period_index = pd.PeriodIndex(df_meas.index, freq=freq)
+    # compute median freq, the mean could be skewed in case of large gaps
     median_freq = df_meas.groupby(period_index)['timediff'].median()
     if freq=="Y":
         days_inperiod = median_freq.index.dayofyear
@@ -236,6 +227,7 @@ def plot_tidalindicators(indicators_wl:dict = None, indicators_ext = None):
     
     ax.grid()
     ax.legend(loc=1)
+    ax.set_ylabel("water level [m]")
     ax.set_title(f"tidal indicators for {station}")
     fig.tight_layout()
     return fig, ax
