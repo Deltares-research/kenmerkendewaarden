@@ -42,6 +42,18 @@ def test_havengetallen(df_ext_12_2010):
             assert(df_havengetallen[colname].dt.nanoseconds == 0).all()
 
 
+
+@pytest.mark.unittest
+def test_havengetallen_toolittle_data(df_ext_12_2010_2014):
+    df_ext = df_ext_12_2010_2014.copy() # copy to prevent altering the original dataset
+    # set 25% of one year to nan, so 75% of valid data remains
+    df_ext.loc["2013-01":"2013-03","values"] = np.nan
+    with pytest.raises(ValueError) as e:
+        # require a minimal coverage of 95% for all years, so this will fail
+        kw.calc_havengetallen(df_ext, min_coverage=0.95)
+    assert "coverage of some years is lower than min_coverage" in str(e.value)
+
+
 @pytest.mark.unittest
 def test_calc_HWLW_culmhr_summary_tidalcoeff(df_ext_12_2010):
     """

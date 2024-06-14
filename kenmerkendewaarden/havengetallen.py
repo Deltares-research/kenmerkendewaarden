@@ -10,7 +10,10 @@ import datetime as dt
 import logging
 from hatyan.astrog import astrog_culminations
 from hatyan.timeseries import calc_HWLWnumbering
-from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
+from kenmerkendewaarden.tidalindicators import (calc_HWLWtidalrange,
+                                                compute_actual_counts,
+                                                compute_expected_counts,
+                                                )
 from kenmerkendewaarden.utils import raise_extremes_with_aggers
 
 __all__ = ["calc_havengetallen",
@@ -21,7 +24,7 @@ __all__ = ["calc_havengetallen",
 logger = logging.getLogger(__name__)
 
 
-def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False):
+def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False, min_coverage=None):
     """
     havengetallen consist of the extreme (high and low) median values and the 
     extreme median time delays with respect to the moonculmination.
@@ -46,6 +49,21 @@ def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False):
 
     """
     raise_extremes_with_aggers(df_ext)
+    
+    # check if coverage is high enough for havengetallen
+    if min_coverage is not None:
+        # TODO: compute_actual_counts only returns years for which there are no nans, so will have different length than expected counts if there is an all-nan year
+        df_actual_counts_peryear = compute_actual_counts(df_ext, freq="Y")
+        df_expected_counts_peryear = compute_expected_counts(df_ext, freq="Y")
+        df_min_counts_peryear = df_expected_counts_peryear * min_coverage
+        bool_coverage_toolow = df_actual_counts_peryear < df_min_counts_peryear
+        df_debug = pd.DataFrame({'#required':df_min_counts_peryear,
+                                 '#actual':df_actual_counts_peryear,
+                                 'too little':bool_coverage_toolow,
+                                 })
+        if bool_coverage_toolow.any():
+            raise ValueError(f"coverage of some years is lower than "
+                             f"min_coverage={min_coverage}:\n{df_debug}")
     
     current_station = df_ext.attrs["station"]
     logger.info(f'computing havengetallen for {current_station}')

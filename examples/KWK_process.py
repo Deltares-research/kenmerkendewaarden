@@ -181,7 +181,7 @@ for current_station in stat_list:
     if compute_gemgetij and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         
         print(f'gem getijkrommen for {current_station}')
-        pred_freq = "10s" # frequency decides accuracy of tU/tD and other timings (and is writing freq of BOI timeseries)
+        pred_freq = "10s" # frequency influences the accuracy of havengetallen-scaling and is writing frequency of BOI timeseries
         
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
         gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=None,

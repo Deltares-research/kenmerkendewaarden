@@ -63,10 +63,9 @@ def calc_HWLWtidalindicators(df_ext, min_coverage:float = None):
     #replace invalids with nan (in case of too less values per month or year)
     if min_coverage is not None:
         assert 0 <= min_coverage <= 1
-        # count timeseries values per year/month (first drop nans)
-        df_ext_nonan = df_ext.loc[~df_ext["values"].isnull()]
-        ext_count_peryear = df_ext_nonan.groupby(pd.PeriodIndex(df_ext_nonan.index, freq="Y"))['values'].count()
-        ext_count_permonth = df_ext_nonan.groupby(pd.PeriodIndex(df_ext_nonan.index, freq="M"))['values'].count()
+        # count timeseries values per year/month
+        ext_count_peryear = compute_actual_counts(df_ext, freq="Y")
+        ext_count_permonth = compute_actual_counts(df_ext, freq="M")
         
         # compute expected counts and multiply with min_coverage to get minimal counts
         min_count_peryear = compute_expected_counts(df_ext, freq="Y") * min_coverage
@@ -138,10 +137,9 @@ def calc_wltidalindicators(data_wl_pd, min_coverage:float = None):
     # replace invalids with nan (in case of too less values per month or year)
     if min_coverage is not None:
         assert 0 <= min_coverage <= 1
-        # count timeseries values per year/month (first drop nans)
-        data_wl_pd_nonan = data_wl_pd.loc[~data_wl_pd["values"].isnull()]
-        wl_count_peryear = data_wl_pd_nonan.groupby(pd.PeriodIndex(data_wl_pd_nonan.index, freq="Y"))['values'].count()
-        wl_count_permonth = data_wl_pd_nonan.groupby(pd.PeriodIndex(data_wl_pd_nonan.index, freq="M"))['values'].count()
+        # count timeseries values per year/month
+        wl_count_peryear = compute_actual_counts(data_wl_pd, freq="Y")
+        wl_count_permonth = compute_actual_counts(data_wl_pd, freq="M")
         
         # compute expected counts and multiply with min_coverage to get minimal counts
         min_count_peryear = compute_expected_counts(data_wl_pd, freq="Y") * min_coverage
@@ -163,17 +161,14 @@ def calc_wltidalindicators(data_wl_pd, min_coverage:float = None):
     return dict_wltidalindicators
 
 
-def make_periodindex_contiguous(df):
-    assert isinstance(df.index, pd.PeriodIndex)
-    period_index_full = pd.period_range(df.index.min(), df.index.max(), freq=df.index.freq)
-    if isinstance(df, pd.Series):
-        df_full = pd.Series(df, index=period_index_full)
-    elif isinstance(df, pd.DataFrame):
-        df_full = pd.DataFrame(df, index=period_index_full)
-    
-    # add attrs from input dataframe
-    df_full.attrs = df.attrs
-    return df_full
+def compute_actual_counts(df_meas, freq, column="values"):
+    """
+    Compute the number of non-nan values in a column for all years/months in a timeseries index.
+    """
+    df_meas_nonan = df_meas.loc[~df_meas[column].isnull()]
+    period_index = pd.PeriodIndex(df_meas_nonan.index, freq=freq)
+    df_actual_counts = df_meas_nonan.groupby(period_index)[column].count()
+    return df_actual_counts
 
 
 def compute_expected_counts(df_meas, freq):
@@ -194,8 +189,21 @@ def compute_expected_counts(df_meas, freq):
     else:
         raise ValueError(f"invalid freq: '{freq}'")
     days_inperiod_td = pd.to_timedelta(days_inperiod, unit='D')
-    expected_count = days_inperiod_td / median_freq
-    return expected_count
+    df_expected_counts = days_inperiod_td / median_freq
+    return df_expected_counts
+
+
+def make_periodindex_contiguous(df):
+    assert isinstance(df.index, pd.PeriodIndex)
+    period_index_full = pd.period_range(df.index.min(), df.index.max(), freq=df.index.freq)
+    if isinstance(df, pd.Series):
+        df_full = pd.Series(df, index=period_index_full)
+    elif isinstance(df, pd.DataFrame):
+        df_full = pd.DataFrame(df, index=period_index_full)
+    
+    # add attrs from input dataframe
+    df_full.attrs = df.attrs
+    return df_full
 
 
 def plot_pd_series(indicators_dict, ax):
