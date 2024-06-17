@@ -322,7 +322,7 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     
     time_down was scaled with havengetallen before, but not anymore to avoid issues with aggers
     """
-    # early escape # TODO: consider not calling function in this case
+    # early escape # TODO: should also be possible to only scale tP_goal
     if HW_goal is None and LW_goal is None:
         return ts
     

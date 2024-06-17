@@ -131,7 +131,7 @@ def test_calc_slotgemiddelden_with_gap(df_meas_2010_2014):
     slotgemiddelden_dict_withgap = kw.calc_slotgemiddelden(df_meas=df_meas_withgap, df_ext=None, min_coverage=1)
     slotgemiddelden_dict_withgap_lower_threshold = kw.calc_slotgemiddelden(df_meas=df_meas_withgap, df_ext=None, min_coverage=0.95)
     
-    # TODO: value to be updated, but should contain at least one nan value
+    # check if too large gap results in nan
     assert slotgemiddelden_dict_nogap["wl_mean_peryear"].isnull().sum() == 0
     assert slotgemiddelden_dict_withgap["wl_mean_peryear"].isnull().sum() == 1
     assert slotgemiddelden_dict_withgap_lower_threshold["wl_mean_peryear"].isnull().sum() == 0
