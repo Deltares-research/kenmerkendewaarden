@@ -3,6 +3,7 @@
 import pytest
 import kenmerkendewaarden as kw
 import numpy as np
+from kenmerkendewaarden.tidalindicators import compute_actual_counts, compute_expected_counts
 
 
 @pytest.mark.unittest
@@ -57,6 +58,27 @@ def test_calc_wltidalindicators_mincount(df_meas_2010_2014):
     assert slotgemiddelden_dict_nogap["wl_mean_peryear"].isnull().sum() == 0
     assert slotgemiddelden_dict_withgap["wl_mean_peryear"].isnull().sum() == 1
     assert slotgemiddelden_dict_withgap_lower_threshold["wl_mean_peryear"].isnull().sum() == 0
+
+
+def test_compute_expected_actual_counts_samelenght(df_meas_2010_2014):
+    """
+    because of nan-dropping, the lenghts were not the same before
+    this test makes sure this does not happen again
+    https://github.com/Deltares-research/kenmerkendewaarden/issues/83
+    """
+    # create dataset with a gap
+    df_meas_withgap = df_meas_2010_2014.copy() # copy to prevent altering the original dataset
+    df_meas_withgap.loc["2012", "values"] = np.nan
+    df_meas_withgap.loc["2012", "qualitycode"] = 99
+    
+    # compute actual and expected counts
+    actual_count_peryear = compute_actual_counts(df_meas_withgap, freq="Y")
+    actual_count_permonth = compute_actual_counts(df_meas_withgap, freq="M")
+    expected_count_peryear = compute_expected_counts(df_meas_withgap, freq="Y")
+    expected_count_permonth = compute_expected_counts(df_meas_withgap, freq="M")
+    
+    assert len(actual_count_peryear) == len(expected_count_peryear)
+    assert len(actual_count_permonth) == len(expected_count_permonth)
 
 
 @pytest.mark.unittest
