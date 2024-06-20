@@ -238,10 +238,8 @@ for current_station in stat_list:
     
         print(f'overschrijdingsfrequenties for {current_station}')
         
-        # exclude data before physical break # TODO: make optional with argument for overschrijdingsfreqs function
-        data_pd_measext = kw.data_retrieve.clip_timeseries_physical_break(data_pd_HWLW_all_12) 
         # only include data up to year_slotgem
-        data_pd_measext = data_pd_measext.loc[:tstop_dt]
+        data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt]
         
         data_pd_HW = data_pd_measext.loc[data_pd_measext['HWLWcode']==1]
         data_pd_LW = data_pd_measext.loc[data_pd_measext['HWLWcode']!=1]
@@ -267,14 +265,10 @@ for current_station in stat_list:
                 dist_vali_dec['validation'] = pd.read_csv(file_vali_dec,sep=';')
                 dist_vali_dec['validation']['values'] /= 100
     
-        #set station rules
-        station_rule_type = 'break'
-        #TODO: we already excluded the data before the physical_break, so can just supply the starttime here
-        station_break_value = data_pd_measext.index.min()
-    
         # 1. Exceedance
         print('Exceedance')
-        dist_exc = kw.calc_overschrijding(data_pd_HW, rule_type=station_rule_type, rule_value=station_break_value)
+        dist_exc = kw.calc_overschrijding(data_pd_HW, rule_type=None, rule_value=None, 
+                                          clip_physical_break=True)
         dist_exc.update(dist_vali_exc)
         df_interp = kw.interpolate_interested_Tfreqs(dist_exc['Gecombineerd'], Tfreqs=Tfreqs_interested)
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False, sep=';')
@@ -285,7 +279,8 @@ for current_station in stat_list:
         
         # 2. Deceedance
         print('Deceedance')
-        dist_dec = kw.calc_overschrijding(data_pd_LW, rule_type=station_rule_type, rule_value=station_break_value, inverse=True)
+        dist_dec = kw.calc_overschrijding(data_pd_LW, rule_type=None, rule_value=None, 
+                                          clip_physical_break=True, inverse=True)
         dist_dec.update(dist_vali_dec)
         df_interp = kw.interpolate_interested_Tfreqs(dist_dec['Gecombineerd'], Tfreqs=Tfreqs_interested)
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False, sep=';')

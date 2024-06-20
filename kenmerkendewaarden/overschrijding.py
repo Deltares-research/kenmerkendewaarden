@@ -12,6 +12,7 @@ from typing import Union, List
 import datetime as dt
 import os
 import logging
+from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
 
 __all__ = ["calc_overschrijding",
            "interpolate_interested_Tfreqs",
@@ -28,7 +29,11 @@ def get_threshold_rowidx(df):
     return rowidx_tresholdfreq
 
 
-def calc_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
+def calc_overschrijding(df_extrema, rule_type=None, rule_value=None, clip_physical_break=True, inverse=False):
+    
+    if clip_physical_break:
+        df_extrema = clip_timeseries_physical_break(df_extrema)
+
     
     df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
     dist = {} #TODO: replace with pandas.DataFrame?
@@ -284,7 +289,7 @@ def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[floa
         dx = np.array([rule_value*x.total_seconds()/(365*24*3600) for x in (df.index[-1] - df.index)])
         df['values'] = df['values'] + dx
         return df
-    elif (rule_type == '') or (rule_type is None):
+    elif rule_type is None:
         return df.copy()
     elif isinstance(rule_type, np.float):
         if np.isnan(rule_type):
