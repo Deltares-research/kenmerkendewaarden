@@ -63,7 +63,6 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
     current_station = data_pd_meas_10y.attrs["station"]
     
     # TODO: deprecate debug argument+plot (maybe use max HW instead of max tidalrange?)
-    # TODO: we now call this function three times and deriving the unscaled krommes takes quite some time. Put in different function and cache it. 
     # TODO: add correctie havengetallen HW/LW av/sp/np met slotgemiddelde uit PLSS/modelfit (HW/LW av)
     
     if scale_period:
@@ -158,7 +157,7 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
         ax1.set_title(f'spring- en doodtijkromme {current_station}')
         # fig.savefig(os.path.join(dir_gemgetij,f'springdoodtijkromme_{current_station}_slotgem{year_slotgem}.png'))
     
-    #timeseries for gele boekje (av/sp/np have different lengths, time is relative to HW of av and HW of sp/np are shifted there) #TODO: is this product still necessary?
+    #timeseries for gele boekje (av/sp/np have different lengths, time is relative to HW of av and HW of sp/np are shifted there)
     logger.info(f'reshape_signal GEMGETIJ: {current_station}')
     prediction_av_corr_one = reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=tP_goal)
     prediction_av_corr_one.index = prediction_av_corr_one.index - prediction_av_corr_one.index[0] # make relative to first timestamp (=HW)
