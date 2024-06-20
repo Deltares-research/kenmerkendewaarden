@@ -241,9 +241,6 @@ for current_station in stat_list:
         # only include data up to year_slotgem
         data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt]
         
-        data_pd_HW = data_pd_measext.loc[data_pd_measext['HWLWcode']==1]
-        data_pd_LW = data_pd_measext.loc[data_pd_measext['HWLWcode']!=1]
-        
         #get Hydra-NL and KWK-RMM validation data (only for HOEKVHLD)
         dist_vali_exc = {}
         dist_vali_dec = {}
@@ -267,7 +264,7 @@ for current_station in stat_list:
         
         # 1. Exceedance
         print('Exceedance')
-        dist_exc = kw.calc_overschrijding(data_pd_HW, rule_type=None, rule_value=None, 
+        dist_exc = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, dist=dist_vali_exc,
                                           interp_freqs=Tfreqs_interested)
         df_interp = dist_exc['Geinterpoleerd']
@@ -279,7 +276,7 @@ for current_station in stat_list:
         
         # 2. Deceedance
         print('Deceedance')
-        dist_dec = kw.calc_overschrijding(data_pd_LW, rule_type=None, rule_value=None, 
+        dist_dec = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, dist=dist_vali_dec, inverse=True,
                                           interp_freqs=Tfreqs_interested)
         df_interp = dist_dec['Geinterpoleerd']

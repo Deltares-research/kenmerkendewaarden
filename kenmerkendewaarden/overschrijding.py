@@ -31,6 +31,13 @@ def get_threshold_rowidx(df):
 def calc_overschrijding(df_ext, rule_type=None, rule_value=None, clip_physical_break=True, inverse=False, dist=None, interp_freqs=None):
     
     raise_extremes_with_aggers(df_ext)
+    
+    # take only high or low extremes
+    # TODO: this might not be useful in case of river discharge influenced stations where a filter is needed
+    if inverse:
+        df_ext = df_ext.loc[df_ext['HWLWcode']!=1]
+    else:
+        df_ext = df_ext.loc[df_ext['HWLWcode']==1]
 
     if clip_physical_break:
         df_ext = clip_timeseries_physical_break(df_ext)
@@ -42,6 +49,7 @@ def calc_overschrijding(df_ext, rule_type=None, rule_value=None, clip_physical_b
     logger.info('Calculate unfiltered distribution')
     dist['Ongefilterd'] = distribution(df_extrema_clean, inverse=inverse)
     
+    # TODO: re-enable filter for river discharge peaks
     """# filtering is only applicable for stations with high river discharge influence, so disabled #TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem. Er is dan een treshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
     logger.info('Calculate filtered distribution')
     df_peaks, threshold, _ = detect_peaks(df_extrema_clean)
@@ -381,7 +389,7 @@ def plot_overschrijding(dist: dict, name: str,
         c = color_map[k] if (color_map is not None) and (k in color_map.keys()) else None
         if k=='Gecombineerd':
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], '--', label=k, c=c)
-        if k=='Geinterpoleerd':
+        elif k=='Geinterpoleerd':
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], 'o', label=k, c=c, markersize=5)
         else:
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], label=k, c=c)
