@@ -235,16 +235,10 @@ for current_station in stat_list:
                          1/500, 1/1000, 1/2000, 1/4000, 1/5000, 1/10000] #TODO: which frequencies are realistic with n years of data? probably remove this entire row >> met 40 jaar data kun je in principe tot 1/40 gaan, maar met weibull kun je extrapoleren en in theorie >> dit is voor tabel die je eruit wil hebben
     
     if compute_overschrijding and data_pd_HWLW_all is not None:
-    
         print(f'overschrijdingsfrequenties for {current_station}')
         
-        # exclude data before physical break # TODO: make optional with argument for overschrijdingsfreqs function
-        data_pd_measext = kw.data_retrieve.clip_timeseries_physical_break(data_pd_HWLW_all_12) 
         # only include data up to year_slotgem
-        data_pd_measext = data_pd_measext.loc[:tstop_dt]
-        
-        data_pd_HW = data_pd_measext.loc[data_pd_measext['HWLWcode']==1]
-        data_pd_LW = data_pd_measext.loc[data_pd_measext['HWLWcode']!=1]
+        data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt]
         
         #get Hydra-NL and KWK-RMM validation data (only for HOEKVHLD)
         dist_vali_exc = {}
@@ -266,30 +260,27 @@ for current_station in stat_list:
             if os.path.exists(file_vali_dec):
                 dist_vali_dec['validation'] = pd.read_csv(file_vali_dec,sep=';')
                 dist_vali_dec['validation']['values'] /= 100
-    
-        #set station rules
-        station_rule_type = 'break'
-        #TODO: we already excluded the data before the physical_break, so can just supply the starttime here
-        station_break_value = data_pd_measext.index.min()
-    
+        
         # 1. Exceedance
         print('Exceedance')
-        dist_exc = kw.compute_overschrijding(data_pd_HW, rule_type=station_rule_type, rule_value=station_break_value)
-        dist_exc.update(dist_vali_exc)
-        df_interp = kw.interpolate_interested_Tfreqs(dist_exc['Gecombineerd'], Tfreqs=Tfreqs_interested)
+        dist_exc = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
+                                          clip_physical_break=True, dist=dist_vali_exc,
+                                          interp_freqs=Tfreqs_interested)
+        df_interp = dist_exc['Geinterpoleerd']
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False, sep=';')
         
-        fig, ax = kw.plot_distributions(dist_exc, name=current_station, color_map='default')
+        fig, ax = kw.plot_overschrijding(dist_exc)
         ax.set_ylim(0,5.5)
         fig.savefig(os.path.join(dir_overschrijding, f'Exceedance_lines_{current_station}.png'))
         
         # 2. Deceedance
         print('Deceedance')
-        dist_dec = kw.compute_overschrijding(data_pd_LW, rule_type=station_rule_type, rule_value=station_break_value, inverse=True)
-        dist_dec.update(dist_vali_dec)
-        df_interp = kw.interpolate_interested_Tfreqs(dist_dec['Gecombineerd'], Tfreqs=Tfreqs_interested)
+        dist_dec = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
+                                          clip_physical_break=True, dist=dist_vali_dec, inverse=True,
+                                          interp_freqs=Tfreqs_interested)
+        df_interp = dist_dec['Geinterpoleerd']
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False, sep=';')
         
-        fig, ax = kw.plot_distributions(dist_dec, name=current_station, color_map='default')
+        fig, ax = kw.plot_overschrijding(dist_dec)
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))
 

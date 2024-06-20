@@ -10,12 +10,15 @@ from matplotlib import ticker
 from scipy import optimize, signal
 from typing import Union, List
 import datetime as dt
-import os
+import logging
+from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
+from kenmerkendewaarden.utils import raise_extremes_with_aggers
 
-__all__ = ["compute_overschrijding",
-           "interpolate_interested_Tfreqs",
-           "plot_distributions",
+__all__ = ["calc_overschrijding",
+           "plot_overschrijding",
            ]
+
+logger = logging.getLogger(__name__)
 
 
 def get_threshold_rowidx(df):
@@ -25,30 +28,73 @@ def get_threshold_rowidx(df):
     return rowidx_tresholdfreq
 
 
-def compute_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
+def calc_overschrijding(df_ext:pd.DataFrame, dist:dict = None, 
+                        inverse:bool = False, clip_physical_break:bool = False, 
+                        rule_type:str = None, rule_value=None,
+                        interp_freqs:list = None):
+    """
+    Compute exceedance/deceedance frequencies based on measured extreme waterlevels.
     
-    df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
-    dist = {} #TODO: replace with pandas.DataFrame?
-    
-    print('Calculate unfiltered distribution')
-    dist['Ongefilterd'] = distribution(df_extrema_clean, inverse=inverse)
-    
-    """# filtering is only applicable for stations with high river discharge influence, so disabled #TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem. Er is dan een treshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
-    print('Calculate filtered distribution')
-    df_peaks, threshold, _ = hatyan.detect_peaks(df_extrema_clean)
-    if metadata_station['apply_treshold']:
-        temp[metadata_station['id']] = threshold
-        df_extrema_filt = hatyan.filter_with_threshold(df_extrema_clean, df_peaks, threshold)
-    else:
-        df_extrema_filt = df_extrema_clean.copy()
-    dist['Gefilterd'] = hatyan.distribution(df_extrema_filt.copy())
+    Parameters
+    ----------
+    df_ext : pd.DataFrame, optional
+        The timeseries of extremes (high and low waters). The default is None.
+    dist : dict, optional
+        A pre-filled dictionary with a Hydra-NL and/or validation distribution. The default is None.
+    inverse : bool, optional
+        Whether to compute deceedance instead of exceedance frequencies. The default is False.
+    clip_physical_break : bool, optional
+        Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
+    rule_type : str, optional
+        break/linear/None, passed on to apply_trendanalysis(). The default is None.
+    rule_value : TYPE, optional
+        Value corresponding to rule_type. The default is None.
+    interp_freqs : list, optional
+        The frequencies to interpolate to, providing this will result in a 
+        "Geinterpoleerd" key in the returned dictionary. The default is None.
+
+    Returns
+    -------
+    dist : dict
+        A dictionary with several distributions.
+
     """
     
-    print('Calculate filtered distribution with trendanalysis')
+    raise_extremes_with_aggers(df_ext)
+    # take only high or low extremes
+    # TODO: this might not be useful in case of river discharge influenced stations where a filter is needed
+    if inverse:
+        df_extrema = df_ext.loc[df_ext['HWLWcode']!=1]
+    else:
+        df_extrema = df_ext.loc[df_ext['HWLWcode']==1]
+
+    if clip_physical_break:
+        df_extrema = clip_timeseries_physical_break(df_extrema)
+    df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
+    
+    if dist is None:
+        dist = {}
+    
+    logger.info('Calculate unfiltered distribution')
+    dist['Ongefilterd'] = distribution(df_extrema_clean, inverse=inverse)
+    
+    # TODO: re-enable filter for river discharge peaks
+    """# filtering is only applicable for stations with high river discharge influence, so disabled #TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem. Er is dan een treshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
+    logger.info('Calculate filtered distribution')
+    df_peaks, threshold, _ = detect_peaks(df_extrema_clean)
+    if metadata_station['apply_treshold']:
+        temp[metadata_station['id']] = threshold
+        df_extrema_filt = filter_with_threshold(df_extrema_clean, df_peaks, threshold)
+    else:
+        df_extrema_filt = df_extrema_clean.copy()
+    dist['Gefilterd'] = distribution(df_extrema_filt.copy())
+    """
+    
+    logger.info('Calculate filtered distribution with trendanalysis')
     df_trend = apply_trendanalysis(df_extrema_clean, rule_type=rule_type, rule_value=rule_value)
     dist['Trendanalyse'] = distribution(df_trend.copy(), inverse=inverse)
     
-    print('Fit Weibull to filtered distribution with trendanalysis')
+    logger.info('Fit Weibull to filtered distribution with trendanalysis')
     idx_maxfreq_trend = get_threshold_rowidx(dist['Trendanalyse'])
     treshold_value = dist['Trendanalyse'].iloc[idx_maxfreq_trend]['values']
     treshold_Tfreq = dist['Trendanalyse'].iloc[idx_maxfreq_trend]['values_Tfreq']
@@ -57,12 +103,21 @@ def compute_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
                                   Tfreqs=np.logspace(-5, np.log10(treshold_Tfreq), 5000),
                                   inverse=inverse)
     
-    print('Blend trend and weibull together') # and Hydra-NL
-    dist['Gecombineerd'] = blend_distributions(dist['Trendanalyse'].copy(),
-                                               dist['Weibull'].copy(),
-                                               #dist['Hydra-NL'].copy(), 
-                                               )
-
+    if "Hydra-NL" in dist.keys():
+        logger.info('Blend trend, weibull and Hydra-NL')
+        # TODO: now based on hardcoded Hydra-NL dict key which is already part of the input dist dict, this is tricky
+        df_hydra = dist['Hydra-NL'].copy()
+    else:
+        logger.info('Blend trend and weibull')
+        df_hydra = None
+    dist['Gecombineerd'] = blend_distributions(df_trend=dist['Trendanalyse'].copy(), 
+                                               df_weibull=dist['Weibull'].copy(), 
+                                               df_hydra=df_hydra)
+    
+    if interp_freqs is not None:
+        dist['Geinterpoleerd'] = interpolate_interested_Tfreqs(dist['Gecombineerd'], Tfreqs=interp_freqs)
+       
+    
     """
     if row['apply_treshold']:
         keys = list(dist.keys())
@@ -130,11 +185,8 @@ def detect_peaks_hkv(df: pd.DataFrame, window: int, inverse: bool = False, thres
 
     peaks = np.ones(len(values)) * np.nan
     t_peaks, dt_left_peaks, dt_right_peaks = peaks.copy(), peaks.copy(), peaks.copy()
-
-    if inverse:
-        print('Determining peaks (inverse)')
-    else:
-        print('Determining peaks')
+    
+    logger.info(f'Determining peaks (inverse={inverse})')
     peak_count = 0
     while len(values_sorted) != 0:
         _t, _p = times_sorted[0], values_sorted[0]
@@ -275,24 +327,16 @@ def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[floa
     #                                      that there is no linear trend at the latest time (so it works its way back
     #                                      in the past). rule_value should be entered as going forward in time
     if rule_type == 'break':
-        #if not isinstance(rule_value,dt.datetime): #TODO: commented this since it did not work with strings, but indexing df did not work with dt.datetime() anymore. Fix and make more generic.
-        #    raise Exception('rule_value should be of instance dt.datetime')
-        #return df[dt.datetime.strptime(rule_value, '%d-%M-%Y'):].copy()
         return df[rule_value:].copy()
     elif rule_type == 'linear':
         df, rule_value = df.copy(), float(rule_value)
         dx = np.array([rule_value*x.total_seconds()/(365*24*3600) for x in (df.index[-1] - df.index)])
         df['values'] = df['values'] + dx
         return df
-    elif (rule_type == '') or (rule_type is None):
+    elif rule_type is None:
         return df.copy()
-    elif isinstance(rule_type, np.float):
-        if np.isnan(rule_type):
-            return df.copy()
-        else:
-            raise ValueError('Incorrect rule_type passed to function. Only break or linear are supported')
     else:
-        raise ValueError('Incorrect rule_type passed to function. Only break or linear are supported')
+        raise ValueError(f'Incorrect rule_type="{rule_type}" passed to function. Only "break", "linear" or None are supported')
 
 
 def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hydra: pd.DataFrame = None) -> pd.DataFrame:
@@ -347,31 +391,47 @@ def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hyd
     return df_blended
 
 
-def plot_distributions(dist: dict, name: str,
-                       keys: List[str] = None,
-                       color_map: dict = None,
-                       xlabel: str = 'Exceedance frequency [1/yrs]',
-                       ylabel: str = 'Waterlevel [m]',
-                       legend_loc: str = 'lower right'):
+def plot_overschrijding(dist: dict):
+    """
+    plot overschrijding/onderschrijding
+
+    Parameters
+    ----------
+    dist : dict
+        Dictionary as returned from `kw.calc_overschrijding()`.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure handle.
+    ax : matplotlib.axes._axes.Axes
+        Figure axis handle.
+    """
     
-    if color_map=='default':
-        color_map = {'Ongefilterd':  'b', 'Gefilterd': 'orange', 'Trendanalyse': 'g',
-                     'Weibull': 'r', 'Hydra-NL': 'm', 'Hydra-NL met modelonzekerheid': 'cyan',
-                     'Gecombineerd': 'k'}
+    station = dist["Ongefilterd"].attrs["station"]
+    
+    color_map = {'Ongefilterd':  'b', 'Gefilterd': 'orange', 'Trendanalyse': 'g',
+                 'Weibull': 'r', 'Hydra-NL': 'm', 'Hydra-NL met modelonzekerheid': 'cyan',
+                 'Gecombineerd': 'k', 'Geinterpoleerd': 'lime'}
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    if keys is None:
-        keys = list(dist.keys())
-    for k in keys:
+    
+    for k in dist.keys():
         c = color_map[k] if (color_map is not None) and (k in color_map.keys()) else None
         if k=='Gecombineerd':
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], '--', label=k, c=c)
+        elif k=='Geinterpoleerd':
+            ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], 'o', label=k, c=c, markersize=5)
         else:
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], label=k, c=c)
-    ax.set_title(name)
-    ax.set_xlabel(xlabel), ax.set_xscale('log'), ax.set_xlim([1e-5, 1e3]), ax.invert_xaxis()
-    ax.set_ylabel(ylabel)
-    ax.legend(fontsize='medium', loc=legend_loc)
+    
+    ax.set_title(f"Distribution for {station}")
+    ax.set_xlabel('Frequency [1/yrs]')
+    ax.set_xscale('log')
+    ax.set_xlim([1e-5, 1e3])
+    ax.invert_xaxis()
+    ax.set_ylabel("Waterlevel [m]")
+    ax.legend(fontsize='medium', loc='lower right')
     ax.xaxis.set_minor_locator(ticker.LogLocator(base=10.0, subs=tuple(i / 10 for i in range(1, 10)), numticks=12))
     ax.xaxis.set_minor_formatter(ticker.NullFormatter()),
     ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.1)) #this was 10, but now meters instead of cm
@@ -381,17 +441,6 @@ def plot_distributions(dist: dict, name: str,
     ax.set_axisbelow(True)
     fig.tight_layout()
     return fig,ax
-
-
-def interpolate_interested_Tfreqs_to_csv(df: pd.DataFrame, Tfreqs: List[float],
-                                         id: str, csv_dir: os.PathLike, prefix: str,) -> pd.DataFrame:
-    df_interp = pd.DataFrame(data={'values': np.interp(Tfreqs,
-                                                      np.flip(df['values_Tfreq'].values),
-                                                      np.flip(df['values'].values)),
-                                   'values_Tfreq': Tfreqs}).sort_values(by='values_Tfreq', ascending=False)
-    #prefix = os.path.basename(csv_dir)
-    df_interp.to_csv(os.path.join(csv_dir, f'{prefix}_{id}.csv'), index=False, sep=';')
-    return df_interp
 
 
 def interpolate_interested_Tfreqs(df: pd.DataFrame, Tfreqs: List[float]) -> pd.DataFrame:

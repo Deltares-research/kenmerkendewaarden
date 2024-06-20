@@ -18,6 +18,7 @@
 - added dedicated plotting functions in [#64](https://github.com/Deltares-research/kenmerkendewaarden/pull/64), [#66](https://github.com/Deltares-research/kenmerkendewaarden/pull/66) and [#68](https://github.com/Deltares-research/kenmerkendewaarden/pull/68)
 - added computation of hat/lat from measurements with `kw.calc_hat_lat_frommeasurements()` in [#74](https://github.com/Deltares-research/kenmerkendewaarden/pull/74)
 - added modular check for timeseries coverage in [#76](https://github.com/Deltares-research/kenmerkendewaarden/pull/76)
+- simplified methods for overschrijdingsfrequenties and reducing public functions to `kw.calc_overschrijding()` in [#81](https://github.com/Deltares-research/kenmerkendewaarden/pull/81)
 
 ### Fix
 - implemented workaround for pandas 2.2.0 with different rounding behaviour in [#69](https://github.com/Deltares-research/kenmerkendewaarden/pull/69)
