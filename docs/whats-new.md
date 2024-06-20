@@ -23,6 +23,7 @@
 ### Fix
 - implemented workaround for pandas 2.2.0 with different rounding behaviour in [#69](https://github.com/Deltares-research/kenmerkendewaarden/pull/69)
 - fixed different lengths of `compute_expected_counts()` and `compute_actual_counts()` in case of all-nan periods in [#87](https://github.com/Deltares-research/kenmerkendewaarden/pull/87)
+- clearer error message in case of too many nans in timeseries slotgemiddelde model fit in [#89](https://github.com/Deltares-research/kenmerkendewaarden/pull/89)
 
 
 ## 0.1.0 (2024-03-11)
