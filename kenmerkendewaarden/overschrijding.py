@@ -28,7 +28,37 @@ def get_threshold_rowidx(df):
     return rowidx_tresholdfreq
 
 
-def calc_overschrijding(df_ext, rule_type=None, rule_value=None, clip_physical_break=True, inverse=False, dist=None, interp_freqs=None):
+def calc_overschrijding(df_ext:pd.DataFrame, dist:dict = None, 
+                        inverse:bool = False, clip_physical_break:bool = False, 
+                        rule_type:str = None, rule_value=None,
+                        interp_freqs:list = None):
+    """
+    Compute exceedance/deceedance frequencies based on measured extreme waterlevels.
+    
+    Parameters
+    ----------
+    df_ext : pd.DataFrame, optional
+        The timeseries of extremes (high and low waters). The default is None.
+    dist : dict, optional
+        A pre-filled dictionary with a Hydra-NL and/or validation distribution. The default is None.
+    inverse : bool, optional
+        Whether to compute deceedance instead of exceedance frequencies. The default is False.
+    clip_physical_break : bool, optional
+        Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
+    rule_type : str, optional
+        break/linear/None, passed on to apply_trendanalysis(). The default is None.
+    rule_value : TYPE, optional
+        Value corresponding to rule_type. The default is None.
+    interp_freqs : list, optional
+        The frequencies to interpolate to, providing this will result in a 
+        "Geinterpoleerd" key in the returned dictionary. The default is None.
+
+    Returns
+    -------
+    dist : dict
+        A dictionary with several distributions.
+
+    """
     
     raise_extremes_with_aggers(df_ext)
     # take only high or low extremes
@@ -297,9 +327,6 @@ def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[floa
     #                                      that there is no linear trend at the latest time (so it works its way back
     #                                      in the past). rule_value should be entered as going forward in time
     if rule_type == 'break':
-        #if not isinstance(rule_value,dt.datetime): #TODO: commented this since it did not work with strings, but indexing df did not work with dt.datetime() anymore. Fix and make more generic.
-        #    raise Exception('rule_value should be of instance dt.datetime')
-        #return df[dt.datetime.strptime(rule_value, '%d-%M-%Y'):].copy()
         return df[rule_value:].copy()
     elif rule_type == 'linear':
         df, rule_value = df.copy(), float(rule_value)
@@ -308,13 +335,8 @@ def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[floa
         return df
     elif rule_type is None:
         return df.copy()
-    elif isinstance(rule_type, np.float):
-        if np.isnan(rule_type):
-            return df.copy()
-        else:
-            raise ValueError('Incorrect rule_type passed to function. Only break or linear are supported')
     else:
-        raise ValueError('Incorrect rule_type passed to function. Only break or linear are supported')
+        raise ValueError(f'Incorrect rule_type="{rule_type}" passed to function. Only "break", "linear" or None are supported')
 
 
 def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hydra: pd.DataFrame = None) -> pd.DataFrame:
