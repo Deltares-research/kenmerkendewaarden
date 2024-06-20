@@ -204,7 +204,6 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     linear_fit = pd.Series(pred_linear, index=allyears_dt)
     return linear_fit
 
-    
 
 # copied from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py
 def linear_model(df, with_wind=True, with_ar=True, with_nodal=True, quantity='height'):
