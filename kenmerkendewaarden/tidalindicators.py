@@ -165,9 +165,9 @@ def compute_actual_counts(df_meas, freq, column="values"):
     """
     Compute the number of non-nan values in a column for all years/months in a timeseries index.
     """
-    df_meas_nonan = df_meas.loc[~df_meas[column].isnull()]
-    period_index = pd.PeriodIndex(df_meas_nonan.index, freq=freq)
-    df_actual_counts = df_meas_nonan.groupby(period_index)[column].count()
+    df_meas_isnotnull = ~df_meas[column].isnull()
+    period_index = pd.PeriodIndex(df_meas_isnotnull.index, freq=freq)
+    df_actual_counts = df_meas_isnotnull.groupby(period_index).sum()
     return df_actual_counts
 
 
@@ -176,7 +176,7 @@ def compute_expected_counts(df_meas, freq):
     Compute the expected number of values for all years/months in a timeseries index,
     by taking the number of days for each year/month and dividing it by the median frequency in that period.
     """
-    # TODO: beware of series with e.g. only first and last value of month, this will result in freq=30days and then expected count of 1, it will pass even if there is almost no data
+    # TODO: beware of series with e.g. only first and last value of month/year, this will result in freq=30days and then expected count of 2, it will pass even if there is almost no data
     df_meas = df_meas.copy()
     df_meas["timediff"] = pd.TimedeltaIndex([pd.NaT]).append(df_meas.index[1:] - df_meas.index[:-1]) # TODO: from pandas>=2.1.4 the following also works: df_times.diff() (which results in a timedeltaindex of the correct length)
     period_index = pd.PeriodIndex(df_meas.index, freq=freq)
