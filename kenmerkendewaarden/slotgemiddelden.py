@@ -188,16 +188,23 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     allyears_dt = pd.date_range(start=start, end=end, freq='YS')
     mean_array_allyears = pd.Series(mean_array_todate, index=allyears_dt)
     
-    df = pd.DataFrame({'year':mean_array_allyears.index.year, 'height':mean_array_allyears.values}) #TODO: make functions accept mean_array instead of df as argument?
+    mean_array_allyears_nonans = mean_array_allyears.loc[~mean_array_allyears.isnull()]
+    if len(mean_array_allyears_nonans) < 2:
+        raise ValueError(f'nan-filtered timeseries has only one timestep, cannot perform model fit:\n{mean_array_allyears_nonans}')
     
-    # below methods are copied from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py #TODO: install slr package as dependency or keep separate?
-    
+    # convert to dataframe of expected format
+    # TODO: make functions accept mean_array instead of df as argument?
+    df = pd.DataFrame({'year':mean_array_allyears.index.year, 'height':mean_array_allyears.values})
+
+    # below methods are copied from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py
+    # TODO: install slr package as dependency or keep separate?
     fit, _, X = linear_model(df, with_wind=False, with_nodal=with_nodal)
     pred_linear = fit.predict(X)
     
     linear_fit = pd.Series(pred_linear, index=allyears_dt)
     return linear_fit
 
+    
 
 # copied from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py
 def linear_model(df, with_wind=True, with_ar=True, with_nodal=True, quantity='height'):

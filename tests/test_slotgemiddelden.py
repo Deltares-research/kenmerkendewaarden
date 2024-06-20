@@ -56,6 +56,15 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
 
 
 @pytest.mark.unittest
+def test_calc_slotgemiddelden_oneyear_fails(df_meas_2010_2014):
+    df_meas_onevalidyear = df_meas_2010_2014.copy()
+    df_meas_onevalidyear.loc["2011":] = np.nan
+    with pytest.raises(ValueError) as e:
+        kw.calc_slotgemiddelden(df_meas=df_meas_onevalidyear, df_ext=None)
+    assert "nan-filtered timeseries has only one timestep" in str(e.value)
+
+
+@pytest.mark.unittest
 def test_plot_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_inclext = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=df_ext_12_2010_2014)
     slotgemiddelden_dict_noext = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=None)
