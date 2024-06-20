@@ -264,12 +264,11 @@ for current_station in stat_list:
             if os.path.exists(file_vali_dec):
                 dist_vali_dec['validation'] = pd.read_csv(file_vali_dec,sep=';')
                 dist_vali_dec['validation']['values'] /= 100
-    
+        
         # 1. Exceedance
         print('Exceedance')
         dist_exc = kw.calc_overschrijding(data_pd_HW, rule_type=None, rule_value=None, 
-                                          clip_physical_break=True)
-        dist_exc.update(dist_vali_exc)
+                                          clip_physical_break=True, dist=dist_vali_exc)
         df_interp = kw.interpolate_interested_Tfreqs(dist_exc['Gecombineerd'], Tfreqs=Tfreqs_interested)
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False, sep=';')
         
@@ -280,8 +279,7 @@ for current_station in stat_list:
         # 2. Deceedance
         print('Deceedance')
         dist_dec = kw.calc_overschrijding(data_pd_LW, rule_type=None, rule_value=None, 
-                                          clip_physical_break=True, inverse=True)
-        dist_dec.update(dist_vali_dec)
+                                          clip_physical_break=True, dist=dist_vali_dec, inverse=True)
         df_interp = kw.interpolate_interested_Tfreqs(dist_dec['Gecombineerd'], Tfreqs=Tfreqs_interested)
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False, sep=';')
         

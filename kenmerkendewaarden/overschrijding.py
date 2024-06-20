@@ -10,7 +10,6 @@ from matplotlib import ticker
 from scipy import optimize, signal
 from typing import Union, List
 import datetime as dt
-import os
 import logging
 from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
 
@@ -29,14 +28,14 @@ def get_threshold_rowidx(df):
     return rowidx_tresholdfreq
 
 
-def calc_overschrijding(df_extrema, rule_type=None, rule_value=None, clip_physical_break=True, inverse=False):
+def calc_overschrijding(df_extrema, rule_type=None, rule_value=None, clip_physical_break=True, inverse=False, dist=None):
     
     if clip_physical_break:
         df_extrema = clip_timeseries_physical_break(df_extrema)
-
-    
     df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
-    dist = {} #TODO: replace with pandas.DataFrame?
+    
+    if dist is None:
+        dist = {}
     
     logger.info('Calculate unfiltered distribution')
     dist['Ongefilterd'] = distribution(df_extrema_clean, inverse=inverse)
@@ -65,11 +64,16 @@ def calc_overschrijding(df_extrema, rule_type=None, rule_value=None, clip_physic
                                   Tfreqs=np.logspace(-5, np.log10(treshold_Tfreq), 5000),
                                   inverse=inverse)
     
-    logger.info('Blend trend and weibull together') # and Hydra-NL
-    dist['Gecombineerd'] = blend_distributions(dist['Trendanalyse'].copy(),
-                                               dist['Weibull'].copy(),
-                                               #dist['Hydra-NL'].copy(), 
-                                               )
+    if "Hydra-NL" in dist.keys():
+        logger.info('Blend trend, weibull and Hydra-NL')
+        # TODO: now based on hardcoded Hydra-NL dict key which is already part of the input dist dict, this is tricky
+        df_hydra = dist['Hydra-NL'].copy()
+    else:
+        logger.info('Blend trend and weibull')
+        df_hydra = None
+    dist['Gecombineerd'] = blend_distributions(df_trend=dist['Trendanalyse'].copy(), 
+                                               df_weibull=dist['Weibull'].copy(), 
+                                               df_hydra=df_hydra)
 
     """
     if row['apply_treshold']:
