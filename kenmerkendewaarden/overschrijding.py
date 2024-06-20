@@ -417,7 +417,10 @@ def plot_overschrijding(dist: dict):
     fig, ax = plt.subplots(figsize=(8, 6))
     
     for k in dist.keys():
-        c = color_map[k] if (color_map is not None) and (k in color_map.keys()) else None
+        if k in color_map.keys():
+            c = color_map[k]
+        else:
+            c = None
         if k=='Gecombineerd':
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], '--', label=k, c=c)
         elif k=='Geinterpoleerd':
