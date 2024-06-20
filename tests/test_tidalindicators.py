@@ -4,6 +4,7 @@ import pytest
 import kenmerkendewaarden as kw
 import numpy as np
 from kenmerkendewaarden.tidalindicators import compute_actual_counts, compute_expected_counts
+import pandas as pd
 
 
 @pytest.mark.unittest
@@ -60,6 +61,7 @@ def test_calc_wltidalindicators_mincount(df_meas_2010_2014):
     assert slotgemiddelden_dict_withgap_lower_threshold["wl_mean_peryear"].isnull().sum() == 0
 
 
+@pytest.mark.unittest
 def test_compute_expected_actual_counts_samelenght(df_meas_2010_2014):
     """
     because of nan-dropping, the lenghts were not the same before
@@ -79,6 +81,33 @@ def test_compute_expected_actual_counts_samelenght(df_meas_2010_2014):
     
     assert len(actual_count_peryear) == len(expected_count_peryear)
     assert len(actual_count_permonth) == len(expected_count_permonth)
+
+
+    
+@pytest.mark.unittest
+def test_compute_expected_counts_twotimesteps(df_meas_2010_2014):
+    """
+    this testcase shows that compute_expected_counts succeeds for a year with only three timesteps
+    and it fails for a year with two timesteps.
+    """
+    
+    # create datasets with a gap
+    df_meas_withgap_success = pd.concat([df_meas_2010_2014.loc[:"2012-01-01 00:10:00 +01:00"],
+                                         df_meas_2010_2014.loc["2012-12-31 23:50:00 +01:00":]], axis=0)
+    df_meas_withgap_fails = pd.concat([df_meas_2010_2014.loc[:"2012-01-01 00:00:00 +01:00"],
+                                       df_meas_2010_2014.loc["2012-12-31 23:50:00 +01:00":]], axis=0)
+    assert len(df_meas_withgap_success.loc["2012"]) == 3
+    assert len(df_meas_withgap_fails.loc["2012"]) == 2
+    
+    # compute expected counts
+    expected_count_peryear_success = compute_expected_counts(df_meas_withgap_success, freq="Y")
+    expected_count_peryear_fails = compute_expected_counts(df_meas_withgap_fails, freq="Y")
+    
+    count_peryear_success = np.array([52560., 52560., 52704., 52560., 52560.])
+    count_peryear_failed = np.array([52560., 52560., 2., 52560., 52560.])
+    
+    assert np.allclose(expected_count_peryear_success.values, count_peryear_success)
+    assert np.allclose(expected_count_peryear_fails.values, count_peryear_failed)
 
 
 @pytest.mark.unittest
