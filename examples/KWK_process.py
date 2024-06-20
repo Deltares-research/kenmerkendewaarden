@@ -274,22 +274,22 @@ for current_station in stat_list:
     
         # 1. Exceedance
         print('Exceedance')
-        dist_exc = kw.compute_overschrijding(data_pd_HW, rule_type=station_rule_type, rule_value=station_break_value)
+        dist_exc = kw.calc_overschrijding(data_pd_HW, rule_type=station_rule_type, rule_value=station_break_value)
         dist_exc.update(dist_vali_exc)
         df_interp = kw.interpolate_interested_Tfreqs(dist_exc['Gecombineerd'], Tfreqs=Tfreqs_interested)
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False, sep=';')
         
-        fig, ax = kw.plot_distributions(dist_exc, name=current_station, color_map='default')
+        fig, ax = kw.plot_overschrijding(dist_exc, name=current_station, color_map='default')
         ax.set_ylim(0,5.5)
         fig.savefig(os.path.join(dir_overschrijding, f'Exceedance_lines_{current_station}.png'))
         
         # 2. Deceedance
         print('Deceedance')
-        dist_dec = kw.compute_overschrijding(data_pd_LW, rule_type=station_rule_type, rule_value=station_break_value, inverse=True)
+        dist_dec = kw.calc_overschrijding(data_pd_LW, rule_type=station_rule_type, rule_value=station_break_value, inverse=True)
         dist_dec.update(dist_vali_dec)
         df_interp = kw.interpolate_interested_Tfreqs(dist_dec['Gecombineerd'], Tfreqs=Tfreqs_interested)
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False, sep=';')
         
-        fig, ax = kw.plot_distributions(dist_dec, name=current_station, color_map='default')
+        fig, ax = kw.plot_overschrijding(dist_dec, name=current_station, color_map='default')
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))
 

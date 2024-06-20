@@ -12,9 +12,9 @@ from typing import Union, List
 import datetime as dt
 import os
 
-__all__ = ["compute_overschrijding",
+__all__ = ["calc_overschrijding",
            "interpolate_interested_Tfreqs",
-           "plot_distributions",
+           "plot_overschrijding",
            ]
 
 
@@ -25,7 +25,7 @@ def get_threshold_rowidx(df):
     return rowidx_tresholdfreq
 
 
-def compute_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
+def calc_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
     
     df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
     dist = {} #TODO: replace with pandas.DataFrame?
@@ -347,7 +347,7 @@ def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hyd
     return df_blended
 
 
-def plot_distributions(dist: dict, name: str,
+def plot_overschrijding(dist: dict, name: str,
                        keys: List[str] = None,
                        color_map: dict = None,
                        xlabel: str = 'Exceedance frequency [1/yrs]',
