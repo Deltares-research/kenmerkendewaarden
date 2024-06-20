@@ -35,13 +35,13 @@ def compute_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
     
     """# filtering is only applicable for stations with high river discharge influence, so disabled #TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem. Er is dan een treshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
     print('Calculate filtered distribution')
-    df_peaks, threshold, _ = hatyan.detect_peaks(df_extrema_clean)
+    df_peaks, threshold, _ = detect_peaks(df_extrema_clean)
     if metadata_station['apply_treshold']:
         temp[metadata_station['id']] = threshold
-        df_extrema_filt = hatyan.filter_with_threshold(df_extrema_clean, df_peaks, threshold)
+        df_extrema_filt = filter_with_threshold(df_extrema_clean, df_peaks, threshold)
     else:
         df_extrema_filt = df_extrema_clean.copy()
-    dist['Gefilterd'] = hatyan.distribution(df_extrema_filt.copy())
+    dist['Gefilterd'] = distribution(df_extrema_filt.copy())
     """
     
     print('Calculate filtered distribution with trendanalysis')
