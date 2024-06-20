@@ -141,7 +141,7 @@ for current_station in stat_list:
             ax1.plot(yearmeanHW['values'],'+g', zorder=0)
             ax1.plot(yearmeanLW['values'],'+g', zorder=0)
             ax1.plot(yearmeanwl['values'],'+g',label='yearmean validation', zorder=0)
-        ax1.legend(loc=2)
+            ax1.legend(loc=2)
         
         fig1.savefig(os.path.join(dir_slotgem,f'yearly_values_{current_station}'))
     
@@ -227,12 +227,12 @@ for current_station in stat_list:
     
     
     ###OVERSCHRIJDINGSFREQUENTIES
-    #TODO: SLR trend correctie voor overschrijdingsfrequenties en evt ook voor andere KW?
-    #TODO: resulting freqs seem to be shifted w.r.t. getijtafelboekje (mail PH 9-3-2022)
-    #plots beoordelen: rode lijn moet ongeveer verlengde zijn van groene, als die ineens omhoog piekt komt dat door hele extreme waardes die je dan vermoedelijk ook al ziet in je groene lijn
+    # TODO: SLR trend correctie voor overschrijdingsfrequenties en evt ook voor andere KW?
+    # TODO: resulting freqs seem to be shifted w.r.t. getijtafelboekje (mail PH 9-3-2022)
+    # plots beoordelen: rode lijn moet ongeveer verlengde zijn van groene, als die ineens omhoog piekt komt dat door hele extreme waardes die je dan vermoedelijk ook al ziet in je groene lijn
     
-    Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200, #overschrijdingsfreqs
-                         1/500, 1/1000, 1/2000, 1/4000, 1/5000, 1/10000] #TODO: which frequencies are realistic with n years of data? probably remove this entire row >> met 40 jaar data kun je in principe tot 1/40 gaan, maar met weibull kun je extrapoleren en in theorie >> dit is voor tabel die je eruit wil hebben
+    Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200,
+                         1/500, 1/1000, 1/2000, 1/4000, 1/5000, 1/10000]
     
     if compute_overschrijding and data_pd_HWLW_all is not None:
         print(f'overschrijdingsfrequenties for {current_station}')

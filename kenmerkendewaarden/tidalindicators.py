@@ -31,8 +31,8 @@ def calc_HWLWtidalindicators(df_ext, min_coverage:float = None):
     ----------
     data_pd_HWLW_all : TYPE
         DESCRIPTION.
-     min_coverage : float, optional
-         The minimum percentage (from 0 to 1) of timeseries coverage to consider the statistics to be valid. The default is None.
+    min_coverage : float, optional
+        The minimum percentage (from 0 to 1) of timeseries coverage to consider the statistics to be valid. The default is None.
 
     Returns
     -------

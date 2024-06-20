@@ -44,11 +44,11 @@ def test_calc_HWLWtidalindicators(df_meas_2010_2014):
 
 @pytest.mark.unittest
 def test_calc_wltidalindicators_mincount(df_meas_2010_2014):
+    # create dataset with a gap
     df_meas_withgap = df_meas_2010_2014.copy() # copy to prevent altering the original dataset
     df_meas_withgap.loc["2012-01-01":"2012-01-15", "values"] = np.nan
     df_meas_withgap.loc["2012-01-01":"2012-01-15", "qualitycode"] = 99
     
-    # create dataset with a gap
     slotgemiddelden_dict_nogap = kw.calc_wltidalindicators(df_meas_2010_2014, min_coverage=1)
     slotgemiddelden_dict_withgap = kw.calc_wltidalindicators(df_meas_withgap, min_coverage=1)
     slotgemiddelden_dict_withgap_lower_threshold = kw.calc_wltidalindicators(df_meas_withgap, min_coverage=0.95)
