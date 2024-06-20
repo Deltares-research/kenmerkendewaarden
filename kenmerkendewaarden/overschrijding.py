@@ -11,11 +11,14 @@ from scipy import optimize, signal
 from typing import Union, List
 import datetime as dt
 import os
+import logging
 
 __all__ = ["calc_overschrijding",
            "interpolate_interested_Tfreqs",
            "plot_overschrijding",
            ]
+
+logger = logging.getLogger(__name__)
 
 
 def get_threshold_rowidx(df):
@@ -30,11 +33,11 @@ def calc_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
     df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
     dist = {} #TODO: replace with pandas.DataFrame?
     
-    print('Calculate unfiltered distribution')
+    logger.info('Calculate unfiltered distribution')
     dist['Ongefilterd'] = distribution(df_extrema_clean, inverse=inverse)
     
     """# filtering is only applicable for stations with high river discharge influence, so disabled #TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem. Er is dan een treshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
-    print('Calculate filtered distribution')
+    logger.info('Calculate filtered distribution')
     df_peaks, threshold, _ = detect_peaks(df_extrema_clean)
     if metadata_station['apply_treshold']:
         temp[metadata_station['id']] = threshold
@@ -44,11 +47,11 @@ def calc_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
     dist['Gefilterd'] = distribution(df_extrema_filt.copy())
     """
     
-    print('Calculate filtered distribution with trendanalysis')
+    logger.info('Calculate filtered distribution with trendanalysis')
     df_trend = apply_trendanalysis(df_extrema_clean, rule_type=rule_type, rule_value=rule_value)
     dist['Trendanalyse'] = distribution(df_trend.copy(), inverse=inverse)
     
-    print('Fit Weibull to filtered distribution with trendanalysis')
+    logger.info('Fit Weibull to filtered distribution with trendanalysis')
     idx_maxfreq_trend = get_threshold_rowidx(dist['Trendanalyse'])
     treshold_value = dist['Trendanalyse'].iloc[idx_maxfreq_trend]['values']
     treshold_Tfreq = dist['Trendanalyse'].iloc[idx_maxfreq_trend]['values_Tfreq']
@@ -57,7 +60,7 @@ def calc_overschrijding(df_extrema, rule_type, rule_value, inverse=False):
                                   Tfreqs=np.logspace(-5, np.log10(treshold_Tfreq), 5000),
                                   inverse=inverse)
     
-    print('Blend trend and weibull together') # and Hydra-NL
+    logger.info('Blend trend and weibull together') # and Hydra-NL
     dist['Gecombineerd'] = blend_distributions(dist['Trendanalyse'].copy(),
                                                dist['Weibull'].copy(),
                                                #dist['Hydra-NL'].copy(), 
@@ -130,11 +133,8 @@ def detect_peaks_hkv(df: pd.DataFrame, window: int, inverse: bool = False, thres
 
     peaks = np.ones(len(values)) * np.nan
     t_peaks, dt_left_peaks, dt_right_peaks = peaks.copy(), peaks.copy(), peaks.copy()
-
-    if inverse:
-        print('Determining peaks (inverse)')
-    else:
-        print('Determining peaks')
+    
+    logger.info(f'Determining peaks (inverse={inverse})')
     peak_count = 0
     while len(values_sorted) != 0:
         _t, _p = times_sorted[0], values_sorted[0]
