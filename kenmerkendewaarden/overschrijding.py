@@ -12,9 +12,9 @@ from typing import Union, List
 import datetime as dt
 import logging
 from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
+from kenmerkendewaarden.utils import raise_extremes_with_aggers
 
 __all__ = ["calc_overschrijding",
-           "interpolate_interested_Tfreqs",
            "plot_overschrijding",
            ]
 
@@ -28,11 +28,13 @@ def get_threshold_rowidx(df):
     return rowidx_tresholdfreq
 
 
-def calc_overschrijding(df_extrema, rule_type=None, rule_value=None, clip_physical_break=True, inverse=False, dist=None):
+def calc_overschrijding(df_ext, rule_type=None, rule_value=None, clip_physical_break=True, inverse=False, dist=None, interp_freqs=None):
     
+    raise_extremes_with_aggers(df_ext)
+
     if clip_physical_break:
-        df_extrema = clip_timeseries_physical_break(df_extrema)
-    df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
+        df_ext = clip_timeseries_physical_break(df_ext)
+    df_extrema_clean = df_ext.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
     
     if dist is None:
         dist = {}
@@ -74,7 +76,11 @@ def calc_overschrijding(df_extrema, rule_type=None, rule_value=None, clip_physic
     dist['Gecombineerd'] = blend_distributions(df_trend=dist['Trendanalyse'].copy(), 
                                                df_weibull=dist['Weibull'].copy(), 
                                                df_hydra=df_hydra)
-
+    
+    if interp_freqs is not None:
+        dist['Geinterpoleerd'] = interpolate_interested_Tfreqs(dist['Gecombineerd'], Tfreqs=interp_freqs)
+       
+    
     """
     if row['apply_treshold']:
         keys = list(dist.keys())
@@ -366,7 +372,7 @@ def plot_overschrijding(dist: dict, name: str,
     if color_map=='default':
         color_map = {'Ongefilterd':  'b', 'Gefilterd': 'orange', 'Trendanalyse': 'g',
                      'Weibull': 'r', 'Hydra-NL': 'm', 'Hydra-NL met modelonzekerheid': 'cyan',
-                     'Gecombineerd': 'k'}
+                     'Gecombineerd': 'k', 'Geinterpoleerd': 'lime'}
 
     fig, ax = plt.subplots(figsize=(8, 6))
     if keys is None:
@@ -375,6 +381,8 @@ def plot_overschrijding(dist: dict, name: str,
         c = color_map[k] if (color_map is not None) and (k in color_map.keys()) else None
         if k=='Gecombineerd':
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], '--', label=k, c=c)
+        if k=='Geinterpoleerd':
+            ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], 'o', label=k, c=c, markersize=5)
         else:
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], label=k, c=c)
     ax.set_title(name)

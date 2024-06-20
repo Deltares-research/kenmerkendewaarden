@@ -268,8 +268,9 @@ for current_station in stat_list:
         # 1. Exceedance
         print('Exceedance')
         dist_exc = kw.calc_overschrijding(data_pd_HW, rule_type=None, rule_value=None, 
-                                          clip_physical_break=True, dist=dist_vali_exc)
-        df_interp = kw.interpolate_interested_Tfreqs(dist_exc['Gecombineerd'], Tfreqs=Tfreqs_interested)
+                                          clip_physical_break=True, dist=dist_vali_exc,
+                                          interp_freqs=Tfreqs_interested)
+        df_interp = dist_exc['Geinterpoleerd']
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False, sep=';')
         
         fig, ax = kw.plot_overschrijding(dist_exc, name=current_station, color_map='default')
@@ -279,8 +280,9 @@ for current_station in stat_list:
         # 2. Deceedance
         print('Deceedance')
         dist_dec = kw.calc_overschrijding(data_pd_LW, rule_type=None, rule_value=None, 
-                                          clip_physical_break=True, dist=dist_vali_dec, inverse=True)
-        df_interp = kw.interpolate_interested_Tfreqs(dist_dec['Gecombineerd'], Tfreqs=Tfreqs_interested)
+                                          clip_physical_break=True, dist=dist_vali_dec, inverse=True,
+                                          interp_freqs=Tfreqs_interested)
+        df_interp = dist_dec['Geinterpoleerd']
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False, sep=';')
         
         fig, ax = kw.plot_overschrijding(dist_dec, name=current_station, color_map='default')
