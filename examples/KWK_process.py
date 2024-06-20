@@ -235,7 +235,6 @@ for current_station in stat_list:
                          1/500, 1/1000, 1/2000, 1/4000, 1/5000, 1/10000] #TODO: which frequencies are realistic with n years of data? probably remove this entire row >> met 40 jaar data kun je in principe tot 1/40 gaan, maar met weibull kun je extrapoleren en in theorie >> dit is voor tabel die je eruit wil hebben
     
     if compute_overschrijding and data_pd_HWLW_all is not None:
-    
         print(f'overschrijdingsfrequenties for {current_station}')
         
         # only include data up to year_slotgem

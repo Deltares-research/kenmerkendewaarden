@@ -31,17 +31,16 @@ def get_threshold_rowidx(df):
 def calc_overschrijding(df_ext, rule_type=None, rule_value=None, clip_physical_break=True, inverse=False, dist=None, interp_freqs=None):
     
     raise_extremes_with_aggers(df_ext)
-    
     # take only high or low extremes
     # TODO: this might not be useful in case of river discharge influenced stations where a filter is needed
     if inverse:
-        df_ext = df_ext.loc[df_ext['HWLWcode']!=1]
+        df_extrema = df_ext.loc[df_ext['HWLWcode']!=1]
     else:
-        df_ext = df_ext.loc[df_ext['HWLWcode']==1]
+        df_extrema = df_ext.loc[df_ext['HWLWcode']==1]
 
     if clip_physical_break:
-        df_ext = clip_timeseries_physical_break(df_ext)
-    df_extrema_clean = df_ext.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
+        df_extrema = clip_timeseries_physical_break(df_extrema)
+    df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
     
     if dist is None:
         dist = {}
