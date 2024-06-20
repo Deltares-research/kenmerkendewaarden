@@ -388,17 +388,6 @@ def plot_overschrijding(dist: dict, name: str,
     return fig,ax
 
 
-def interpolate_interested_Tfreqs_to_csv(df: pd.DataFrame, Tfreqs: List[float],
-                                         id: str, csv_dir: os.PathLike, prefix: str,) -> pd.DataFrame:
-    df_interp = pd.DataFrame(data={'values': np.interp(Tfreqs,
-                                                      np.flip(df['values_Tfreq'].values),
-                                                      np.flip(df['values'].values)),
-                                   'values_Tfreq': Tfreqs}).sort_values(by='values_Tfreq', ascending=False)
-    #prefix = os.path.basename(csv_dir)
-    df_interp.to_csv(os.path.join(csv_dir, f'{prefix}_{id}.csv'), index=False, sep=';')
-    return df_interp
-
-
 def interpolate_interested_Tfreqs(df: pd.DataFrame, Tfreqs: List[float]) -> pd.DataFrame:
     df_interp = pd.DataFrame(data={'values': np.interp(Tfreqs,
                                                       np.flip(df['values_Tfreq'].values),
