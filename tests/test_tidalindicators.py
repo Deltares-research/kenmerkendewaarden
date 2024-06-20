@@ -82,7 +82,6 @@ def test_compute_expected_actual_counts_samelenght(df_meas_2010_2014):
     assert len(actual_count_peryear) == len(expected_count_peryear)
     assert len(actual_count_permonth) == len(expected_count_permonth)
 
-
     
 @pytest.mark.unittest
 def test_compute_expected_counts_twotimesteps(df_meas_2010_2014):
