@@ -269,7 +269,7 @@ for current_station in stat_list:
         df_interp = dist_exc['Geinterpoleerd']
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False, sep=';')
         
-        fig, ax = kw.plot_overschrijding(dist_exc, name=current_station, color_map='default')
+        fig, ax = kw.plot_overschrijding(dist_exc)
         ax.set_ylim(0,5.5)
         fig.savefig(os.path.join(dir_overschrijding, f'Exceedance_lines_{current_station}.png'))
         
@@ -281,6 +281,6 @@ for current_station in stat_list:
         df_interp = dist_dec['Geinterpoleerd']
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False, sep=';')
         
-        fig, ax = kw.plot_overschrijding(dist_dec, name=current_station, color_map='default')
+        fig, ax = kw.plot_overschrijding(dist_dec)
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))
 

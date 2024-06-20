@@ -369,22 +369,32 @@ def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hyd
     return df_blended
 
 
-def plot_overschrijding(dist: dict, name: str,
-                       keys: List[str] = None,
-                       color_map: dict = None,
-                       xlabel: str = 'Exceedance frequency [1/yrs]',
-                       ylabel: str = 'Waterlevel [m]',
-                       legend_loc: str = 'lower right'):
+def plot_overschrijding(dist: dict):
+    """
+    plot overschrijding/onderschrijding
+
+    Parameters
+    ----------
+    dist : dict
+        Dictionary as returned from `kw.calc_overschrijding()`.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure handle.
+    ax : matplotlib.axes._axes.Axes
+        Figure axis handle.
+    """
     
-    if color_map=='default':
-        color_map = {'Ongefilterd':  'b', 'Gefilterd': 'orange', 'Trendanalyse': 'g',
-                     'Weibull': 'r', 'Hydra-NL': 'm', 'Hydra-NL met modelonzekerheid': 'cyan',
-                     'Gecombineerd': 'k', 'Geinterpoleerd': 'lime'}
+    station = dist["Ongefilterd"].attrs["station"]
+    
+    color_map = {'Ongefilterd':  'b', 'Gefilterd': 'orange', 'Trendanalyse': 'g',
+                 'Weibull': 'r', 'Hydra-NL': 'm', 'Hydra-NL met modelonzekerheid': 'cyan',
+                 'Gecombineerd': 'k', 'Geinterpoleerd': 'lime'}
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    if keys is None:
-        keys = list(dist.keys())
-    for k in keys:
+    
+    for k in dist.keys():
         c = color_map[k] if (color_map is not None) and (k in color_map.keys()) else None
         if k=='Gecombineerd':
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], '--', label=k, c=c)
@@ -392,10 +402,14 @@ def plot_overschrijding(dist: dict, name: str,
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], 'o', label=k, c=c, markersize=5)
         else:
             ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], label=k, c=c)
-    ax.set_title(name)
-    ax.set_xlabel(xlabel), ax.set_xscale('log'), ax.set_xlim([1e-5, 1e3]), ax.invert_xaxis()
-    ax.set_ylabel(ylabel)
-    ax.legend(fontsize='medium', loc=legend_loc)
+    
+    ax.set_title(f"Distribution for {station}")
+    ax.set_xlabel('Frequency [1/yrs]')
+    ax.set_xscale('log')
+    ax.set_xlim([1e-5, 1e3])
+    ax.invert_xaxis()
+    ax.set_ylabel("Waterlevel [m]")
+    ax.legend(fontsize='medium', loc='lower right')
     ax.xaxis.set_minor_locator(ticker.LogLocator(base=10.0, subs=tuple(i / 10 for i in range(1, 10)), numticks=12))
     ax.xaxis.set_minor_formatter(ticker.NullFormatter()),
     ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.1)) #this was 10, but now meters instead of cm
