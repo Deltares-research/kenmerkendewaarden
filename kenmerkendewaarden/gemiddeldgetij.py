@@ -209,7 +209,10 @@ def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, tick_
         Figure axis handle.
 
     """
-    station = gemgetij_dict["mean"].attrs["station"]
+    # get and compare station arguments
+    station_attrs = [v.attrs["station"] for k,v in gemgetij_dict.items()]
+    assert all(x == station_attrs[0] for x in station_attrs)
+    station = station_attrs[0]
     
     logger.info(f'plot getijkromme trefHW: {station}')
     fig, ax = plt.subplots(figsize=(14,7))

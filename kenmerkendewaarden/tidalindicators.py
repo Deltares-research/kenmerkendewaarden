@@ -250,11 +250,9 @@ def plot_tidalindicators(indicators_wl:dict = None, indicators_ext = None):
     fig, ax = plt.subplots(figsize=(12,6))
         
     if indicators_wl is not None:
-        # TODO: maybe add an escape for if the station attr is not present
         station = indicators_wl['wl_mean_peryear'].attrs["station"]
         plot_pd_series(indicators_wl, ax)
     if indicators_ext is not None:
-        # TODO: maybe add an escape for if the station attr is not present
         station = indicators_ext['HW_mean_peryear'].attrs["station"]
         plot_pd_series(indicators_ext, ax)
     
