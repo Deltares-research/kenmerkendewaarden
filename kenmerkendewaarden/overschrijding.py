@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from matplotlib import ticker
 from scipy import optimize, signal
 from typing import Union, List
-import datetime as dt
 import logging
 from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
 from kenmerkendewaarden.utils import raise_extremes_with_aggers
@@ -30,7 +29,7 @@ def get_threshold_rowidx(df):
 
 def calc_overschrijding(df_ext:pd.DataFrame, dist:dict = None, 
                         inverse:bool = False, clip_physical_break:bool = False, 
-                        rule_type:str = None, rule_value=None,
+                        rule_type:str = None, rule_value:(pd.Timestamp, float) = None,
                         interp_freqs:list = None):
     """
     Compute exceedance/deceedance frequencies based on measured extreme waterlevels.
@@ -47,8 +46,9 @@ def calc_overschrijding(df_ext:pd.DataFrame, dist:dict = None,
         Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
     rule_type : str, optional
         break/linear/None, passed on to apply_trendanalysis(). The default is None.
-    rule_value : TYPE, optional
-        Value corresponding to rule_type. The default is None.
+    rule_value : (pd.Timestamp, float), optional
+        Value corresponding to rule_type, pd.Timestamp (or anything understood by pd.Timestamp) 
+        in case of rule_type='break', float in case of rule_type='linear'. The default is None.
     interp_freqs : list, optional
         The frequencies to interpolate to, providing this will result in a 
         "Geinterpoleerd" key in the returned dictionary. The default is None.
@@ -321,7 +321,7 @@ def get_total_years(df: pd.DataFrame) -> float:
     return (df.index[-1] - df.index[0]).total_seconds() / (3600 * 24 * 365)
 
 
-def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[float, dt.datetime]):
+def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[pd.Timestamp, float]):
     # There are 2 rule types:  - break -> Values before break are removed
     #                          - linear -> Values are increased/lowered based on value in value/year. It is assumes
     #                                      that there is no linear trend at the latest time (so it works its way back
@@ -329,7 +329,8 @@ def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[floa
     if rule_type == 'break':
         return df[rule_value:].copy()
     elif rule_type == 'linear':
-        df, rule_value = df.copy(), float(rule_value)
+        rule_value = float(rule_value)
+        df = df.copy()
         dx = np.array([rule_value*x.total_seconds()/(365*24*3600) for x in (df.index[-1] - df.index)])
         df['values'] = df['values'] + dx
         return df
