@@ -86,7 +86,28 @@ def check_locations_amount(locations):
         raise ValueError(f"multiple stations present after station subsetting:\n{locations}")
 
 
-def retrieve_measurements_amount(dir_output, station_list, extremes:bool, start_date, end_date):
+def retrieve_measurements_amount(dir_output:str, station_list:list, extremes:bool, start_date:pd.Timestamp, end_date:pd.Timestamp):
+    """
+    Retrieve the amount of measurements or extremes for a single station from the DDL with ddlpy.
+
+    Parameters
+    ----------
+    dir_output : str
+        Path where the measurement netcdf file will be stored.
+    station : str
+        station name, for instance "HOEKVHLD".
+    extremes : bool
+        Whether to read measurements for waterlevel timeseries or extremes.
+    start_date : pd.Timestamp (or anything understood by pd.Timestamp)
+        start date of the measurements to be retrieved.
+    end_date : pd.Timestamp (or anything understood by pd.Timestamp)
+        end date of the measurements to be retrieved.
+
+    Returns
+    -------
+    None
+
+    """
     locs_meas_ts, locs_meas_ext, locs_meas_exttype = retrieve_catalog()
     
     if extremes:
@@ -130,7 +151,23 @@ def retrieve_measurements_amount(dir_output, station_list, extremes:bool, start_
     df_amount.to_csv(file_csv_amount)
     
 
-def read_measurements_amount(dir_output, extremes:bool):
+def read_measurements_amount(dir_output:str, extremes:bool):
+    """
+    Read the measurements amount csv into a dataframe.
+
+    Parameters
+    ----------
+    dir_output : str
+        Path where the measurements are stored.
+    extremes : bool
+        Whether to read measurements amount for waterlevel timeseries or extremes.
+
+    Returns
+    -------
+    df_amount : pd.DataFrame
+        DataFrame with the amount of measurements per year.
+
+    """
     if extremes:
         fname = DICT_FNAMES['amount_ext']
     else:
@@ -146,7 +183,30 @@ def read_measurements_amount(dir_output, extremes:bool):
     return df_amount
 
 
-def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date, end_date, drop_if_constant=None):
+def retrieve_measurements(dir_output:str, station:str, extremes:bool, start_date:pd.Timestamp, end_date:pd.Timestamp, drop_if_constant:list = None):
+    """
+    Retrieve timeseries with measurements or extremes for a single station from the DDL with ddlpy.
+
+    Parameters
+    ----------
+    dir_output : str
+        Path where the measurement netcdf file will be stored.
+    station : str
+        station name, for instance "HOEKVHLD".
+    extremes : bool
+        Whether to read measurements for waterlevel timeseries or extremes.
+    start_date : pd.Timestamp (or anything understood by pd.Timestamp)
+        start date of the measurements to be retrieved.
+    end_date : pd.Timestamp (or anything understood by pd.Timestamp)
+        end date of the measurements to be retrieved.
+    drop_if_constant : list, optional
+        A list of columns to drop if the row values are constant, to save disk space. The default is None.
+
+    Returns
+    -------
+    None
+
+    """
     
     locs_meas_ts, locs_meas_ext, locs_meas_exttype = retrieve_catalog()
     
@@ -225,7 +285,29 @@ def xarray_to_hatyan(ds):
     return df
 
 
-def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray=False, nap_correction=False):
+def read_measurements(dir_output:str, station:str, extremes:bool, return_xarray:bool = False, nap_correction:bool = False):
+    """
+    Read the measurements netcdf as a dataframe.
+
+    Parameters
+    ----------
+    dir_output : str
+        Path where the measurements are stored.
+    station : str
+        station name, for instance "HOEKVHLD".
+    extremes : bool
+        Whether to read measurements for waterlevel timeseries or extremes.
+    return_xarray : bool, optional
+        Whether to return raw xarray.Dataset instead of a DataFrame. The default is False.
+    nap_correction : bool, optional
+        Whether to correct for NAP2005. The default is False.
+
+    Returns
+    -------
+    df_meas : pd.DataFrame
+        DataFrame with the measurements or extremes timeseries.
+
+    """
 
     if extremes:
         fname = DICT_FNAMES["meas_ext"].format(station=station)
