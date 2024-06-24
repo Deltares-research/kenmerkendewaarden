@@ -127,7 +127,7 @@ def plot_stations(station_list:list, crs:int = None, add_labels:bool = False):
     Parameters
     ----------
     station_list : list
-        DESCRIPTION.
+        List of stations to plot the locations from.
     crs : int, optional
         Coordinate reference system, for instance 28992. The coordinates retrieved from the DDL will be converted to this EPSG. The default is None.
     add_labels : bool, optional

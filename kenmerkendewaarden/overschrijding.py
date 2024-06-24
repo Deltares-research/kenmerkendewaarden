@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from matplotlib import ticker
 from scipy import optimize, signal
 from typing import Union, List
-import datetime as dt
 import logging
 from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
 from kenmerkendewaarden.utils import raise_extremes_with_aggers
