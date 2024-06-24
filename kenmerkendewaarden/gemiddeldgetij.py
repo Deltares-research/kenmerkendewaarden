@@ -76,6 +76,10 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, min_
     if scale_extremes:
         if df_ext is None:
             raise ValueError("df_ext should be provided if scale_extremes=True")
+        # compare station attributes
+        station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
+        assert all(x == station_attrs[0] for x in station_attrs)
+
         df_havengetallen = calc_havengetallen(df_ext=df_ext, min_coverage=min_coverage)
         HW_sp, LW_sp = df_havengetallen.loc[0,['HW_values_median','LW_values_median']] # spring
         HW_np, LW_np = df_havengetallen.loc[6,['HW_values_median','LW_values_median']] # neap
@@ -90,14 +94,14 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, min_
     
     times_pred_1mnth = pd.date_range(start=pd.Timestamp(tstop_dt.year,1,1,0,0)-pd.Timedelta(hours=12), end=pd.Timestamp(tstop_dt.year,2,1,0,0), freq=freq) #start 12 hours in advance, to assure also corrected values on desired tstart
     comp_av.attrs['nodalfactors'] = False #nodalfactors=False to guarantee repetative signal
-    prediction_av = hatyan.prediction(comp_av, times=times_pred_1mnth)
-    prediction_av_ext = hatyan.calc_HWLW(ts=prediction_av, calc_HWLW345=False)
+    prediction_avg = hatyan.prediction(comp_av, times=times_pred_1mnth)
+    prediction_avg_ext = hatyan.calc_HWLW(ts=prediction_avg, calc_HWLW345=False)
     
-    time_firstHW = prediction_av_ext.loc[prediction_av_ext['HWLWcode']==1].index[0] #time of first HW
-    ia1 = prediction_av_ext.loc[time_firstHW:].index[0] #time of first HW
-    ia2 = prediction_av_ext.loc[time_firstHW:].index[2] #time of second HW
-    prediction_av_one = prediction_av.loc[ia1:ia2]
-    prediction_av_ext_one = prediction_av_ext.loc[ia1:ia2]
+    time_firstHW = prediction_avg_ext.loc[prediction_avg_ext['HWLWcode']==1].index[0] #time of first HW
+    ia1 = prediction_avg_ext.loc[time_firstHW:].index[0] #time of first HW
+    ia2 = prediction_avg_ext.loc[time_firstHW:].index[2] #time of second HW
+    prediction_avg_one = prediction_avg.loc[ia1:ia2]
+    prediction_avg_ext_one = prediction_avg_ext.loc[ia1:ia2]
     
     # =============================================================================
     # Hatyan predictie voor 1 jaar met gemiddelde helling maansbaan (voor afleiden spring-doodtijcyclus) >> predictie zonder nodalfactors instead
@@ -159,7 +163,7 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, min_
     
     #timeseries for gele boekje (av/sp/np have different lengths, time is relative to HW of av and HW of sp/np are shifted there)
     logger.info(f'reshape_signal GEMGETIJ: {current_station}')
-    prediction_av_corr_one = reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=tP_goal)
+    prediction_av_corr_one = reshape_signal(prediction_avg_one, prediction_avg_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=tP_goal)
     prediction_av_corr_one.index = prediction_av_corr_one.index - prediction_av_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
         prediction_av_corr_one = prediction_av_corr_one.resample(freq).nearest()
@@ -188,7 +192,7 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, min_
     return gemgetij_dict
 
 
-def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, station:str = None, tick_hours:int = None):
+def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, tick_hours:int = None):
     """
     Default plotting function for gemiddeldgetij dictionaries.
 
@@ -198,8 +202,6 @@ def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, stati
         dictionary as returned from `kw.calc_gemiddeldgetij()`.
     gemgetij_raw_dict : dict, optional
         dictionary as returned from `kw.calc_gemiddeldgetij()` e.g. with uncorrected values. The default is None.
-    station : str, optional
-        station name, used in figure title. The default is None.
     ticks_12h : bool, optional
         whether to use xaxis ticks of 12 hours, otherwise automatic but less nice values
 
@@ -211,7 +213,11 @@ def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, stati
         Figure axis handle.
 
     """
-    # TODO: prevent station argument
+    # get and compare station attributes
+    station_attrs = [v.attrs["station"] for k,v in gemgetij_dict.items()]
+    assert all(x == station_attrs[0] for x in station_attrs)
+    station = station_attrs[0]
+    
     logger.info(f'plot getijkromme trefHW: {station}')
     fig, ax = plt.subplots(figsize=(14,7))
     cmap = plt.get_cmap("tab10")
@@ -376,4 +382,6 @@ def repeat_signal(ts_one_HWtoHW, nb, nf):
                               index=ts_one_HWtoHW.index + iAdd*tidalperiod)
         ts_rep = pd.concat([ts_rep,ts_add])
     ts_rep = ts_rep.loc[~ts_rep.index.duplicated()]
+    # pass on attributes
+    ts_rep.attrs = ts_one_HWtoHW.attrs
     return ts_rep

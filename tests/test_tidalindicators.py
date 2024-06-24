@@ -9,9 +9,9 @@ import pandas as pd
 
 @pytest.mark.unittest
 def test_calc_HWLWtidalrange(df_ext_12_2010):
-    ts_ext_range = kw.calc_HWLWtidalrange(df_ext_12_2010)
+    df_ext_range = kw.calc_HWLWtidalrange(df_ext_12_2010)
     
-    ranges = ts_ext_range["tidalrange"].values
+    ranges = df_ext_range["tidalrange"].values
     vals_expected = np.array([1.89, 1.89, 1.87, 1.87, 1.97, 1.97, 2.05, 2.05, 2.05, 2.05])
     assert len(ranges) == 1411
     assert np.allclose(ranges[:10], vals_expected)
@@ -161,7 +161,8 @@ def test_calc_wltidalindicators(df_ext_12_2010_2014):
 def test_plot_wltidalindicators(df_meas_2010_2014, df_ext_12_2010_2014):
     wl_stats = kw.calc_wltidalindicators(df_meas_2010_2014)
     ext_stats = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014)
-    kw.plot_tidalindicators(wl_stats, ext_stats)
+    wl_stats.update(ext_stats)
+    kw.plot_tidalindicators(wl_stats)
 
 
 @pytest.mark.unittest
@@ -192,7 +193,7 @@ def test_calc_hat_lat_frommeasurements_tooshortperiod(df_meas_2010_2014):
 @pytest.mark.unittest
 def test_calc_HWLWtidalrange_aggers_input(df_ext_2010):
     with pytest.raises(ValueError) as e:
-        kw.calc_HWLWtidalrange(ts_ext=df_ext_2010)
+        kw.calc_HWLWtidalrange(df_ext=df_ext_2010)
     assert "contains aggers" in str(e.value)
 
 

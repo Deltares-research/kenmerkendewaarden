@@ -22,7 +22,26 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-def plot_measurements_amount(df, relative=False):
+def plot_measurements_amount(df:pd.DataFrame, relative:bool = False):
+    """
+    Read the measurements amount csv and generate a pcolormesh figure of all years and stations. 
+    The colors indicate the absolute or relative number of measurements per year.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe with the amount of measurements for several years per station.
+    relative : bool, optional
+        Whether to scale the amount of measurements with the median of all measurement amounts for the same year. The default is False.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure handle.
+    ax : matplotlib.axes._axes.Axes
+        Figure axis handle.
+
+    """
     df = df.copy()
     df[df==0] = np.nan
     
@@ -45,7 +64,25 @@ def plot_measurements_amount(df, relative=False):
     return fig, ax
 
 
-def plot_measurements(df, df_ext=None):
+def plot_measurements(df:pd.DataFrame, df_ext:pd.DataFrame = None):
+    """
+    Generate a timeseries figure for the measurement timeseries (and extremes) of this station.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Dataframe with the measurement timeseries for a particular station.
+    df_ext : pd.DataFrame, optional
+        Dataframe with the measurement extremes for a particular station.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure handle.
+    ax : matplotlib.axes._axes.Axes
+        Figure axis handle.
+
+    """
     station_df = df.attrs["station"]
     if df_ext is not None:
         station_df_ext = df_ext.attrs["station"]
@@ -83,7 +120,27 @@ def plot_measurements(df, df_ext=None):
     return fig, (ax1,ax2)
 
 
-def plot_stations(station_list, crs=None, add_labels=False):
+def plot_stations(station_list:list, crs:int = None, add_labels:bool = False):
+    """
+    Plot the stations by subsetting a ddlpy catalog with the provided list of stations.
+
+    Parameters
+    ----------
+    station_list : list
+        List of stations to plot the locations from.
+    crs : int, optional
+        Coordinate reference system, for instance 28992. The coordinates retrieved from the DDL will be converted to this EPSG. The default is None.
+    add_labels : bool, optional
+        Whether to add station code labels in the figure, useful for debugging. The default is False.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure handle.
+    ax : matplotlib.axes._axes.Axes
+        Figure axis handle.
+
+    """
     locs_meas_ts_all, locs_meas_ext_all, _ = retrieve_catalog(crs=crs)
     locs_ts = locs_meas_ts_all.loc[locs_meas_ts_all.index.isin(station_list)]
     locs_ext = locs_meas_ext_all.loc[locs_meas_ext_all.index.isin(station_list)]
@@ -189,7 +246,25 @@ def get_stats_from_dataframe(df):
     return ds_stats
 
 
-def derive_statistics(dir_output, station_list, extremes):
+def derive_statistics(dir_output:str, station_list:list, extremes:bool):
+    """
+    Derive several statistics for the measurements of each station in the list.
+
+    Parameters
+    ----------
+    dir_output : str
+        Path where the measurement netcdf file will be stored.
+    station : list
+        list of station names to derive statistics for, for instance ["HOEKVHLD"].
+    extremes : bool
+        Whether to derive statistics from waterlevel timeseries or extremes.
+
+    Returns
+    -------
+    data_summary : pd.DataFrame
+        A dataframe with several statistics for each station from the provided list.
+
+    """
     row_list = []
     for current_station in station_list:
         logger.info(f'deriving statistics for {current_station} (extremes={extremes})')
