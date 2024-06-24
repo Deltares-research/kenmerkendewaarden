@@ -88,7 +88,6 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
     
     times_pred_1mnth = pd.date_range(start=pd.Timestamp(tstop_dt.year,1,1,0,0)-pd.Timedelta(hours=12), end=pd.Timestamp(tstop_dt.year,2,1,0,0), freq=freq) #start 12 hours in advance, to assure also corrected values on desired tstart
     comp_av.attrs['nodalfactors'] = False #nodalfactors=False to guarantee repetative signal
-    comp_av.attrs['fu_alltimes'] = True # TODO: this is not true, but this setting is the default
     prediction_av = hatyan.prediction(comp_av, times=times_pred_1mnth)
     prediction_av_ext = hatyan.calc_HWLW(ts=prediction_av, calc_HWLW345=False)
     
@@ -125,7 +124,6 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
     #make prediction with springneap components with nodalfactors=False (alternative for choosing a year with a neutral nodal factor). Using 1yr instead of 1month does not make a difference in min/max tidal range and shape, also because of nodalfactors=False. (when using more components, there is a slight difference)
     comp_frommeasurements_avg_sncomp = comp_frommeasurements_avg.loc[components_sn]
     comp_frommeasurements_avg_sncomp.attrs['nodalfactors'] = False #nodalfactors=False to make independent on chosen year
-    comp_frommeasurements_avg_sncomp.attrs['fu_alltimes'] = True # TODO: this is not true, but this setting is the default
     prediction_sn = hatyan.prediction(comp_frommeasurements_avg_sncomp, times=times_pred_1mnth)
     
     prediction_sn_ext = hatyan.calc_HWLW(ts=prediction_sn, calc_HWLW345=False)
