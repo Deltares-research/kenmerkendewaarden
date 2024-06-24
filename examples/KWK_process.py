@@ -192,11 +192,11 @@ for current_station in stat_list:
             file_boi_csv = os.path.join(dir_gemgetij, f'Getijkromme_BOI_{key}_{current_station}_slotgem{year_slotgem}.csv')
             gemgetij_corr_boi[key].to_csv(file_boi_csv, float_format='%.3f')
         
-        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, station=current_station, tick_hours=6)
+        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
         fig_sum.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
         
         print(f'plot BOI figure and compare to KW2020: {current_station}')
-        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, station=current_station, tick_hours=12)
+        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, tick_hours=12)
         
         # plot validation lines if available
         # TODO: these index of this line is converted from datetimes to timedeltas to get it in the same plot

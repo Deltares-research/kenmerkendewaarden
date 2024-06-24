@@ -188,7 +188,7 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, min_
     return gemgetij_dict
 
 
-def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, station:str = None, tick_hours:int = None):
+def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, tick_hours:int = None):
     """
     Default plotting function for gemiddeldgetij dictionaries.
 
@@ -198,8 +198,6 @@ def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, stati
         dictionary as returned from `kw.calc_gemiddeldgetij()`.
     gemgetij_raw_dict : dict, optional
         dictionary as returned from `kw.calc_gemiddeldgetij()` e.g. with uncorrected values. The default is None.
-    station : str, optional
-        station name, used in figure title. The default is None.
     ticks_12h : bool, optional
         whether to use xaxis ticks of 12 hours, otherwise automatic but less nice values
 
@@ -211,7 +209,8 @@ def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, stati
         Figure axis handle.
 
     """
-    # TODO: prevent station argument
+    station = gemgetij_dict["mean"].attrs["station"]
+    
     logger.info(f'plot getijkromme trefHW: {station}')
     fig, ax = plt.subplots(figsize=(14,7))
     cmap = plt.get_cmap("tab10")
