@@ -23,21 +23,21 @@ __all__ = ["calc_wltidalindicators",
 logger = logging.getLogger(__name__)
 
 
-def calc_HWLWtidalindicators(df_ext, min_coverage:float = None):
+def calc_HWLWtidalindicators(df_ext:pd.DataFrame, min_coverage:float = None):
     """
-    computes several tidal extreme indicators from tidal extreme dataset
+    Computes several tidal extreme indicators from tidal extreme dataset.
 
     Parameters
     ----------
-    data_pd_HWLW_all : TYPE
-        DESCRIPTION.
+    df_ext : pd.DataFrame
+        Dataframe with extremes timeseries.
     min_coverage : float, optional
         The minimum percentage (from 0 to 1) of timeseries coverage to consider the statistics to be valid. The default is None.
 
     Returns
     -------
-    dict_tidalindicators : TYPE
-        DESCRIPTION.
+    dict_tidalindicators : dict
+        Dictionary with several tidal indicators like yearly/monthly means.
 
     """
     # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
@@ -93,57 +93,57 @@ def calc_HWLWtidalindicators(df_ext, min_coverage:float = None):
     HW_monthmin_mean_peryear = HW_monthmin_permonth.groupby(pd.PeriodIndex(HW_monthmin_permonth.index, freq="Y"))[['values']].mean()
     LW_monthmax_mean_peryear = LW_monthmax_permonth.groupby(pd.PeriodIndex(LW_monthmax_permonth.index, freq="Y"))[['values']].mean()
     
-    dict_HWLWtidalindicators = {'HW_mean':data_pd_HW['values'].mean(), #GHW
-                                'LW_mean':data_pd_LW['values'].mean(), #GLW
-                                'HW_mean_peryear':HW_mean_peryear['values'], #GHW peryear
-                                'LW_mean_peryear':LW_mean_peryear['values'], #GLW peryear
-                                'HW_monthmax_permonth':HW_monthmax_permonth['values'], #GHHW/GHWS permonth
-                                'LW_monthmin_permonth':LW_monthmin_permonth['values'], #GLLW/GLWS permonth
-                                'HW_monthmax_mean_peryear':HW_monthmax_mean_peryear['values'], #GHHW/GHWS peryear
-                                'LW_monthmin_mean_peryear':LW_monthmin_mean_peryear['values'], #GLLW/GLWS peryear
-                                'HW_monthmin_mean_peryear':HW_monthmin_mean_peryear['values'], #GLHW/GHWN peryear
-                                'LW_monthmax_mean_peryear':LW_monthmax_mean_peryear['values'], #GHLW/GLWN peryear
-                                }
+    dict_tidalindicators = {'HW_mean':data_pd_HW['values'].mean(), #GHW
+                            'LW_mean':data_pd_LW['values'].mean(), #GLW
+                            'HW_mean_peryear':HW_mean_peryear['values'], #GHW peryear
+                            'LW_mean_peryear':LW_mean_peryear['values'], #GLW peryear
+                            'HW_monthmax_permonth':HW_monthmax_permonth['values'], #GHHW/GHWS permonth
+                            'LW_monthmin_permonth':LW_monthmin_permonth['values'], #GLLW/GLWS permonth
+                            'HW_monthmax_mean_peryear':HW_monthmax_mean_peryear['values'], #GHHW/GHWS peryear
+                            'LW_monthmin_mean_peryear':LW_monthmin_mean_peryear['values'], #GLLW/GLWS peryear
+                            'HW_monthmin_mean_peryear':HW_monthmin_mean_peryear['values'], #GLHW/GHWN peryear
+                            'LW_monthmax_mean_peryear':LW_monthmax_mean_peryear['values'], #GHLW/GLWN peryear
+                            }
 
-    return dict_HWLWtidalindicators
+    return dict_tidalindicators
 
 
-def calc_wltidalindicators(data_wl_pd, min_coverage:float = None):
+def calc_wltidalindicators(df_meas:pd.DataFrame, min_coverage:float = None):
     """
-    computes monthly and yearly means from waterlevel timeseries
+    Computes monthly and yearly means from waterlevel timeseries.
 
     Parameters
     ----------
-    data_wl_pd : TYPE
-        DESCRIPTION.
+    df_meas : pd.DataFrame
+        Dataframe with waterlevel timeseries.
     min_coverage : float, optional
         The minimum percentage (from 0 to 1) of timeseries coverage to consider the statistics to be valid. The default is None.
 
     Returns
     -------
-    dict_wltidalindicators : TYPE
-        DESCRIPTION.
+    dict_tidalindicators : dict
+        Dictionary with several tidal indicators like yearly/monthly means.
 
     """
     
     # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
-    if data_wl_pd.index.tz is not None:
-        data_wl_pd = data_wl_pd.tz_localize(None)
+    if df_meas.index.tz is not None:
+        df_meas = df_meas.tz_localize(None)
     
     # yearmean wl from wl values
-    wl_mean_peryear = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="Y"))[['values']].mean()
-    wl_mean_permonth = data_wl_pd.groupby(pd.PeriodIndex(data_wl_pd.index, freq="M"))[['values']].mean()
+    wl_mean_peryear = df_meas.groupby(pd.PeriodIndex(df_meas.index, freq="Y"))[['values']].mean()
+    wl_mean_permonth = df_meas.groupby(pd.PeriodIndex(df_meas.index, freq="M"))[['values']].mean()
     
     # replace invalids with nan (in case of too less values per month or year)
     if min_coverage is not None:
         assert 0 <= min_coverage <= 1
         # count timeseries values per year/month
-        wl_count_peryear = compute_actual_counts(data_wl_pd, freq="Y")
-        wl_count_permonth = compute_actual_counts(data_wl_pd, freq="M")
+        wl_count_peryear = compute_actual_counts(df_meas, freq="Y")
+        wl_count_permonth = compute_actual_counts(df_meas, freq="M")
         
         # compute expected counts and multiply with min_coverage to get minimal counts
-        min_count_peryear = compute_expected_counts(data_wl_pd, freq="Y") * min_coverage
-        min_count_permonth = compute_expected_counts(data_wl_pd, freq="M") * min_coverage
+        min_count_peryear = compute_expected_counts(df_meas, freq="Y") * min_coverage
+        min_count_permonth = compute_expected_counts(df_meas, freq="M") * min_coverage
         
         # set all statistics that were based on too little values to nan
         wl_mean_peryear.loc[wl_count_peryear<min_count_peryear] = np.nan
@@ -153,12 +153,12 @@ def calc_wltidalindicators(data_wl_pd, min_coverage:float = None):
     wl_mean_peryear = make_periodindex_contiguous(wl_mean_peryear)
     wl_mean_permonth = make_periodindex_contiguous(wl_mean_permonth)
 
-    dict_wltidalindicators = {'wl_mean':data_wl_pd['values'].mean(),
-                              'wl_mean_peryear':wl_mean_peryear['values'], #yearly mean wl
-                              'wl_mean_permonth':wl_mean_permonth['values'], #monthly mean wl
-                              }
+    dict_tidalindicators = {'wl_mean':df_meas['values'].mean(),
+                            'wl_mean_peryear':wl_mean_peryear['values'], #yearly mean wl
+                            'wl_mean_permonth':wl_mean_permonth['values'], #monthly mean wl
+                            }
 
-    return dict_wltidalindicators
+    return dict_tidalindicators
 
 
 def compute_actual_counts(df_meas, freq, column="values"):
@@ -229,7 +229,7 @@ def plot_pd_series(indicators_dict, ax):
 
 def plot_tidalindicators(dict_indicators:dict):
     """
-    plot tidalindicators
+    Plot tidalindicators.
 
     Parameters
     ----------
@@ -260,19 +260,31 @@ def plot_tidalindicators(dict_indicators:dict):
     return fig, ax
 
 
-def calc_HWLWtidalrange(ts_ext):
+def calc_HWLWtidalrange(df_ext:pd.DataFrame):
     """
-    creates column 'tidalrange' in ts_ext dataframe
+    Compute the difference between a high water and the following low water. 
+    This tidal range is added as a column to the df_ext dataframe.
+
+    Parameters
+    ----------
+    df_ext : pd.DataFrame
+        Dataframe with extremes timeseries.
+
+    Returns
+    -------
+    df_ext : pd.DataFrame
+        Input dataframe enriched with 'tidalindicators' and 'HWLWno' columns.
+
     """
-    raise_extremes_with_aggers(ts_ext)
+    raise_extremes_with_aggers(df_ext)
     
-    ts_ext = hatyan.calc_HWLWnumbering(ts_ext=ts_ext)
-    ts_ext['times_backup'] = ts_ext.index
-    ts_ext_idxHWLWno = ts_ext.set_index('HWLWno',drop=False)
-    ts_ext_idxHWLWno['tidalrange'] = ts_ext_idxHWLWno.loc[ts_ext_idxHWLWno['HWLWcode']==1,'values'] - ts_ext_idxHWLWno.loc[ts_ext_idxHWLWno['HWLWcode']==2,'values']
-    ts_ext = ts_ext_idxHWLWno.set_index('times_backup')
-    ts_ext.index.name = 'times'
-    return ts_ext
+    df_ext = hatyan.calc_HWLWnumbering(ts_ext=df_ext)
+    df_ext['times_backup'] = df_ext.index
+    df_ext_idxHWLWno = df_ext.set_index('HWLWno',drop=False)
+    df_ext_idxHWLWno['tidalrange'] = df_ext_idxHWLWno.loc[df_ext_idxHWLWno['HWLWcode']==1,'values'] - df_ext_idxHWLWno.loc[df_ext_idxHWLWno['HWLWcode']==2,'values']
+    df_ext = df_ext_idxHWLWno.set_index('times_backup')
+    df_ext.index.name = 'times'
+    return df_ext
 
 
 def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
@@ -288,7 +300,7 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     Parameters
     ----------
     comp : pd.DataFrame
-        DESCRIPTION.
+        DataFrame with amplitudes and phases for a list of components.
 
     Returns
     -------
@@ -313,7 +325,7 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     return hat, lat
 
 
-def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> tuple:
+def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> (float,float):
     """
     Derive highest and lowest astronomical tide (HAT/LAT) from a measurement timeseries of 19 years.
     Tidal components are derived for each year of the measurement timeseries.
