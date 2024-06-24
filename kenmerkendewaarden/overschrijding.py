@@ -321,16 +321,17 @@ def get_total_years(df: pd.DataFrame) -> float:
     return (df.index[-1] - df.index[0]).total_seconds() / (3600 * 24 * 365)
 
 
-def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[float, pd.Timestamp]):
+def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[pd.Timestamp, float]):
     # There are 2 rule types:  - break -> Values before break are removed
     #                          - linear -> Values are increased/lowered based on value in value/year. It is assumes
     #                                      that there is no linear trend at the latest time (so it works its way back
     #                                      in the past). rule_value should be entered as going forward in time
     if rule_type == 'break':
+        rule_value = pd.Timestamp(rule_value)
         return df[rule_value:].copy()
     elif rule_type == 'linear':
-        df = df.copy()
         rule_value = float(rule_value)
+        df = df.copy()
         dx = np.array([rule_value*x.total_seconds()/(365*24*3600) for x in (df.index[-1] - df.index)])
         df['values'] = df['values'] + dx
         return df
