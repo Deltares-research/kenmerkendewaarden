@@ -21,7 +21,7 @@ __all__ = ["calc_gemiddeldgetij",
 logger = logging.getLogger(__name__)
 
 
-def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, 
+def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, min_coverage:float = None,
                         freq: str = "60sec", nb: int = 0, nf: int  = 0, 
                         scale_extremes: bool = False, scale_period: bool = False, debug: bool = False):
     """
@@ -38,8 +38,10 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
         Timeseries of 10 years of waterlevel measurements.
     df_ext : pd.DataFrame, optional
         Timeseries of 10 years of waterlevel extremes (1/2 only). The default is None.
+    min_coverage : float, optional
+        The minimal required coverage of the df_ext timeseries. Passed on to `calc_havengetallen()`. The default is None.
     freq : str, optional
-        Frequency of the prediction, a value of 60 seconds or lower is adivisable for decent results.. The default is "60sec".
+        Frequency of the prediction, a value of 60 seconds or lower is adivisable for decent results. The default is "60sec".
     nb : int, optional
         Amount of periods to repeat backward. The default is 0.
     nf : int, optional
@@ -74,7 +76,7 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
     if scale_extremes:
         if df_ext is None:
             raise ValueError("df_ext should be provided if scale_extremes=True")
-        df_havengetallen = calc_havengetallen(df_ext=df_ext, min_coverage=None) # TODO: also provide min_coverage here?
+        df_havengetallen = calc_havengetallen(df_ext=df_ext, min_coverage=min_coverage)
         HW_sp, LW_sp = df_havengetallen.loc[0,['HW_values_median','LW_values_median']] # spring
         HW_np, LW_np = df_havengetallen.loc[6,['HW_values_median','LW_values_median']] # neap
         HW_av, LW_av = df_havengetallen.loc['mean',['HW_values_median','LW_values_median']] # mean
@@ -88,7 +90,6 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
     
     times_pred_1mnth = pd.date_range(start=pd.Timestamp(tstop_dt.year,1,1,0,0)-pd.Timedelta(hours=12), end=pd.Timestamp(tstop_dt.year,2,1,0,0), freq=freq) #start 12 hours in advance, to assure also corrected values on desired tstart
     comp_av.attrs['nodalfactors'] = False #nodalfactors=False to guarantee repetative signal
-    comp_av.attrs['fu_alltimes'] = True # TODO: this is not true, but this setting is the default
     prediction_av = hatyan.prediction(comp_av, times=times_pred_1mnth)
     prediction_av_ext = hatyan.calc_HWLW(ts=prediction_av, calc_HWLW345=False)
     
@@ -125,7 +126,6 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None,
     #make prediction with springneap components with nodalfactors=False (alternative for choosing a year with a neutral nodal factor). Using 1yr instead of 1month does not make a difference in min/max tidal range and shape, also because of nodalfactors=False. (when using more components, there is a slight difference)
     comp_frommeasurements_avg_sncomp = comp_frommeasurements_avg.loc[components_sn]
     comp_frommeasurements_avg_sncomp.attrs['nodalfactors'] = False #nodalfactors=False to make independent on chosen year
-    comp_frommeasurements_avg_sncomp.attrs['fu_alltimes'] = True # TODO: this is not true, but this setting is the default
     prediction_sn = hatyan.prediction(comp_frommeasurements_avg_sncomp, times=times_pred_1mnth)
     
     prediction_sn_ext = hatyan.calc_HWLW(ts=prediction_sn, calc_HWLW345=False)
