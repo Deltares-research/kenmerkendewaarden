@@ -56,7 +56,7 @@ station_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
 
 nap_correction = False
 
-compute_indicators = True
+compute_indicators = 
 compute_slotgem = True
 compute_havengetallen = True
 compute_gemgetij = True
