@@ -1,0 +1,11 @@
+Randvoorwaardendatabase	Locatie	X-coördinaat	Y-coördinaat	Profiel	Klimaatscenario	Type Berekening	Overslagdebiet [l/s/m]/Type bekleding	Waterstandsniveau [m+NAP]	Terugkeertijd [jaar]	Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]	Golfhoogte [m]	Piekperiode [s]	Golfrichting [°]	Golfinval [°]
+WBI2017_Hollandse_Kust_Zuid_14-5_14-6_14-8_211_214_218_25-1_v04.sqlite	OS_3_218_hy21_00000	 35889	404962	-	WBI2017	Waterstand	-	-	    10	  3,502	-	-	-	-
+WBI2017_Hollandse_Kust_Zuid_14-5_14-6_14-8_211_214_218_25-1_v04.sqlite	OS_3_218_hy21_00000	 35889	404962	-	WBI2017	Waterstand	-	-	    50	  3,914	-	-	-	-
+WBI2017_Hollandse_Kust_Zuid_14-5_14-6_14-8_211_214_218_25-1_v04.sqlite	OS_3_218_hy21_00000	 35889	404962	-	WBI2017	Waterstand	-	-	   100	  4,094	-	-	-	-
+WBI2017_Hollandse_Kust_Zuid_14-5_14-6_14-8_211_214_218_25-1_v04.sqlite	OS_3_218_hy21_00000	 35889	404962	-	WBI2017	Waterstand	-	-	   300	  4,384	-	-	-	-
+WBI2017_Hollandse_Kust_Zuid_14-5_14-6_14-8_211_214_218_25-1_v04.sqlite	OS_3_218_hy21_00000	 35889	404962	-	WBI2017	Waterstand	-	-	  1000	  4,707	-	-	-	-
+WBI2017_Hollandse_Kust_Zuid_14-5_14-6_14-8_211_214_218_25-1_v04.sqlite	OS_3_218_hy21_00000	 35889	404962	-	WBI2017	Waterstand	-	-	  3000	  5,012	-	-	-	-
+WBI2017_Hollandse_Kust_Zuid_14-5_14-6_14-8_211_214_218_25-1_v04.sqlite	OS_3_218_hy21_00000	 35889	404962	-	WBI2017	Waterstand	-	-	 10000	  5,356	-	-	-	-
+WBI2017_Hollandse_Kust_Zuid_14-5_14-6_14-8_211_214_218_25-1_v04.sqlite	OS_3_218_hy21_00000	 35889	404962	-	WBI2017	Waterstand	-	-	 30000	  5,681	-	-	-	-
+WBI2017_Hollandse_Kust_Zuid_14-5_14-6_14-8_211_214_218_25-1_v04.sqlite	OS_3_218_hy21_00000	 35889	404962	-	WBI2017	Waterstand	-	-	 1,00E+05	  6,047	-	-	-	-
+WBI2017_Hollandse_Kust_Zuid_14-5_14-6_14-8_211_214_218_25-1_v04.sqlite	OS_3_218_hy21_00000	 35889	404962	-	WBI2017	Waterstand	-	-	 1,00E+06	  6,698	-	-	-	-

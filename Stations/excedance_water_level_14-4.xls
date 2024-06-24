@@ -1,0 +1,6 @@
+Randvoorwaardendatabase	Locatie	X-coördinaat	Y-coördinaat	Profiel	Klimaatscenario	Type Berekening	Overslagdebiet [l/s/m]/Type bekleding	Waterstandsniveau [m+NAP]	Terugkeertijd [jaar]	Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]	Golfhoogte [m]	Piekperiode [s]	Golfrichting [°]	Golfinval [°]
+WBI2017_Europoort_14-4_v04.sqlite	NW_1_14-4_dk_00029	 68034	443992	-	WBI2017	Waterstand	-	-	   100	  4,266	-	-	-	-
+WBI2017_Europoort_14-4_v04.sqlite	NW_1_14-4_dk_00029	 68034	443992	-	WBI2017	Waterstand	-	-	   300	  4,449	-	-	-	-
+WBI2017_Europoort_14-4_v04.sqlite	NW_1_14-4_dk_00029	 68034	443992	-	WBI2017	Waterstand	-	-	  1000	  4,753	-	-	-	-
+WBI2017_Europoort_14-4_v04.sqlite	NW_1_14-4_dk_00029	 68034	443992	-	WBI2017	Waterstand	-	-	  3000	  5,109	-	-	-	-
+WBI2017_Europoort_14-4_v04.sqlite	NW_1_14-4_dk_00029	 68034	443992	-	WBI2017	Waterstand	-	-	 10000	  5,519	-	-	-	-

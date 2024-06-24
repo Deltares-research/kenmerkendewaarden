@@ -1,0 +1,11 @@
+Randvoorwaardendatabase	Locatie	X-coördinaat	Y-coördinaat	Profiel	Klimaatscenario	Type Berekening	Overslagdebiet [l/s/m]/Type bekleding	Waterstandsniveau [m+NAP]	Terugkeertijd [jaar]	Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]	Golfhoogte [m]	Piekperiode [s]	Golfrichting [°]	Golfinval [°]
+WBI2017_Waddenzee_West_6-3_v03.sqlite	WZ_1_6-3_dk_00057	155958	576689	-	WBI2017	Waterstand	-	-	    10	  3,550	-	-	-	-
+WBI2017_Waddenzee_West_6-3_v03.sqlite	WZ_1_6-3_dk_00057	155958	576689	-	WBI2017	Waterstand	-	-	    50	  3,977	-	-	-	-
+WBI2017_Waddenzee_West_6-3_v03.sqlite	WZ_1_6-3_dk_00057	155958	576689	-	WBI2017	Waterstand	-	-	   100	  4,146	-	-	-	-
+WBI2017_Waddenzee_West_6-3_v03.sqlite	WZ_1_6-3_dk_00057	155958	576689	-	WBI2017	Waterstand	-	-	   300	  4,404	-	-	-	-
+WBI2017_Waddenzee_West_6-3_v03.sqlite	WZ_1_6-3_dk_00057	155958	576689	-	WBI2017	Waterstand	-	-	  1000	  4,672	-	-	-	-
+WBI2017_Waddenzee_West_6-3_v03.sqlite	WZ_1_6-3_dk_00057	155958	576689	-	WBI2017	Waterstand	-	-	  3000	  4,909	-	-	-	-
+WBI2017_Waddenzee_West_6-3_v03.sqlite	WZ_1_6-3_dk_00057	155958	576689	-	WBI2017	Waterstand	-	-	 10000	  5,163	-	-	-	-
+WBI2017_Waddenzee_West_6-3_v03.sqlite	WZ_1_6-3_dk_00057	155958	576689	-	WBI2017	Waterstand	-	-	 30000	  5,392	-	-	-	-
+WBI2017_Waddenzee_West_6-3_v03.sqlite	WZ_1_6-3_dk_00057	155958	576689	-	WBI2017	Waterstand	-	-	 1,00E+05	  5,642	-	-	-	-
+WBI2017_Waddenzee_West_6-3_v03.sqlite	WZ_1_6-3_dk_00057	155958	576689	-	WBI2017	Waterstand	-	-	 1,00E+06	  6,113	-	-	-	-
