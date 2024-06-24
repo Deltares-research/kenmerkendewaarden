@@ -161,7 +161,8 @@ def test_calc_wltidalindicators(df_ext_12_2010_2014):
 def test_plot_wltidalindicators(df_meas_2010_2014, df_ext_12_2010_2014):
     wl_stats = kw.calc_wltidalindicators(df_meas_2010_2014)
     ext_stats = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014)
-    kw.plot_tidalindicators(wl_stats, ext_stats)
+    wl_stats.update(ext_stats)
+    kw.plot_tidalindicators(wl_stats)
 
 
 @pytest.mark.unittest

@@ -43,8 +43,6 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
         dictionary with yearly means and model fits, optionally also for extremes.
 
     """
-    # TODO: assert if station of both timeseries is the same (if df_ext is present)
-    
     # initialize dict
     slotgemiddelden_dict = {}
     
@@ -69,6 +67,10 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
     slotgemiddelden_dict["wl_model_fit"] = pred_pd_wl
     
     if df_ext is not None:
+        # compare station attributes
+        station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
+        assert all(x == station_attrs[0] for x in station_attrs)
+        
         # clip last value of the timeseries if this is exactly newyearsday
         if df_ext.index[-1] == pd.Timestamp(df_ext.index[-1].year,1,1, tz=df_ext.index.tz):
             df_ext = df_ext.iloc[:-1]
@@ -106,7 +108,7 @@ def plot_slotgemiddelden(slotgemiddelden_dict:dict, slotgemiddelden_dict_all:dic
         Output from `kw.calc_slotgemiddelden` containing timeseries 
         of yearly mean waterlevels and corresponding model fits.
     slotgemiddelden_dict_all : dict, optional
-        Optionally provide another dictionary with unfiltered mean waterlevls. 
+        Optionally provide another dictionary with unfiltered mean waterlevels. 
         Only used to plot the mean waterlevels (in grey). The default is None.
 
     Returns
@@ -117,7 +119,6 @@ def plot_slotgemiddelden(slotgemiddelden_dict:dict, slotgemiddelden_dict_all:dic
         Figure axis handle.
     
     """
-    # TODO: maybe add an escape for if the station attr is not present
     station = slotgemiddelden_dict['wl_mean_peryear'].attrs["station"]
     
     fig, ax = plt.subplots(figsize=(12,6))
@@ -136,6 +137,10 @@ def plot_slotgemiddelden(slotgemiddelden_dict:dict, slotgemiddelden_dict_all:dic
     
     # plot timeseries of average extremes
     if slotgemiddelden_dict_all is not None:
+        # compare station attributes
+        station_attrs = [dic['wl_mean_peryear'].attrs["station"] for dic in [slotgemiddelden_dict, slotgemiddelden_dict_all]]
+        assert all(x == station_attrs[0] for x in station_attrs)
+
         if "HW_mean_peryear" in slotgemiddelden_dict_all.keys():
             HW_mean_peryear_all = slotgemiddelden_dict_all["HW_mean_peryear"]
             LW_mean_peryear_all = slotgemiddelden_dict_all["LW_mean_peryear"]

@@ -10,6 +10,7 @@ import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-re
 
 # set logging level to INFO to get log messages
 import logging
+logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 # TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
@@ -48,9 +49,9 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
                 'MARLGT','NES','NIEUWSTZL','NORTHCMRT','DENOVBTN','OOSTSDE04','OOSTSDE11','OOSTSDE14','OUDSD','OVLVHWT','Q1',
                 'ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE',
                 'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
+station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"] # subset of 11 stations along the coast
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
-stat_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
-
+station_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
 
 
 nap_correction = False
@@ -62,7 +63,7 @@ compute_gemgetij = True
 compute_overschrijding = True
 
 
-for current_station in stat_list:
+for current_station in station_list:
     print(f'starting process for {current_station}')
     plt.close('all')
     
@@ -80,8 +81,9 @@ for current_station in stat_list:
         #crop timeseries to 10y
         data_pd_HWLW_10y_12 = hatyan.crop_timeseries(data_pd_HWLW_all_12, times=slice(tstart_dt,tstop_dt),onlyfull=False)
     
-
-
+    
+    
+    
     #### TIDAL INDICATORS
     if compute_indicators and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         print(f'tidal indicators for {current_station}')
@@ -95,12 +97,16 @@ for current_station in stat_list:
         dict_HWLWtidalindicators["hat"] = hat
         dict_HWLWtidalindicators["lat"] = lat
         
-        # plot
-        fig, ax = kw.plot_tidalindicators(dict_wltidalindicators, dict_HWLWtidalindicators)
-        fig.savefig(os.path.join(dir_indicators,f'tidal_indicators_{current_station}'))
-
-
+        # merge dictionaries
+        dict_wltidalindicators.update(dict_HWLWtidalindicators)
         
+        # plot
+        fig, ax = kw.plot_tidalindicators(dict_wltidalindicators)
+        fig.savefig(os.path.join(dir_indicators,f'tidal_indicators_{current_station}'))
+    
+    
+    
+    
     #### SLOTGEMIDDELDEN
     # TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
     # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
@@ -153,11 +159,12 @@ for current_station in stat_list:
         
         df_havengetallen, data_pd_HWLW = kw.calc_havengetallen(df_ext=data_pd_HWLW_10y_12, return_df_ext=True)
         
-        print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
+        print(f'havengetallen for {current_station}')
+        # plot hwlw per timeclass including median
         fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, df_havengetallen)
         fig.savefig(os.path.join(dir_havget,f'HWLW_pertijdsklasse_inclmedianline_{current_station}'))
         
-        print('AARDAPPELGRAFIEK')
+        # plot aardappelgrafiek
         fig, (ax1,ax2) = kw.plot_aardappelgrafiek(df_havengetallen)
         fig.savefig(os.path.join(dir_havget, f'aardappelgrafiek_{year_slotgem}_{current_station}'))
         
@@ -169,11 +176,10 @@ for current_station in stat_list:
     
     
     
-    
     ##### GEMIDDELDE GETIJKROMMEN
     if compute_gemgetij and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         
-        print(f'gem getijkrommen for {current_station}')
+        print(f'gemiddelde getijkrommen for {current_station}')
         pred_freq = "10s" # frequency influences the accuracy of havengetallen-scaling and is writing frequency of BOI timeseries
         
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
@@ -192,11 +198,11 @@ for current_station in stat_list:
             file_boi_csv = os.path.join(dir_gemgetij, f'Getijkromme_BOI_{key}_{current_station}_slotgem{year_slotgem}.csv')
             gemgetij_corr_boi[key].to_csv(file_boi_csv, float_format='%.3f')
         
-        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, station=current_station, tick_hours=6)
+        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
         fig_sum.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
         
-        print(f'plot BOI figure and compare to KW2020: {current_station}')
-        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, station=current_station, tick_hours=12)
+        # plot BOI figure and compare to KW2020
+        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, tick_hours=12)
         
         # plot validation lines if available
         # TODO: these index of this line is converted from datetimes to timedeltas to get it in the same plot
@@ -225,7 +231,6 @@ for current_station in stat_list:
     
     
     
-    
     ###OVERSCHRIJDINGSFREQUENTIES
     # TODO: SLR trend correctie voor overschrijdingsfrequenties en evt ook voor andere KW?
     # TODO: resulting freqs seem to be shifted w.r.t. getijtafelboekje (mail PH 9-3-2022)
@@ -246,7 +251,6 @@ for current_station in stat_list:
         if current_station =='HOEKVHLD':
             dir_vali_overschr = os.path.join(dir_base,'data_overschrijding') # TODO: this data is not reproducible yet
             stat_name = 'Hoek_van_Holland'
-            print('Load Hydra-NL distribution data and other validation data')
             dist_vali_exc = {}
             dist_vali_exc['Hydra-NL'] = pd.read_csv(os.path.join(dir_vali_overschr,'Processed_HydraNL','Without_model_uncertainty',f'{stat_name}.csv'), sep=';', header=[0])
             dist_vali_exc['Hydra-NL']['values'] /= 100 # cm to m
@@ -262,7 +266,6 @@ for current_station in stat_list:
                 dist_vali_dec['validation']['values'] /= 100
         
         # 1. Exceedance
-        print('Exceedance')
         dist_exc = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, dist=dist_vali_exc,
                                           interp_freqs=Tfreqs_interested)
@@ -274,7 +277,6 @@ for current_station in stat_list:
         fig.savefig(os.path.join(dir_overschrijding, f'Exceedance_lines_{current_station}.png'))
         
         # 2. Deceedance
-        print('Deceedance')
         dist_dec = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, dist=dist_vali_dec, inverse=True,
                                           interp_freqs=Tfreqs_interested)
@@ -283,4 +285,3 @@ for current_station in stat_list:
         
         fig, ax = kw.plot_overschrijding(dist_dec)
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))
-

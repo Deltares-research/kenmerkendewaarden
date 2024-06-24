@@ -128,7 +128,7 @@ def calc_HWLW_moonculm_combi(data_pd_HWLW_12,culm_addtime=None):
 
 
 def calc_HWLW_culmhr_summary(data_pd_HWLW):
-    logger.info('calculate medians per hour group for LW and HW (instead of 1991 method: average of subgroups with removal of outliers)')
+    logger.info('calculate medians per hour group for LW and HW')
     data_pd_HW = data_pd_HWLW.loc[data_pd_HWLW['HWLWcode']==1]
     data_pd_LW = data_pd_HWLW.loc[data_pd_HWLW['HWLWcode']==2]
     
