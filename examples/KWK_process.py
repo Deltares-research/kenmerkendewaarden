@@ -10,6 +10,7 @@ import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-re
 
 # set logging level to INFO to get log messages
 import logging
+logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 # TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
@@ -158,11 +159,12 @@ for current_station in stat_list:
         
         df_havengetallen, data_pd_HWLW = kw.calc_havengetallen(df_ext=data_pd_HWLW_10y_12, return_df_ext=True)
         
-        print('HWLW FIGUREN PER TIJDSKLASSE, INCLUSIEF MEDIAN LINE')
+        print(f'havengetallen for {current_station}')
+        # plot hwlw per timeclass including median
         fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, df_havengetallen)
         fig.savefig(os.path.join(dir_havget,f'HWLW_pertijdsklasse_inclmedianline_{current_station}'))
         
-        print('AARDAPPELGRAFIEK')
+        # plot aardappelgrafiek
         fig, (ax1,ax2) = kw.plot_aardappelgrafiek(df_havengetallen)
         fig.savefig(os.path.join(dir_havget, f'aardappelgrafiek_{year_slotgem}_{current_station}'))
         
@@ -177,7 +179,7 @@ for current_station in stat_list:
     ##### GEMIDDELDE GETIJKROMMEN
     if compute_gemgetij and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         
-        print(f'gem getijkrommen for {current_station}')
+        print(f'gemiddelde getijkrommen for {current_station}')
         pred_freq = "10s" # frequency influences the accuracy of havengetallen-scaling and is writing frequency of BOI timeseries
         
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
@@ -199,7 +201,7 @@ for current_station in stat_list:
         fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
         fig_sum.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
         
-        print(f'plot BOI figure and compare to KW2020: {current_station}')
+        # plot BOI figure and compare to KW2020
         fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, tick_hours=12)
         
         # plot validation lines if available
@@ -249,7 +251,6 @@ for current_station in stat_list:
         if current_station =='HOEKVHLD':
             dir_vali_overschr = os.path.join(dir_base,'data_overschrijding') # TODO: this data is not reproducible yet
             stat_name = 'Hoek_van_Holland'
-            print('Load Hydra-NL distribution data and other validation data')
             dist_vali_exc = {}
             dist_vali_exc['Hydra-NL'] = pd.read_csv(os.path.join(dir_vali_overschr,'Processed_HydraNL','Without_model_uncertainty',f'{stat_name}.csv'), sep=';', header=[0])
             dist_vali_exc['Hydra-NL']['values'] /= 100 # cm to m
@@ -265,7 +266,6 @@ for current_station in stat_list:
                 dist_vali_dec['validation']['values'] /= 100
         
         # 1. Exceedance
-        print('Exceedance')
         dist_exc = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, dist=dist_vali_exc,
                                           interp_freqs=Tfreqs_interested)
@@ -277,7 +277,6 @@ for current_station in stat_list:
         fig.savefig(os.path.join(dir_overschrijding, f'Exceedance_lines_{current_station}.png'))
         
         # 2. Deceedance
-        print('Deceedance')
         dist_dec = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, dist=dist_vali_dec, inverse=True,
                                           interp_freqs=Tfreqs_interested)

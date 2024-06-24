@@ -75,7 +75,7 @@ def calc_overschrijding(df_ext:pd.DataFrame, dist:dict = None,
     if dist is None:
         dist = {}
     
-    logger.info('Calculate unfiltered distribution')
+    logger.info(f'Calculate unfiltered distribution (inverse={inverse})')
     dist['Ongefilterd'] = distribution(df_extrema_clean, inverse=inverse)
     
     # TODO: re-enable filter for river discharge peaks
