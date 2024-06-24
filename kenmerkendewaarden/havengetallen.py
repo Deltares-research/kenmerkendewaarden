@@ -49,8 +49,8 @@ def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False, min_coverage=No
     df_havengetallen : pd.DataFrame
         DataFrame with havengetallen for all hour-classes. 
         0 corresponds to spring, 6 corresponds to neap, mean is mean.
-    return_df_ext : pd.DataFrame
-        An enriched copy of the input DataFrame, mainly for plotting.
+    df_ext : pd.DataFrame
+        An enriched copy of the input DataFrame including a 'culm_hr' column.
 
     """
     raise_extremes_with_aggers(df_ext)
@@ -174,7 +174,25 @@ def calc_HWLW_culmhr_summary_tidalcoeff(df_ext):
     return HWLW_culmhr_summary
 
 
-def plot_HWLW_pertimeclass(df_ext, df_havengetallen):
+def plot_HWLW_pertimeclass(df_ext:pd.DataFrame, df_havengetallen:pd.DataFrame):
+    """
+    Plot the extremes for each hour-class, including a median line.
+
+    Parameters
+    ----------
+    df_ext : pd.DataFrame
+        DataFrame with measurement extremes, as provided by `kw.calc_havengetallen()`.
+    df_havengetallen : pd.DataFrame
+        DataFrame with havengetallen for all hour-classes, as provided by `kw.calc_havengetallen()`.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure handle.
+    ax : matplotlib.axes._axes.Axes
+        Figure axis handle.
+
+    """
     
     assert 'culm_hr' in df_ext.columns
     
@@ -204,7 +222,23 @@ def plot_HWLW_pertimeclass(df_ext, df_havengetallen):
     return fig, axs
 
 
-def plot_aardappelgrafiek(df_havengetallen):
+def plot_aardappelgrafiek(df_havengetallen:pd.DataFrame):
+    """
+    Plot the median values of each hour-class in a aardappelgrafiek.
+
+    Parameters
+    ----------
+    df_havengetallen : pd.DataFrame
+        DataFrame with havengetallen for all hour-classes, as provided by `kw.calc_havengetallen()`.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Figure handle.
+    ax : matplotlib.axes._axes.Axes
+        Figure axis handle.
+
+    """
     # remove mean column
     HWLW_culmhr_summary = df_havengetallen.loc[:11].copy()
     
