@@ -89,6 +89,7 @@ def test_compute_expected_counts_twotimesteps(df_meas_2010_2014):
     this testcase shows that compute_expected_counts succeeds for a year with only three timesteps
     and it fails for a year with two timesteps.
     """
+    # TODO: the expected count for a year with three timesteps is incorrect. How to catch this?
     
     # create datasets with a gap
     df_meas_withgap_success = pd.concat([df_meas_2010_2014.loc[:"2012-01-01 00:10:00 +01:00"],
