@@ -327,7 +327,6 @@ def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[pd.T
     #                                      that there is no linear trend at the latest time (so it works its way back
     #                                      in the past). rule_value should be entered as going forward in time
     if rule_type == 'break':
-        rule_value = pd.Timestamp(rule_value)
         return df[rule_value:].copy()
     elif rule_type == 'linear':
         rule_value = float(rule_value)
