@@ -325,7 +325,7 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     return hat, lat
 
 
-def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> (float,float):
+def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> tuple:
     """
     Derive highest and lowest astronomical tide (HAT/LAT) from a measurement timeseries of 19 years.
     Tidal components are derived for each year of the measurement timeseries.
