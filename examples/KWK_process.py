@@ -80,8 +80,9 @@ for current_station in stat_list:
         #crop timeseries to 10y
         data_pd_HWLW_10y_12 = hatyan.crop_timeseries(data_pd_HWLW_all_12, times=slice(tstart_dt,tstop_dt),onlyfull=False)
     
-
-
+    
+    
+    
     #### TIDAL INDICATORS
     if compute_indicators and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         print(f'tidal indicators for {current_station}')
@@ -95,12 +96,16 @@ for current_station in stat_list:
         dict_HWLWtidalindicators["hat"] = hat
         dict_HWLWtidalindicators["lat"] = lat
         
-        # plot
-        fig, ax = kw.plot_tidalindicators(dict_wltidalindicators, dict_HWLWtidalindicators)
-        fig.savefig(os.path.join(dir_indicators,f'tidal_indicators_{current_station}'))
-
-
+        # merge dictionaries
+        dict_wltidalindicators.update(dict_HWLWtidalindicators)
         
+        # plot
+        fig, ax = kw.plot_tidalindicators(dict_wltidalindicators)
+        fig.savefig(os.path.join(dir_indicators,f'tidal_indicators_{current_station}'))
+    
+    
+    
+    
     #### SLOTGEMIDDELDEN
     # TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
     # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
@@ -169,7 +174,6 @@ for current_station in stat_list:
     
     
     
-    
     ##### GEMIDDELDE GETIJKROMMEN
     if compute_gemgetij and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         
@@ -221,7 +225,6 @@ for current_station in stat_list:
         ax1_boi.legend(loc=4)
         
         fig_boi.savefig(os.path.join(dir_gemgetij,f'gemspringdoodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.png'))
-    
     
     
     
@@ -283,4 +286,3 @@ for current_station in stat_list:
         
         fig, ax = kw.plot_overschrijding(dist_dec)
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))
-

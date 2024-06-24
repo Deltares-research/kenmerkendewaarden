@@ -76,6 +76,10 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, min_
     if scale_extremes:
         if df_ext is None:
             raise ValueError("df_ext should be provided if scale_extremes=True")
+        # compare station attributes
+        station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
+        assert all(x == station_attrs[0] for x in station_attrs)
+
         df_havengetallen = calc_havengetallen(df_ext=df_ext, min_coverage=min_coverage)
         HW_sp, LW_sp = df_havengetallen.loc[0,['HW_values_median','LW_values_median']] # spring
         HW_np, LW_np = df_havengetallen.loc[6,['HW_values_median','LW_values_median']] # neap
@@ -209,7 +213,7 @@ def plot_gemiddeldgetij(gemgetij_dict:dict, gemgetij_dict_raw:dict = None, tick_
         Figure axis handle.
 
     """
-    # get and compare station arguments
+    # get and compare station attributes
     station_attrs = [v.attrs["station"] for k,v in gemgetij_dict.items()]
     assert all(x == station_attrs[0] for x in station_attrs)
     station = station_attrs[0]

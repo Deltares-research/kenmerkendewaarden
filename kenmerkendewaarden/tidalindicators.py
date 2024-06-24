@@ -227,16 +227,14 @@ def plot_pd_series(indicators_dict, ax):
         ax.hlines(value, xmin, xmax, linestyle="--", color="k", label=key, zorder=1)
 
 
-def plot_tidalindicators(indicators_wl:dict = None, indicators_ext = None):
+def plot_tidalindicators(dict_indicators:dict):
     """
     plot tidalindicators
 
     Parameters
     ----------
-    indicators_wl : dict, optional
-        Dictionary as returned from `kw.calc_wltidalindicators()`. The default is None.
-    indicators_ext : TYPE, optional
-        Dictionary as returned from `kw.calc_HWLWtidalindicators()`. The default is None.
+    dict_indicators : dict, optional
+        Dictionary as returned from `kw.calc_wltidalindicators()` and/or `kw.calc_HWLWtidalindicators()`. The default is None.
 
     Returns
     -------
@@ -247,15 +245,13 @@ def plot_tidalindicators(indicators_wl:dict = None, indicators_ext = None):
 
     """
         
+    # get and compare station attributes
+    station_attrs = [v.attrs["station"] for k,v in dict_indicators.items() if hasattr(v, "attrs")]
+    assert all(x == station_attrs[0] for x in station_attrs)
+    station = station_attrs[0]
+
     fig, ax = plt.subplots(figsize=(12,6))
-        
-    if indicators_wl is not None:
-        station = indicators_wl['wl_mean_peryear'].attrs["station"]
-        plot_pd_series(indicators_wl, ax)
-    if indicators_ext is not None:
-        station = indicators_ext['HW_mean_peryear'].attrs["station"]
-        plot_pd_series(indicators_ext, ax)
-    
+    plot_pd_series(dict_indicators, ax)
     ax.grid()
     ax.legend(loc=1)
     ax.set_ylabel("water level [m]")
