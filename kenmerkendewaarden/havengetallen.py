@@ -41,6 +41,8 @@ def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False, min_coverage=No
         DataFrame with extremes (highs and lows, no aggers).
     return_df : bool
         Whether to return the enriched input dataframe. Default is False.
+    min_coverage : float, optional
+        The minimal required coverage of the df_ext timeseries
     
     Returns
     -------
