@@ -90,14 +90,14 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, min_
     
     times_pred_1mnth = pd.date_range(start=pd.Timestamp(tstop_dt.year,1,1,0,0)-pd.Timedelta(hours=12), end=pd.Timestamp(tstop_dt.year,2,1,0,0), freq=freq) #start 12 hours in advance, to assure also corrected values on desired tstart
     comp_av.attrs['nodalfactors'] = False #nodalfactors=False to guarantee repetative signal
-    prediction_av = hatyan.prediction(comp_av, times=times_pred_1mnth)
-    prediction_av_ext = hatyan.calc_HWLW(ts=prediction_av, calc_HWLW345=False)
+    prediction_avg = hatyan.prediction(comp_av, times=times_pred_1mnth)
+    prediction_avg_ext = hatyan.calc_HWLW(ts=prediction_avg, calc_HWLW345=False)
     
-    time_firstHW = prediction_av_ext.loc[prediction_av_ext['HWLWcode']==1].index[0] #time of first HW
-    ia1 = prediction_av_ext.loc[time_firstHW:].index[0] #time of first HW
-    ia2 = prediction_av_ext.loc[time_firstHW:].index[2] #time of second HW
-    prediction_av_one = prediction_av.loc[ia1:ia2]
-    prediction_av_ext_one = prediction_av_ext.loc[ia1:ia2]
+    time_firstHW = prediction_avg_ext.loc[prediction_avg_ext['HWLWcode']==1].index[0] #time of first HW
+    ia1 = prediction_avg_ext.loc[time_firstHW:].index[0] #time of first HW
+    ia2 = prediction_avg_ext.loc[time_firstHW:].index[2] #time of second HW
+    prediction_avg_one = prediction_avg.loc[ia1:ia2]
+    prediction_avg_ext_one = prediction_avg_ext.loc[ia1:ia2]
     
     # =============================================================================
     # Hatyan predictie voor 1 jaar met gemiddelde helling maansbaan (voor afleiden spring-doodtijcyclus) >> predictie zonder nodalfactors instead
@@ -159,7 +159,7 @@ def calc_gemiddeldgetij(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None, min_
     
     #timeseries for gele boekje (av/sp/np have different lengths, time is relative to HW of av and HW of sp/np are shifted there)
     logger.info(f'reshape_signal GEMGETIJ: {current_station}')
-    prediction_av_corr_one = reshape_signal(prediction_av_one, prediction_av_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=tP_goal)
+    prediction_av_corr_one = reshape_signal(prediction_avg_one, prediction_avg_ext_one, HW_goal=HW_av, LW_goal=LW_av, tP_goal=tP_goal)
     prediction_av_corr_one.index = prediction_av_corr_one.index - prediction_av_corr_one.index[0] # make relative to first timestamp (=HW)
     if scale_period: # resampling required because of scaling
         prediction_av_corr_one = prediction_av_corr_one.resample(freq).nearest()
@@ -376,4 +376,6 @@ def repeat_signal(ts_one_HWtoHW, nb, nf):
                               index=ts_one_HWtoHW.index + iAdd*tidalperiod)
         ts_rep = pd.concat([ts_rep,ts_add])
     ts_rep = ts_rep.loc[~ts_rep.index.duplicated()]
+    # pass on attributes
+    ts_rep.attrs = ts_one_HWtoHW.attrs
     return ts_rep
