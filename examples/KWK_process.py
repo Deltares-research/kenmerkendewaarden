@@ -13,7 +13,8 @@ import logging
 logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-# TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
+# TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT'], overview in https://github.com/Deltares-research/kenmerkendewaarden/issues/101 and the linked wm-ws-dl issue.
+# TODO: consider catching exception (first convert to ValueError): https://github.com/Deltares/hatyan/issues/311
 
 tstart_dt = pd.Timestamp(2011,1,1, tz="UTC+01:00")
 tstop_dt = pd.Timestamp(2021,1,1, tz="UTC+01:00")
