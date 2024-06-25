@@ -156,10 +156,9 @@ for current_station in station_list:
     
     ### HAVENGETALLEN 
     if compute_havengetallen and data_pd_HWLW_all is not None:
-        
+        print(f'havengetallen for {current_station}')
         df_havengetallen, data_pd_HWLW = kw.calc_havengetallen(df_ext=data_pd_HWLW_10y_12, return_df_ext=True)
         
-        print(f'havengetallen for {current_station}')
         # plot hwlw per timeclass including median
         fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, df_havengetallen)
         fig.savefig(os.path.join(dir_havget,f'HWLW_pertijdsklasse_inclmedianline_{current_station}'))
@@ -178,7 +177,6 @@ for current_station in station_list:
     
     ##### GEMIDDELDE GETIJKROMMEN
     if compute_gemgetij and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
-        
         print(f'gemiddelde getijkrommen for {current_station}')
         pred_freq = "10s" # frequency influences the accuracy of havengetallen-scaling and is writing frequency of BOI timeseries
         
@@ -193,40 +191,30 @@ for current_station in station_list:
                                                    freq=pred_freq, nb=0, nf=4, 
                                                    scale_extremes=True, scale_period=True)
 
+        fig, ax = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
+        
+        # plot validation lines if available
+        # TODO: these index of this line is converted from datetimes to timedeltas to get it in the same plot
+        # TODO: the shape is different, so compare to gele boekje instead
+        dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
+        for tidaltype in ["gemgetij","springtij","doodtij"]:
+            file_vali_getijkromme = os.path.join(dir_vali_krommen,f'{tidaltype}kromme_{current_station}_havengetallen{year_slotgem}.csv')
+            if not os.path.exists(file_vali_getijkromme):
+                continue
+            df_vali_getij = pd.read_csv(file_vali_getijkromme, index_col=0, parse_dates=True)
+            df_vali_getij.index = df_vali_getij.index - df_vali_getij.index[0]
+            ax.plot(df_vali_getij['Water Level [m]'], color='grey', zorder=0, label=f'validation KW2020 {tidaltype}')
+        ax.legend(loc=4)
+        fig.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
+        
+        # plot BOI figure and compare to KW2020
+        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, tick_hours=12)
+        fig_boi.savefig(os.path.join(dir_gemgetij,f'gemspringdoodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.png'))
+    
         # write boi timeseries to csv files # TODO: maybe convert timedeltaIndex to minutes instead?
         for key in gemgetij_corr_boi.keys():
             file_boi_csv = os.path.join(dir_gemgetij, f'Getijkromme_BOI_{key}_{current_station}_slotgem{year_slotgem}.csv')
             gemgetij_corr_boi[key].to_csv(file_boi_csv, float_format='%.3f')
-        
-        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
-        fig_sum.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
-        
-        # plot BOI figure and compare to KW2020
-        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, tick_hours=12)
-        
-        # plot validation lines if available
-        # TODO: these index of this line is converted from datetimes to timedeltas to get it in the same plot
-        # TODO: the validation tidal signals are not 12h25m, which is incorrect in case of BOI. We can still compare the shape a bit
-        dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
-        file_vali_doodtijkromme = os.path.join(dir_vali_krommen,f'doodtijkromme_{current_station}_havengetallen{year_slotgem}.csv')
-        file_vali_gemtijkromme = os.path.join(dir_vali_krommen,f'gemGetijkromme_{current_station}_havengetallen{year_slotgem}.csv')
-        file_vali_springtijkromme = os.path.join(dir_vali_krommen,f'springtijkromme_{current_station}_havengetallen{year_slotgem}.csv')        
-        cmap = plt.get_cmap("tab10")
-        if os.path.exists(file_vali_gemtijkromme):
-            data_vali_gemtij = pd.read_csv(file_vali_gemtijkromme,index_col=0,parse_dates=True)
-            data_vali_gemtij.index = data_vali_gemtij.index - data_vali_gemtij.index[0]
-            ax1_boi.plot(data_vali_gemtij['Water Level [m]'],'--',color=cmap(0),linewidth=0.7,label='validation KW2020 gemtij')
-        if os.path.exists(file_vali_springtijkromme):
-            data_vali_springtij = pd.read_csv(file_vali_springtijkromme,index_col=0,parse_dates=True)
-            data_vali_springtij.index = data_vali_springtij.index - data_vali_springtij.index[0]
-            ax1_boi.plot(data_vali_springtij['Water Level [m]'],'--',color=cmap(1),linewidth=0.7,label='validation KW2020 springtij')
-        if os.path.exists(file_vali_doodtijkromme):
-            data_vali_doodtij = pd.read_csv(file_vali_doodtijkromme,index_col=0,parse_dates=True)
-            data_vali_doodtij.index = data_vali_doodtij.index - data_vali_doodtij.index[0]
-            ax1_boi.plot(data_vali_doodtij['Water Level [m]'],'--',color=cmap(2),linewidth=0.7, label='validation KW2020 doodtij')
-        ax1_boi.legend(loc=4)
-        
-        fig_boi.savefig(os.path.join(dir_gemgetij,f'gemspringdoodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.png'))
     
     
     
