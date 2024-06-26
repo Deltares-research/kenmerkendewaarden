@@ -42,6 +42,23 @@ def test_havengetallen(df_ext_12_2010):
             assert(df_havengetallen[colname].dt.nanoseconds == 0).all()
 
 
+@pytest.mark.unittest
+def test_havengetallen_moonculm_offset(df_ext_12_2010_2014):
+    df_havengetallen = kw.calc_havengetallen(df_ext_12_2010_2014, moonculm_offset=0)
+    
+    # assert the havengetallen values
+    hw_values_median = df_havengetallen["HW_values_median"].values
+    hw_values_median_expected = np.array([1.25   , 1.31   , 1.3    , 1.285  , 1.22   , 1.11   , 1.04   ,
+           0.94   , 0.92   , 0.98   , 1.09   , 1.19   , 1.13625])
+    assert np.allclose(hw_values_median, hw_values_median_expected)
+    
+    # test time delays
+    hw_delay_median = df_havengetallen["HW_delay_median"].values.astype(float)
+    hw_delay_median_expected = np.array([7024000000000, 6156000000000, 5274000000000, 4410000000000,
+                                         3586000000000, 3138000000000, 3146000000000, 4241000000000, 6406000000000, 
+                                         7936000000000, 8170000000000, 7799000000000, 5607000000000]) #nanoseconds representation
+    assert np.allclose(hw_delay_median, hw_delay_median_expected)
+
 
 @pytest.mark.unittest
 def test_havengetallen_toolittle_data(df_ext_12_2010_2014):
