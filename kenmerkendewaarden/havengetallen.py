@@ -27,7 +27,7 @@ __all__ = ["calc_havengetallen",
 logger = logging.getLogger(__name__)
 
 
-def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False, min_coverage=None, no_extremes_offset:int = 4):
+def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False, min_coverage=None, moonculm_offset:int = 4):
     """
     havengetallen consist of the extreme (high and low) median values and the 
     extreme median time delays with respect to the moonculmination.
@@ -43,7 +43,7 @@ def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False, min_coverage=No
         Whether to return the enriched input dataframe. Default is False.
     min_coverage : float, optional
         The minimal required coverage of the df_ext timeseries
-    no_extremes_offset : int, optional
+    moonculm_offset : int, optional
         Offset between moonculmination and extremes. Passed on to `calc_HWLW_moonculm_combi`. 
         The default is 4, which corresponds to a 2-day offset, which is applicable to the Dutch coast.
     
@@ -81,7 +81,7 @@ def calc_havengetallen(df_ext:pd.DataFrame, return_df_ext=False, min_coverage=No
     # TODO: consider supporting timezones in hatyan.astrog.dT
     if df_ext.index.tz is not None:
         df_ext = df_ext.tz_localize(None)
-    df_ext = calc_HWLW_moonculm_combi(data_pd_HWLW_12=df_ext, no_extremes_offset=no_extremes_offset)
+    df_ext = calc_HWLW_moonculm_combi(data_pd_HWLW_12=df_ext, moonculm_offset=moonculm_offset)
     df_havengetallen = calc_HWLW_culmhr_summary(df_ext) #TODO: maybe add tijverschil
     logger.info('computing havengetallen done')
     if return_df_ext:
@@ -102,7 +102,7 @@ def get_moonculm_idxHWLWno(tstart,tstop):
     return moonculm_idxHWLWno
 
 
-def calc_HWLW_moonculm_combi(data_pd_HWLW_12:pd.DataFrame, no_extremes_offset:int = 4):
+def calc_HWLW_moonculm_combi(data_pd_HWLW_12:pd.DataFrame, moonculm_offset:int = 4):
     """
     Links moonculminations to each extreme. All low waters correspond to the same 
     moonculmination as the preceding high water. Computes the time differences between 
@@ -112,7 +112,7 @@ def calc_HWLW_moonculm_combi(data_pd_HWLW_12:pd.DataFrame, no_extremes_offset:in
     ----------
     data_pd_HWLW_12 : pd.DataFrame
         DataFrame with extremes (highs and lows, no aggers).
-    no_extremes_offset : int, optional
+    moonculm_offset : int, optional
         The extremes of a Dutch station are related to the moonculmination two days before,
         so the fourth extreme after a certain moonculmination is related to that moonculmination.
         For more northward stations, one could consider using the 5th extreme after a certain moonculmination.
@@ -126,7 +126,7 @@ def calc_HWLW_moonculm_combi(data_pd_HWLW_12:pd.DataFrame, no_extremes_offset:in
     """
     moonculm_idxHWLWno = get_moonculm_idxHWLWno(tstart=data_pd_HWLW_12.index.min()-dt.timedelta(days=3),tstop=data_pd_HWLW_12.index.max())
     # correlate HWLW to moonculmination 2 days before.
-    moonculm_idxHWLWno.index = moonculm_idxHWLWno.index + no_extremes_offset
+    moonculm_idxHWLWno.index = moonculm_idxHWLWno.index + moonculm_offset
 
     data_pd_HWLW_idxHWLWno = calc_HWLWnumbering(data_pd_HWLW_12)
     data_pd_HWLW_idxHWLWno['times'] = data_pd_HWLW_idxHWLWno.index
@@ -145,7 +145,7 @@ def calc_HWLW_moonculm_combi(data_pd_HWLW_12:pd.DataFrame, no_extremes_offset:in
     # TODO: alternatively we can use `df_ext.tz_convert()` instead of `df_ext.tz_localize()`
     # 20 minutes (0 to 5 meridian)
     # TODO: 20 minutes seems odd since moonculm is about tidal wave from ocean
-    culm_addtime = no_extremes_offset*dt.timedelta(hours=12,minutes=25) + dt.timedelta(hours=1) - dt.timedelta(minutes=20)
+    culm_addtime = moonculm_offset*dt.timedelta(hours=12,minutes=25) + dt.timedelta(hours=1) - dt.timedelta(minutes=20)
     # TODO: culm_addtime=None provides the same gemgetijkromme now delay is not used for scaling anymore
     data_pd_HWLW_idxHWLWno['HWLW_delay'] -= culm_addtime
     
