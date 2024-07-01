@@ -51,15 +51,15 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
                 'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
 station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"] # subset of 11 stations along the coast
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
-station_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
-
+station_list = ["VLISSGN","HOEKVHLD","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","SCHEVNGN","ROOMPBTN"] 
+station_list = ["HOEKVHLD"]
 
 nap_correction = False
 
-compute_indicators = 
-compute_slotgem = True
-compute_havengetallen = True
-compute_gemgetij = True
+compute_indicators = False
+compute_slotgem = False
+compute_havengetallen = False
+compute_gemgetij = False
 compute_overschrijding = True
 
 
@@ -248,22 +248,26 @@ for current_station in station_list:
         #get Hydra-NL and KWK-RMM validation data (only for HOEKVHLD)
         dist_vali_exc = {}
         dist_vali_dec = {}
+
         if current_station =='HOEKVHLD':
             dir_vali_overschr = os.path.join(dir_base,'data_overschrijding') # TODO: this data is not reproducible yet
             stat_name = 'Hoek_van_Holland'
-            dist_vali_exc = {}
-            dist_vali_exc['Hydra-NL'] = pd.read_csv(os.path.join(dir_vali_overschr,'Processed_HydraNL','Without_model_uncertainty',f'{stat_name}.csv'), sep=';', header=[0])
-            dist_vali_exc['Hydra-NL']['values'] /= 100 # cm to m
-            dist_vali_exc['Hydra-NL met modelonzekerheid'] = pd.read_csv(os.path.join(dir_vali_overschr,'Processed_HydraNL','With_model_uncertainty',f'{stat_name}_with_model_uncertainty.csv'), sep=';', header=[0])
-            dist_vali_exc['Hydra-NL met modelonzekerheid']['values'] /= 100 # cm to m
-            file_vali_exeed = os.path.join(dir_vali_overschr,'Tables','Exceedance_lines',f'Exceedance_lines_{stat_name}.csv')
-            if os.path.exists(file_vali_exeed):
-                dist_vali_exc['validation'] = pd.read_csv(file_vali_exeed,sep=';')
-                dist_vali_exc['validation']['values'] /= 100
-            file_vali_dec = os.path.join(dir_vali_overschr,'Tables','Deceedance_lines',f'Deceedance_lines_{stat_name}.csv')
-            if os.path.exists(file_vali_dec):
-                dist_vali_dec['validation'] = pd.read_csv(file_vali_dec,sep=';')
-                dist_vali_dec['validation']['values'] /= 100
+
+            def set_table(dict, key, path):
+                if os.path.exists(path):
+                    dict[key] =pd.read_csv(path, sep=';')
+                    dict[key]['values'] /= 100 
+                return  
+
+            hydra_nl_nouncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','Without_model_uncertainty',f'{stat_name}.csv')
+            hydra_nl_uncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','With_model_uncertainty',f'{stat_name}_with_model_uncertainty.csv')
+            file_validation_exeedance = os.path.join(dir_vali_overschr,'Tables','Exceedance_lines',f'Exceedance_lines_{stat_name}.csv')
+            file_validation_deceedance = os.path.join(dir_vali_overschr,'Tables','Deceedance_lines',f'Deceedance_lines_{stat_name}.csv')
+
+            set_table(dist_vali_exc, 'Hydra-NL', hydra_nl_nouncertainty)
+            set_table(dist_vali_exc,'Hydra-NL met modelonzekerheid', hydra_nl_uncertainty)
+            set_table(dist_vali_exc, 'validation', file_validation_exeedance)
+            set_table(dist_vali_dec,'validation', file_validation_deceedance)
         
         # 1. Exceedance
         dist_exc = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
