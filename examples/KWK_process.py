@@ -52,7 +52,7 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
 station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"] # subset of 11 stations along the coast
 # TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
 station_list = ["VLISSGN","HOEKVHLD","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","SCHEVNGN","ROOMPBTN"] 
-station_list = ["HOEKVHLD"]
+station_list = ["VLISSGN"]
 
 nap_correction = False
 
@@ -248,26 +248,35 @@ for current_station in station_list:
         #get Hydra-NL and KWK-RMM validation data (only for HOEKVHLD)
         dist_vali_exc = {}
         dist_vali_dec = {}
+        dir_vali_overschr = os.path.join(dir_base,'data_overschrijding') # TODO: this data is not reproducible yet
 
-        if current_station =='HOEKVHLD':
-            dir_vali_overschr = os.path.join(dir_base,'data_overschrijding') # TODO: this data is not reproducible yet
-            stat_name = 'Hoek_van_Holland'
+        stat_name = current_station
 
-            def set_table(dict, key, path):
-                if os.path.exists(path):
-                    dict[key] =pd.read_csv(path, sep=';')
-                    dict[key]['values'] /= 100 
-                return  
+        def set_hydra_nl_table(dict, key, path):
+            if os.path.exists(path):
+                df_hydra_nl =pd.read_csv(path, sep=';', header=[0])
+                df_hydra_nl = df_hydra_nl.loc[:, ['Terugkeertijd [jaar]', 'Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]']]
+                df_hydra_nl['values_Tfreq'] = 1/ df_hydra_nl['Terugkeertijd [jaar]'].str.replace(',', '.').astype(float) 
+                df_hydra_nl['values'] = df_hydra_nl['Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]'].str.replace(',', '.').astype(float) 
+                df_hydra_nl = df_hydra_nl.loc[:, ['values_Tfreq','values']]
+                dict[key] = df_hydra_nl
+            return  dict  
 
-            hydra_nl_nouncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','Without_model_uncertainty',f'{stat_name}.csv')
-            hydra_nl_uncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','With_model_uncertainty',f'{stat_name}_with_model_uncertainty.csv')
-            file_validation_exeedance = os.path.join(dir_vali_overschr,'Tables','Exceedance_lines',f'Exceedance_lines_{stat_name}.csv')
-            file_validation_deceedance = os.path.join(dir_vali_overschr,'Tables','Deceedance_lines',f'Deceedance_lines_{stat_name}.csv')
+        def set_table(dict, key, path):
+            if os.path.exists(path):
+                dict[key] =pd.read_csv(path, sep=';')
+                dict[key]['values'] /= 100 
+            return  
+        
+        hydra_nl_nouncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','Without_model_uncertainty',f'{stat_name}.csv')
+        hydra_nl_uncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','With_model_uncertainty',f'{stat_name}.csv')
+        file_validation_exeedance = os.path.join(dir_vali_overschr,'Tables','Exceedance_lines',f'Exceedance_lines_{stat_name}.csv')
+        file_validation_deceedance = os.path.join(dir_vali_overschr,'Tables','Deceedance_lines',f'Deceedance_lines_{stat_name}.csv')
 
-            set_table(dist_vali_exc, 'Hydra-NL', hydra_nl_nouncertainty)
-            set_table(dist_vali_exc,'Hydra-NL met modelonzekerheid', hydra_nl_uncertainty)
-            set_table(dist_vali_exc, 'validation', file_validation_exeedance)
-            set_table(dist_vali_dec,'validation', file_validation_deceedance)
+        set_hydra_nl_table(dist_vali_exc, 'Hydra-NL', hydra_nl_nouncertainty)
+        set_hydra_nl_table(dist_vali_exc,'Hydra-NL met modelonzekerheid', hydra_nl_uncertainty)
+        set_table(dist_vali_exc, 'validation', file_validation_exeedance)
+        set_table(dist_vali_dec,'validation', file_validation_deceedance)
         
         # 1. Exceedance
         dist_exc = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
