@@ -1,0 +1,11 @@
+Randvoorwaardendatabase;Locatie;X-coördinaat;Y-coördinaat;Profiel;Klimaatscenario;Type Berekening;Overslagdebiet [l/s/m]/Type bekleding;Waterstandsniveau [m+NAP];Terugkeertijd [jaar];Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-];Golfhoogte [m];Piekperiode [s];Golfrichting [°];Golfinval [°]
+WBI2017_Waddenzee_Oost_1-1_1-2_v03.sqlite;WZ_1_1-2_dk_00008;208813;609872;-;WBI2017;Waterstand;-;-;10;3,283;-;-;-;-
+WBI2017_Waddenzee_Oost_1-1_1-2_v03.sqlite;WZ_1_1-2_dk_00008;208813;609872;-;WBI2017;Waterstand;-;-;50;3,715;-;-;-;-
+WBI2017_Waddenzee_Oost_1-1_1-2_v03.sqlite;WZ_1_1-2_dk_00008;208813;609872;-;WBI2017;Waterstand;-;-;100;3,892;-;-;-;-
+WBI2017_Waddenzee_Oost_1-1_1-2_v03.sqlite;WZ_1_1-2_dk_00008;208813;609872;-;WBI2017;Waterstand;-;-;300;4,166;-;-;-;-
+WBI2017_Waddenzee_Oost_1-1_1-2_v03.sqlite;WZ_1_1-2_dk_00008;208813;609872;-;WBI2017;Waterstand;-;-;1000;4,460;-;-;-;-
+WBI2017_Waddenzee_Oost_1-1_1-2_v03.sqlite;WZ_1_1-2_dk_00008;208813;609872;-;WBI2017;Waterstand;-;-;3000;4,724;-;-;-;-
+WBI2017_Waddenzee_Oost_1-1_1-2_v03.sqlite;WZ_1_1-2_dk_00008;208813;609872;-;WBI2017;Waterstand;-;-;10000;5,014;-;-;-;-
+WBI2017_Waddenzee_Oost_1-1_1-2_v03.sqlite;WZ_1_1-2_dk_00008;208813;609872;-;WBI2017;Waterstand;-;-;30000;5,279;-;-;-;-
+WBI2017_Waddenzee_Oost_1-1_1-2_v03.sqlite;WZ_1_1-2_dk_00008;208813;609872;-;WBI2017;Waterstand;-;-; 1,00E+05;5,574;-;-;-;-
+WBI2017_Waddenzee_Oost_1-1_1-2_v03.sqlite;WZ_1_1-2_dk_00008;208813;609872;-;WBI2017;Waterstand;-;-; 1,00E+06;6,141;-;-;-;-
