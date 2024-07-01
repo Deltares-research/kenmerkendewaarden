@@ -1,4 +1,4 @@
-Randvoorwaardendatabase;Locatie;X-coördinaat;Y-coördinaat;Profiel;Klimaatscenario;Type Berekening;Overslagdebiet [l/s/m]/Type bekleding;Waterstandsniveau [m+NAP];Terugkeertijd [jaar];Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-];Golfhoogte [m];Piekperiode [s];Golfrichting [°];Golfinval [°]
+ï»¿Randvoorwaardendatabase;Locatie;X-coÃ¶rdinaat;Y-coÃ¶rdinaat;Profiel;Klimaatscenario;Type Berekening;Overslagdebiet [l/s/m]/Type bekleding;Waterstandsniveau [m+NAP];Terugkeertijd [jaar];Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-];Golfhoogte [m];Piekperiode [s];Golfrichting [Â°];Golfinval [Â°]
 WBI2017_Westerschelde_29-3_29-4_v03.sqlite;WS_1_29-3_dk_00024;30974;384991;-;WBI2017;Waterstand;-;-;10;3,841;-;-;-;-
 WBI2017_Westerschelde_29-3_29-4_v03.sqlite;WS_1_29-3_dk_00024;30974;384991;-;WBI2017;Waterstand;-;-;50;4,240;-;-;-;-
 WBI2017_Westerschelde_29-3_29-4_v03.sqlite;WS_1_29-3_dk_00024;30974;384991;-;WBI2017;Waterstand;-;-;100;4,412;-;-;-;-
