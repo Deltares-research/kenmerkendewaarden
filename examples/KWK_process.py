@@ -29,7 +29,6 @@ dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
 dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
 # TODO: move to full data folder (otherwise overschrijding and slotgemiddelde is completely wrong)
 # dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
-dir_meas = r"c:\Users\veenstra\Downloads\measurements_wl_18700101_20240101"
 
 dir_indicators = os.path.join(dir_base,f'out_tidalindicators_{year_slotgem}')
 dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
@@ -59,10 +58,10 @@ station_list = ["HOEKVHLD"]
 
 nap_correction = False
 
-compute_indicators = False
-compute_slotgem = False
-compute_havengetallen = False
-compute_gemgetij = False
+compute_indicators = True
+compute_slotgem = True
+compute_havengetallen = True
+compute_gemgetij = True
 compute_overschrijding = True
 
 
