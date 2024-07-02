@@ -21,7 +21,7 @@ plot_meas_amount = False
 retrieve_meas = False
 derive_stats = False
 plot_meas = False
-plot_stations = False
+plot_stations = True
 test = False
 
 # TODO: add timezone to start/stop date? (and re-retrieve all data): https://github.com/Deltares-research/kenmerkendewaarden/issues/29

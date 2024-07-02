@@ -268,8 +268,8 @@ for current_station in station_list:
         
         hydra_nl_nouncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','Without_model_uncertainty',f'{stat_name}.xls')
         hydra_nl_uncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','With_model_uncertainty',f'{stat_name}.xls')
-        file_validation_exeedance = os.path.join(dir_vali_overschr,'Tables','Exceedance_lines',f'Exceedance_lines_{stat_name}.xls')
-        file_validation_deceedance = os.path.join(dir_vali_overschr,'Tables','Deceedance_lines',f'Deceedance_lines_{stat_name}.xls')
+        file_validation_exeedance = os.path.join(dir_vali_overschr,'Tables','Exceedance_lines',f'Exceedance_lines_{stat_name}.csv')
+        file_validation_deceedance = os.path.join(dir_vali_overschr,'Tables','Deceedance_lines',f'Deceedance_lines_{stat_name}.csv')
 
         set_hydra_nl_table(dist_vali_exc, 'Hydra-NL', hydra_nl_nouncertainty)
         set_hydra_nl_table(dist_vali_exc,'Hydra-NL met modelonzekerheid', hydra_nl_uncertainty)
