@@ -359,7 +359,6 @@ def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hyd
 
     # Weibull to Hydra
     if df_hydra is not None:
-    
         df_hydra = df_hydra.sort_values(by='values_Tfreq', ascending=False)
 
         Tfreqs_combined = np.unique(np.concatenate((df_weibull['values_Tfreq'].values, df_hydra['values_Tfreq'].values)))
