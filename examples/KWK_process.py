@@ -253,8 +253,7 @@ for current_station in station_list:
 
         def set_hydra_nl_table(dict, key, path):
             if os.path.exists(path):
-                df_hydra_nl =pd.read_csv(path, sep=';', header=[0])
-                df_hydra_nl = df_hydra_nl.loc[:, ['Terugkeertijd [jaar]', 'Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]']]
+                df_hydra_nl =pd.read_table(path, encoding='latin-1', header=[0])
                 df_hydra_nl['values_Tfreq'] = 1/ df_hydra_nl['Terugkeertijd [jaar]'].str.replace(',', '.').astype(float) 
                 df_hydra_nl['values'] = df_hydra_nl['Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]'].str.replace(',', '.').astype(float) 
                 df_hydra_nl = df_hydra_nl.loc[:, ['values_Tfreq','values']]
@@ -267,10 +266,10 @@ for current_station in station_list:
                 dict[key]['values'] /= 100 
             return  
         
-        hydra_nl_nouncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','Without_model_uncertainty',f'{stat_name}.csv')
-        hydra_nl_uncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','With_model_uncertainty',f'{stat_name}.csv')
-        file_validation_exeedance = os.path.join(dir_vali_overschr,'Tables','Exceedance_lines',f'Exceedance_lines_{stat_name}.csv')
-        file_validation_deceedance = os.path.join(dir_vali_overschr,'Tables','Deceedance_lines',f'Deceedance_lines_{stat_name}.csv')
+        hydra_nl_nouncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','Without_model_uncertainty',f'{stat_name}.xls')
+        hydra_nl_uncertainty = os.path.join(dir_vali_overschr,'Processed_HydraNL','With_model_uncertainty',f'{stat_name}.xls')
+        file_validation_exeedance = os.path.join(dir_vali_overschr,'Tables','Exceedance_lines',f'Exceedance_lines_{stat_name}.xls')
+        file_validation_deceedance = os.path.join(dir_vali_overschr,'Tables','Deceedance_lines',f'Deceedance_lines_{stat_name}.xls')
 
         set_hydra_nl_table(dist_vali_exc, 'Hydra-NL', hydra_nl_nouncertainty)
         set_hydra_nl_table(dist_vali_exc,'Hydra-NL met modelonzekerheid', hydra_nl_uncertainty)
