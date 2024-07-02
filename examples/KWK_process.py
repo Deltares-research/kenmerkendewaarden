@@ -13,7 +13,8 @@ import logging
 logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-# TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
+# TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT'], overview in https://github.com/Deltares-research/kenmerkendewaarden/issues/101 and the linked wm-ws-dl issue.
+# TODO: consider catching exception (first convert to ValueError): https://github.com/Deltares/hatyan/issues/311
 
 tstart_dt = pd.Timestamp(2011,1,1, tz="UTC+01:00")
 tstop_dt = pd.Timestamp(2021,1,1, tz="UTC+01:00")
@@ -43,16 +44,17 @@ os.makedirs(dir_overschrijding, exist_ok=True)
 fig_alltimes_ext = [dt.datetime.strptime(x,'%Y%m%d') for x in os.path.basename(dir_meas).split('_')[2:4]]
 
 # all stations from TK (dataTKdia)
+# TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
 station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUWHVSGT08','GATVBSLE','BRESKVHVN','CADZD',
                 'D15','DELFZL','DENHDR','EEMSHVN','EURPFM','F16','F3PFM','HARVT10','HANSWT','HARLGN','HOEKVHLD','HOLWD','HUIBGT',
                 'IJMDBTHVN','IJMDSMPL','J6','K13APFM','K14PFM','KATSBTN','KORNWDZBTN','KRAMMSZWT','L9PFM','LAUWOG','LICHTELGRE',
                 'MARLGT','NES','NIEUWSTZL','NORTHCMRT','DENOVBTN','OOSTSDE04','OOSTSDE11','OOSTSDE14','OUDSD','OVLVHWT','Q1',
                 'ROOMPBNN','ROOMPBTN','SCHAARVDND','SCHEVNGN','SCHIERMNOG','SINTANLHVSGR','STAVNSE','STELLDBTN','TERNZN','TERSLNZE','TEXNZE',
                 'VLAKTVDRN','VLIELHVN','VLISSGN','WALSODN','WESTKPLE','WESTTSLG','WIERMGDN','YERSKE']
-station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"] # subset of 11 stations along the coast
-# TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
-station_list = ['HOEKVHLD']#,'HARVT10','VLISSGN']
-
+# subset of 11 stations along the coast
+station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
+# short list for testing
+station_list = ["HOEKVHLD"]
 
 nap_correction = False
 
@@ -156,10 +158,9 @@ for current_station in station_list:
     
     ### HAVENGETALLEN 
     if compute_havengetallen and data_pd_HWLW_all is not None:
-        
+        print(f'havengetallen for {current_station}')
         df_havengetallen, data_pd_HWLW = kw.calc_havengetallen(df_ext=data_pd_HWLW_10y_12, return_df_ext=True)
         
-        print(f'havengetallen for {current_station}')
         # plot hwlw per timeclass including median
         fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, df_havengetallen)
         fig.savefig(os.path.join(dir_havget,f'HWLW_pertijdsklasse_inclmedianline_{current_station}'))
@@ -178,7 +179,6 @@ for current_station in station_list:
     
     ##### GEMIDDELDE GETIJKROMMEN
     if compute_gemgetij and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
-        
         print(f'gemiddelde getijkrommen for {current_station}')
         pred_freq = "10s" # frequency influences the accuracy of havengetallen-scaling and is writing frequency of BOI timeseries
         
@@ -193,40 +193,30 @@ for current_station in station_list:
                                                    freq=pred_freq, nb=0, nf=4, 
                                                    scale_extremes=True, scale_period=True)
 
+        fig, ax = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
+        
+        # plot validation lines if available
+        # TODO: these index of this line is converted from datetimes to timedeltas to get it in the same plot
+        # TODO: the shape is different, so compare to gele boekje instead
+        dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
+        for tidaltype in ["gemgetij","springtij","doodtij"]:
+            file_vali_getijkromme = os.path.join(dir_vali_krommen,f'{tidaltype}kromme_{current_station}_havengetallen{year_slotgem}.csv')
+            if not os.path.exists(file_vali_getijkromme):
+                continue
+            df_vali_getij = pd.read_csv(file_vali_getijkromme, index_col=0, parse_dates=True)
+            df_vali_getij.index = df_vali_getij.index - df_vali_getij.index[0]
+            ax.plot(df_vali_getij['Water Level [m]'], color='grey', zorder=0, label=f'validation KW2020 {tidaltype}')
+        ax.legend(loc=4)
+        fig.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
+        
+        # plot BOI figure and compare to KW2020
+        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, tick_hours=12)
+        fig_boi.savefig(os.path.join(dir_gemgetij,f'gemspringdoodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.png'))
+    
         # write boi timeseries to csv files # TODO: maybe convert timedeltaIndex to minutes instead?
         for key in gemgetij_corr_boi.keys():
             file_boi_csv = os.path.join(dir_gemgetij, f'Getijkromme_BOI_{key}_{current_station}_slotgem{year_slotgem}.csv')
             gemgetij_corr_boi[key].to_csv(file_boi_csv, float_format='%.3f')
-        
-        fig_sum, ax_sum = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
-        fig_sum.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
-        
-        # plot BOI figure and compare to KW2020
-        fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, tick_hours=12)
-        
-        # plot validation lines if available
-        # TODO: these index of this line is converted from datetimes to timedeltas to get it in the same plot
-        # TODO: the validation tidal signals are not 12h25m, which is incorrect in case of BOI. We can still compare the shape a bit
-        dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
-        file_vali_doodtijkromme = os.path.join(dir_vali_krommen,f'doodtijkromme_{current_station}_havengetallen{year_slotgem}.csv')
-        file_vali_gemtijkromme = os.path.join(dir_vali_krommen,f'gemGetijkromme_{current_station}_havengetallen{year_slotgem}.csv')
-        file_vali_springtijkromme = os.path.join(dir_vali_krommen,f'springtijkromme_{current_station}_havengetallen{year_slotgem}.csv')        
-        cmap = plt.get_cmap("tab10")
-        if os.path.exists(file_vali_gemtijkromme):
-            data_vali_gemtij = pd.read_csv(file_vali_gemtijkromme,index_col=0,parse_dates=True)
-            data_vali_gemtij.index = data_vali_gemtij.index - data_vali_gemtij.index[0]
-            ax1_boi.plot(data_vali_gemtij['Water Level [m]'],'--',color=cmap(0),linewidth=0.7,label='validation KW2020 gemtij')
-        if os.path.exists(file_vali_springtijkromme):
-            data_vali_springtij = pd.read_csv(file_vali_springtijkromme,index_col=0,parse_dates=True)
-            data_vali_springtij.index = data_vali_springtij.index - data_vali_springtij.index[0]
-            ax1_boi.plot(data_vali_springtij['Water Level [m]'],'--',color=cmap(1),linewidth=0.7,label='validation KW2020 springtij')
-        if os.path.exists(file_vali_doodtijkromme):
-            data_vali_doodtij = pd.read_csv(file_vali_doodtijkromme,index_col=0,parse_dates=True)
-            data_vali_doodtij.index = data_vali_doodtij.index - data_vali_doodtij.index[0]
-            ax1_boi.plot(data_vali_doodtij['Water Level [m]'],'--',color=cmap(2),linewidth=0.7, label='validation KW2020 doodtij')
-        ax1_boi.legend(loc=4)
-        
-        fig_boi.savefig(os.path.join(dir_gemgetij,f'gemspringdoodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.png'))
     
     
     
@@ -235,6 +225,32 @@ for current_station in station_list:
     # TODO: SLR trend correctie voor overschrijdingsfrequenties en evt ook voor andere KW?
     # TODO: resulting freqs seem to be shifted w.r.t. getijtafelboekje (mail PH 9-3-2022)
     # plots beoordelen: rode lijn moet ongeveer verlengde zijn van groene, als die ineens omhoog piekt komt dat door hele extreme waardes die je dan vermoedelijk ook al ziet in je groene lijn
+    
+    def initiate_dist_with_hydra_nl(station):
+        # get Hydra-NL and KWK-RMM validation data (only available for selection of stations)
+        # TODO: this data is not reproducible yet: https://github.com/Deltares-research/kenmerkendewaarden/issues/107
+        # TODO: HOEKVHLD Hydra values are different than old ones in p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL
+        dist_dict = {}
+        dir_overschr_hydra = os.path.join(dir_base,'data_hydraNL')
+        file_hydra_nl = os.path.join(dir_overschr_hydra, f'{station}.xls')
+        if os.path.exists(file_hydra_nl):
+            df_hydra_nl = pd.read_table(file_hydra_nl, encoding='latin-1', decimal=',', header=0)
+            df_hydra_nl['values_Tfreq'] = 1/ df_hydra_nl['Terugkeertijd [jaar]']
+            df_hydra_nl['values'] = df_hydra_nl['Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]']
+            df_hydra_nl = df_hydra_nl.loc[:, ['values_Tfreq','values']]
+            df_hydra_nl.attrs['station'] = station
+            dist_dict['Hydra-NL'] = df_hydra_nl
+        return dist_dict
+
+    def add_validation_dist(dist_dict, dist_type, station):
+        dir_overschr_vali = os.path.join(dir_base,'data_overschrijding','Tables')
+        file_validation = os.path.join(dir_overschr_vali, f'{dist_type}_lines', f'{dist_type}_lines_{station}.csv')
+        if not os.path.exists(file_validation):
+            return
+        df_validation = pd.read_csv(file_validation, sep=';')
+        df_validation['values'] /= 100
+        df_validation.attrs['station'] = station
+        dist_dict['validation'] = df_validation
     
     Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200,
                          1/500, 1/1000, 1/2000, 1/4000, 1/5000, 1/10000]
@@ -245,30 +261,13 @@ for current_station in station_list:
         # only include data up to year_slotgem
         data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt]
         
-        #get Hydra-NL and KWK-RMM validation data (only for HOEKVHLD)
-        dist_vali_exc = {}
-        dist_vali_dec = {}
-        if current_station =='HOEKVHLD':
-            dir_vali_overschr = os.path.join(dir_base,'data_overschrijding') # TODO: this data is not reproducible yet
-            stat_name = 'Hoek_van_Holland'
-            dist_vali_exc = {}
-            dist_vali_exc['Hydra-NL'] = pd.read_csv(os.path.join(dir_vali_overschr,'Processed_HydraNL','Without_model_uncertainty',f'{stat_name}.csv'), sep=';', header=[0])
-            dist_vali_exc['Hydra-NL']['values'] /= 100 # cm to m
-            dist_vali_exc['Hydra-NL met modelonzekerheid'] = pd.read_csv(os.path.join(dir_vali_overschr,'Processed_HydraNL','With_model_uncertainty',f'{stat_name}_with_model_uncertainty.csv'), sep=';', header=[0])
-            dist_vali_exc['Hydra-NL met modelonzekerheid']['values'] /= 100 # cm to m
-            file_vali_exeed = os.path.join(dir_vali_overschr,'Tables','Exceedance_lines',f'Exceedance_lines_{stat_name}.csv')
-            if os.path.exists(file_vali_exeed):
-                dist_vali_exc['validation'] = pd.read_csv(file_vali_exeed,sep=';')
-                dist_vali_exc['validation']['values'] /= 100
-            file_vali_dec = os.path.join(dir_vali_overschr,'Tables','Deceedance_lines',f'Deceedance_lines_{stat_name}.csv')
-            if os.path.exists(file_vali_dec):
-                dist_vali_dec['validation'] = pd.read_csv(file_vali_dec,sep=';')
-                dist_vali_dec['validation']['values'] /= 100
         
         # 1. Exceedance
+        dist_exc_hydra = initiate_dist_with_hydra_nl(station=current_station)
         dist_exc = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
-                                          clip_physical_break=True, dist=dist_vali_exc,
+                                          clip_physical_break=True, dist=dist_exc_hydra,
                                           interp_freqs=Tfreqs_interested)
+        add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
         df_interp = dist_exc['Geinterpoleerd']
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False, sep=';')
         
@@ -278,8 +277,9 @@ for current_station in station_list:
         
         # 2. Deceedance
         dist_dec = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
-                                          clip_physical_break=True, dist=dist_vali_dec, inverse=True,
+                                          clip_physical_break=True, inverse=True,
                                           interp_freqs=Tfreqs_interested)
+        add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)
         df_interp = dist_dec['Geinterpoleerd']
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False, sep=';')
         

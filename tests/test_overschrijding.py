@@ -32,6 +32,7 @@ def test_calc_overschrijding_with_hydra(df_ext_12_2010_2014):
                              'values_Tfreq': np.array([1.00000000e+00, 1.00000000e-01, 2.00000000e-02, 1.00000000e-02,
                                                        3.33333333e-03, 1.00000000e-03, 3.33333333e-04, 1.00000000e-04,
                                                        3.33333333e-05, 1.00000000e-05, 1.00000000e-06])})
+    df_hydra.attrs = df_ext_12_2010_2014.attrs
     dist_hydra = {"Hydra-NL": df_hydra}
     dist = kw.calc_overschrijding(df_ext=df_ext_12_2010_2014, interp_freqs=Tfreqs_interested, dist=dist_hydra)
     
