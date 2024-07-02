@@ -246,7 +246,6 @@ def distribution(df: pd.DataFrame, col: str = None,
 def get_weibull(df: pd.DataFrame, threshold: float, Tfreqs: np.ndarray, col: str = None,
                 inverse: bool = False) -> pd.DataFrame:
     col = df.columns[0] if col is None else col
-    
     values = df[col].values
     if inverse:
         values = -values
