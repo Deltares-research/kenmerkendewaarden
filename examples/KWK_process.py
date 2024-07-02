@@ -29,6 +29,7 @@ dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
 dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
 # TODO: move to full data folder (otherwise overschrijding and slotgemiddelde is completely wrong)
 # dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
+dir_meas = r"c:\Users\veenstra\Downloads\measurements_wl_18700101_20240101"
 
 dir_indicators = os.path.join(dir_base,f'out_tidalindicators_{year_slotgem}')
 dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
@@ -58,10 +59,10 @@ station_list = ["HOEKVHLD"]
 
 nap_correction = False
 
-compute_indicators = True
-compute_slotgem = True
-compute_havengetallen = True
-compute_gemgetij = True
+compute_indicators = False
+compute_slotgem = False
+compute_havengetallen = False
+compute_gemgetij = False
 compute_overschrijding = True
 
 
@@ -230,6 +231,7 @@ for current_station in station_list:
         # get Hydra-NL and KWK-RMM validation data (only available for selection of stations)
         # TODO: this data is not reproducible yet: https://github.com/Deltares-research/kenmerkendewaarden/issues/107
         # TODO: HOEKVHLD Hydra values are different than old ones in p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL
+
         dist_dict = {}
         dir_overschr_hydra = os.path.join(dir_base,'data_hydraNL')
         file_hydra_nl = os.path.join(dir_overschr_hydra, f'{station}.xls')
@@ -260,7 +262,6 @@ for current_station in station_list:
         
         # only include data up to year_slotgem
         data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt]
-        
         
         # 1. Exceedance
         dist_exc_hydra = initiate_dist_with_hydra_nl(station=current_station)
