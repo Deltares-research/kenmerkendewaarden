@@ -229,7 +229,7 @@ for current_station in station_list:
     def initiate_dist_with_hydra_nl(station):
         # get Hydra-NL and KWK-RMM validation data (only available for selection of stations)
         # TODO: this data is not reproducible yet: https://github.com/Deltares-research/kenmerkendewaarden/issues/107
-        # TODO: HOEKVHLD Hydra values are different than old ones in p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL
+        # TODO: HOEKVHLD Hydra values are different than old ones in p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL\Without_model_uncertainty\Hoek_van_Holland.csv
         dist_dict = {}
         dir_overschr_hydra = os.path.join(dir_base,'data_hydraNL')
         file_hydra_nl = os.path.join(dir_overschr_hydra, f'{station}.xls')
@@ -238,19 +238,16 @@ for current_station in station_list:
             df_hydra_nl['values_Tfreq'] = 1/ df_hydra_nl['Terugkeertijd [jaar]']
             df_hydra_nl['values'] = df_hydra_nl['Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]']
             df_hydra_nl = df_hydra_nl.loc[:, ['values_Tfreq','values']]
-            df_hydra_nl.attrs['station'] = station
             dist_dict['Hydra-NL'] = df_hydra_nl
         return dist_dict
 
-    def add_validation_dist(dist_dict, dist_type, station):
+    def add_validation_dist(dist_dict, dist_type):
         dir_overschr_vali = os.path.join(dir_base,'data_overschrijding','Tables')
-        file_validation = os.path.join(dir_overschr_vali, f'{dist_type}_lines', f'{dist_type}_lines_{station}.csv')
+        file_validation = os.path.join(dir_overschr_vali, f'{dist_type}_lines', f'{dist_type}_lines_{current_station}.csv')
         if not os.path.exists(file_validation):
             return
-        df_validation = pd.read_csv(file_validation, sep=';')
-        df_validation['values'] /= 100
-        df_validation.attrs['station'] = station
-        dist_dict['validation'] = df_validation
+        dist_dict['validation'] = pd.read_csv(file_validation, sep=';')
+        dist_dict['validation']['values'] /= 100 
     
     Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200,
                          1/500, 1/1000, 1/2000, 1/4000, 1/5000, 1/10000]
@@ -261,13 +258,14 @@ for current_station in station_list:
         # only include data up to year_slotgem
         data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt]
         
+
+        dist_exc_hydra = initiate_dist_with_hydra_nl(station=current_station)
         
         # 1. Exceedance
-        dist_exc_hydra = initiate_dist_with_hydra_nl(station=current_station)
         dist_exc = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, dist=dist_exc_hydra,
                                           interp_freqs=Tfreqs_interested)
-        add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
+        add_validation_dist(dist_exc, dist_type='exceedance')
         df_interp = dist_exc['Geinterpoleerd']
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False, sep=';')
         
@@ -279,7 +277,7 @@ for current_station in station_list:
         dist_dec = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, inverse=True,
                                           interp_freqs=Tfreqs_interested)
-        add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)
+        add_validation_dist(dist_dec, dist_type='deceedance')
         df_interp = dist_dec['Geinterpoleerd']
         df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False, sep=';')
         
