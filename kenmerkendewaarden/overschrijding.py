@@ -246,7 +246,7 @@ def distribution(df: pd.DataFrame, col: str = None,
 def get_weibull(df: pd.DataFrame, threshold: float, Tfreqs: np.ndarray, col: str = None,
                 inverse: bool = False) -> pd.DataFrame:
     col = df.columns[0] if col is None else col
-
+    
     values = df[col].values
     if inverse:
         values = -values
@@ -281,6 +281,8 @@ def get_weibull(df: pd.DataFrame, threshold: float, Tfreqs: np.ndarray, col: str
         new_values = -new_values
     pd_return = pd.DataFrame(data={f'{col}_Tfreq': Tfreqs,col: new_values}).sort_values(by=f'{col}_Tfreq', ascending=False)
     
+    # copy attributes
+    pd_return.attrs = df.attrs
     return pd_return
 
 
@@ -341,6 +343,12 @@ def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[pd.T
 
 
 def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hydra: pd.DataFrame = None) -> pd.DataFrame:
+    
+    # get and compare station attributes
+    df_list = [df_trend, df_weibull, df_hydra]
+    station_attrs = [df.attrs["station"] for df in df_list if df is not None]
+    assert all(x == station_attrs[0] for x in station_attrs)
+    
     df_trend = df_trend.sort_values(by='values_Tfreq', ascending=False)
     df_weibull = df_weibull.sort_values(by='values_Tfreq', ascending=False)
 
@@ -382,14 +390,26 @@ def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hyd
                                                (df_weibull['values_Tfreq'] < df_blended1['values_Tfreq'].iloc[-1])],
                                 df_blended2,
                                 df_hydra.loc[df_hydra['values_Tfreq'] < df_blended2['values_Tfreq'].iloc[-1]]], axis=0)
-        df_blended = df_blended.drop_duplicates(subset='values_Tfreq').sort_values(by='values_Tfreq', ascending=False)
-    else:
+    else:        
         df_blended = pd.concat([df_blended1,
                                 df_weibull.loc[(df_weibull['values_Tfreq'] < df_blended1['values_Tfreq'].iloc[-1])]],
-                               axis=0).drop_duplicates(subset='values_Tfreq').sort_values(by='values_Tfreq',
-                                                                                         ascending=False)
-
+                               axis=0)
+        
+    df_blended = df_blended.drop_duplicates(subset='values_Tfreq').sort_values(by='values_Tfreq', ascending=False)
+    
+    # copy attrs
+    df_blended.attrs = df_trend.attrs
     return df_blended
+
+
+def interpolate_interested_Tfreqs(df: pd.DataFrame, Tfreqs: List[float]) -> pd.DataFrame:
+    df_interp = pd.DataFrame(data={'values': np.interp(Tfreqs,
+                                                      np.flip(df['values_Tfreq'].values),
+                                                      np.flip(df['values'].values)),
+                                   'values_Tfreq': Tfreqs}).sort_values(by='values_Tfreq', ascending=False)
+    # copy attrs
+    df_interp.attrs = df.attrs
+    return df_interp
 
 
 def plot_overschrijding(dist: dict):
@@ -409,7 +429,10 @@ def plot_overschrijding(dist: dict):
         Figure axis handle.
     """
     
-    station = dist["Ongefilterd"].attrs["station"]
+    # get and compare station attributes
+    station_attrs = [v.attrs["station"] for k,v in dist.items()]
+    assert all(x == station_attrs[0] for x in station_attrs)
+    station = station_attrs[0]
     
     color_map = {'Ongefilterd':  'b', 'Gefilterd': 'orange', 'Trendanalyse': 'g',
                  'Weibull': 'r', 'Hydra-NL': 'm', 'Hydra-NL met modelonzekerheid': 'cyan',
@@ -445,11 +468,3 @@ def plot_overschrijding(dist: dict):
     ax.set_axisbelow(True)
     fig.tight_layout()
     return fig,ax
-
-
-def interpolate_interested_Tfreqs(df: pd.DataFrame, Tfreqs: List[float]) -> pd.DataFrame:
-    df_interp = pd.DataFrame(data={'values': np.interp(Tfreqs,
-                                                      np.flip(df['values_Tfreq'].values),
-                                                      np.flip(df['values'].values)),
-                                   'values_Tfreq': Tfreqs}).sort_values(by='values_Tfreq', ascending=False)
-    return df_interp
