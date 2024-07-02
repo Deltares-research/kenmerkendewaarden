@@ -57,10 +57,10 @@ station_list = ["HOEKVHLD"]
 
 nap_correction = False
 
-compute_indicators = False
-compute_slotgem = False
-compute_havengetallen = False
-compute_gemgetij = False
+compute_indicators = True
+compute_slotgem = True
+compute_havengetallen = True
+compute_gemgetij = True
 compute_overschrijding = True
 
 
@@ -240,13 +240,14 @@ for current_station in station_list:
     def initiate_dist_with_hydra_nl(station):
         # get Hydra-NL and KWK-RMM validation data (only available for selection of stations)
         # TODO: this data is not reproducible yet: https://github.com/Deltares-research/kenmerkendewaarden/issues/107
+        # TODO: HOEKVHLD Hydra values are different than old ones in p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL\Without_model_uncertainty\Hoek_van_Holland.csv
         dist_dict = {}
         dir_overschr_hydra = os.path.join(dir_base,'data_hydraNL')
         file_hydra_nl = os.path.join(dir_overschr_hydra, f'{station}.xls')
         if os.path.exists(file_hydra_nl):
-            df_hydra_nl = pd.read_table(file_hydra_nl, encoding='latin-1', header=[0])
-            df_hydra_nl['values_Tfreq'] = 1/ df_hydra_nl['Terugkeertijd [jaar]'].str.replace(',', '.').astype(float) 
-            df_hydra_nl['values'] = df_hydra_nl['Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]'].str.replace(',', '.').astype(float) 
+            df_hydra_nl = pd.read_table(file_hydra_nl, encoding='latin-1', decimal=',', header=0)
+            df_hydra_nl['values_Tfreq'] = 1/ df_hydra_nl['Terugkeertijd [jaar]']
+            df_hydra_nl['values'] = df_hydra_nl['Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]']
             df_hydra_nl = df_hydra_nl.loc[:, ['values_Tfreq','values']]
             dist_dict['Hydra-NL'] = df_hydra_nl
         return dist_dict
