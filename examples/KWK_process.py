@@ -29,6 +29,7 @@ dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
 dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
 # TODO: move to full data folder (otherwise overschrijding and slotgemiddelde is completely wrong)
 # dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
+dir_meas = r"c:\Users\veenstra\Downloads\measurements_wl_18700101_20240101"
 
 dir_indicators = os.path.join(dir_base,f'out_tidalindicators_{year_slotgem}')
 dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
@@ -130,10 +131,10 @@ for current_station in station_list:
         ax1.set_xlim(fig_alltimes_ext)
 
         # plot and write slotgemiddelde value (for waterlevels only)
-        slotgem_time_value = slotgemiddelden_valid["wl_model_fit"].iloc[[-1]]
-        ax1.plot(slotgem_time_value, ".k", label=f'slotgemiddelde for {year_slotgem}')
-        # TODO: is upcasted to dataframe before csv writing which results in 0-column, avoid this
-        slotgem_time_value.to_csv(os.path.join(dir_slotgem,f'slotgem_value_{current_station}.txt'))
+        df_csv = pd.DataFrame()
+        df_csv['wl_mean_peryear'] = slotgemiddelden_valid['wl_mean_peryear']
+        df_csv['wl_model_fit'] = slotgemiddelden_valid['wl_model_fit'] # the slotgemiddelde is the last value of this series
+        df_csv.to_csv(os.path.join(dir_slotgem,f'meanwl_modelfit_{current_station}.txt'))
         
         # get and plot validation timeseries (yearly mean wl/HW/LW)
         station_name_dict = {'HOEKVHLD':'hoek',
@@ -269,7 +270,7 @@ for current_station in station_list:
                                           interp_freqs=Tfreqs_interested)
         add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
         df_interp = dist_exc['Geinterpoleerd']
-        df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False, sep=';')
+        df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False)
         
         fig, ax = kw.plot_overschrijding(dist_exc)
         ax.set_ylim(0,5.5)
@@ -281,7 +282,7 @@ for current_station in station_list:
                                           interp_freqs=Tfreqs_interested)
         add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)
         df_interp = dist_dec['Geinterpoleerd']
-        df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False, sep=';')
+        df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False)
         
         fig, ax = kw.plot_overschrijding(dist_dec)
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))

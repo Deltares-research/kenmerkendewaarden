@@ -134,6 +134,9 @@ def plot_slotgemiddelden(slotgemiddelden_dict:dict, slotgemiddelden_dict_all:dic
     # plot model fits of average waterlevels
     wl_model_fit = slotgemiddelden_dict["wl_model_fit"]
     ax.plot(wl_model_fit, ".-", color=cmap(0), label='model fit')
+    # add single dot for slotgemiddelde value
+    slotgem_time_value = slotgemiddelden_dict["wl_model_fit"].iloc[[-1]]
+    ax.plot(slotgem_time_value, ".k", label=f'slotgemiddelde for {slotgem_time_value.index.year[0]}')
     
     # plot timeseries of average extremes
     if slotgemiddelden_dict_all is not None:

@@ -154,7 +154,7 @@ def calc_HWLW_moonculm_combi(data_pd_HWLW_12:pd.DataFrame, moonculm_offset:int =
 
 
 def calc_HWLW_culmhr_summary(data_pd_HWLW):
-    logger.info('calculate medians per hour group for LW and HW')
+    logger.info('calculate median per hour group for LW and HW')
     data_pd_HW = data_pd_HWLW.loc[data_pd_HWLW['HWLWcode']==1]
     data_pd_LW = data_pd_HWLW.loc[data_pd_HWLW['HWLWcode']==2]
     
