@@ -77,6 +77,8 @@ def test_plot_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_noext = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=None)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_noext)
+    kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext, slotgemiddelden_dict_inclext)
+    kw.plot_slotgemiddelden(slotgemiddelden_dict_noext, slotgemiddelden_dict_noext)
     # assert dtypes of dictionary index, to check if plot_slotgemiddelden made a proper copy before converting the index to datetimes
     for key in slotgemiddelden_dict_inclext.keys():
         assert isinstance(slotgemiddelden_dict_inclext[key].index, pd.PeriodIndex)
