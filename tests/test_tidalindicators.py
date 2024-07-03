@@ -8,6 +8,21 @@ import pandas as pd
 
 
 @pytest.mark.unittest
+def test_calc_tidalindicators_outputtype(df_meas_2010_2014, df_ext_12_2010):
+    wl_dict = kw.calc_wltidalindicators(df_meas_2010_2014)
+    hwlw_dict = kw.calc_HWLWtidalindicators(df_ext_12_2010)
+    
+    for indicators_dict in [wl_dict, hwlw_dict]:
+        assert isinstance(indicators_dict, dict)
+        for k,v in indicators_dict.items():
+            assert isinstance(v, (pd.Series, float))
+            if not isinstance(v, pd.Series):
+                continue
+            assert v.name == 'values'
+            assert isinstance(v.index, pd.PeriodIndex)
+        
+
+@pytest.mark.unittest
 def test_calc_HWLWtidalrange(df_ext_12_2010):
     df_ext_range = kw.calc_HWLWtidalrange(df_ext_12_2010)
     
@@ -51,14 +66,14 @@ def test_calc_wltidalindicators_mincount(df_meas_2010_2014):
     df_meas_withgap.loc["2012-01-01":"2012-01-15", "values"] = np.nan
     df_meas_withgap.loc["2012-01-01":"2012-01-15", "qualitycode"] = 99
     
-    slotgemiddelden_dict_nogap = kw.calc_wltidalindicators(df_meas_2010_2014, min_coverage=1)
-    slotgemiddelden_dict_withgap = kw.calc_wltidalindicators(df_meas_withgap, min_coverage=1)
-    slotgemiddelden_dict_withgap_lower_threshold = kw.calc_wltidalindicators(df_meas_withgap, min_coverage=0.95)
+    wltidalindicators_dict_nogap = kw.calc_wltidalindicators(df_meas_2010_2014, min_coverage=1)
+    wltidalindicators_dict_withgap = kw.calc_wltidalindicators(df_meas_withgap, min_coverage=1)
+    wltidalindicators_dict_withgap_lower_threshold = kw.calc_wltidalindicators(df_meas_withgap, min_coverage=0.95)
     
     # check if too large gap results in nan
-    assert slotgemiddelden_dict_nogap["wl_mean_peryear"].isnull().sum() == 0
-    assert slotgemiddelden_dict_withgap["wl_mean_peryear"].isnull().sum() == 1
-    assert slotgemiddelden_dict_withgap_lower_threshold["wl_mean_peryear"].isnull().sum() == 0
+    assert wltidalindicators_dict_nogap["wl_mean_peryear"].isnull().sum() == 0
+    assert wltidalindicators_dict_withgap["wl_mean_peryear"].isnull().sum() == 1
+    assert wltidalindicators_dict_withgap_lower_threshold["wl_mean_peryear"].isnull().sum() == 0
 
 
 @pytest.mark.unittest

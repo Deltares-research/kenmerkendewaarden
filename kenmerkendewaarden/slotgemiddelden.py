@@ -218,7 +218,7 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     fit, _, X = linear_model(df, with_wind=False, with_nodal=with_nodal)
     pred_linear = fit.predict(X)
     
-    linear_fit = pd.Series(pred_linear, index=allyears_dt)
+    linear_fit = pd.Series(pred_linear, index=allyears_dt, name='values')
     return linear_fit
 
 

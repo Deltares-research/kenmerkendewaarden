@@ -12,6 +12,19 @@ import pandas as pd
 
 
 @pytest.mark.unittest
+def test_calc_overschrijding_outputtype(df_ext_12_2010_2014):
+    Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200]
+    dist = kw.calc_overschrijding(df_ext=df_ext_12_2010_2014, interp_freqs=Tfreqs_interested)
+    
+    assert isinstance(dist, dict)
+    for k,v in dist.items():
+        assert isinstance(v, pd.DataFrame)
+        assert v.columns == ['values']
+        assert isinstance(v.index, pd.Index)
+        assert str(v.index.dtype) == 'float64'
+
+
+@pytest.mark.unittest
 def test_calc_overschrijding(df_ext_12_2010_2014):
     Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200]
     dist = kw.calc_overschrijding(df_ext=df_ext_12_2010_2014, interp_freqs=Tfreqs_interested)
