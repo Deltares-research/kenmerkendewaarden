@@ -100,9 +100,12 @@ for current_station in station_list:
         hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_19y)
         dict_HWLWtidalindicators["hat"] = hat
         dict_HWLWtidalindicators["lat"] = lat
-        
+                
         # merge dictionaries
         dict_wltidalindicators.update(dict_HWLWtidalindicators)
+        
+        # csv for monthly indicators
+        dict_wltidalindicators['wl_mean_permonth'].to_csv(os.path.join(dir_indicators,f'meanwl_permonth_{current_station}.txt'))
         
         # plot
         fig, ax = kw.plot_tidalindicators(dict_wltidalindicators)
@@ -235,7 +238,7 @@ for current_station in station_list:
     def initiate_dist_with_hydra_nl(station):
         # get Hydra-NL and KWK-RMM validation data (only available for selection of stations)
         # TODO: this data is not reproducible yet: https://github.com/Deltares-research/kenmerkendewaarden/issues/107
-        # TODO: HOEKVHLD Hydra values are different than old ones in p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL
+        # TODO: HOEKVHLD Hydra values are different than old ones in validation line and p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL
 
         dist_dict = {}
         dir_overschr_hydra = os.path.join(dir_base,'data_hydraNL')
