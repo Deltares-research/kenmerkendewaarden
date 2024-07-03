@@ -20,6 +20,7 @@ def test_calc_tidalindicators_outputtype(df_meas_2010_2014, df_ext_12_2010):
                 continue
             assert v.name == 'values'
             assert isinstance(v.index, pd.PeriodIndex)
+            assert v.index.name is None #TODO: rename to `period`
         
 
 @pytest.mark.unittest

@@ -19,6 +19,7 @@ def test_calc_gemiddeldgetij_outputtype(df_meas_2010):
         assert isinstance(v, pd.DataFrame)
         assert v.columns == ['values']
         assert isinstance(v.index, pd.TimedeltaIndex)
+        assert v.index.name == 'timedelta'
 
 
 @pytest.mark.unittest

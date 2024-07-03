@@ -22,6 +22,7 @@ def test_calc_overschrijding_outputtype(df_ext_12_2010_2014):
         assert v.columns == ['values']
         assert isinstance(v.index, pd.Index)
         assert str(v.index.dtype) == 'float64'
+        assert v.index.name is None #TODO: rename to 'frequency'
 
 
 @pytest.mark.unittest

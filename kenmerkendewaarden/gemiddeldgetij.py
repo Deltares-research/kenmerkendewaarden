@@ -329,6 +329,7 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     """
     # early escape # TODO: should also be possible to only scale tP_goal
     if HW_goal is None and LW_goal is None:
+        ts.index.name = 'timedelta'
         return ts
     
     # TODO: consider removing the need for ts_ext, it should be possible with min/max, although the HW of the raw timeseries are not exactly equal
@@ -346,7 +347,7 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     ts_time_lastHW = ts_ext[bool_HW].index[-1]
     ts_corr = ts.copy().loc[ts_time_firstHW:ts_time_lastHW]
 
-    ts_corr['times'] = ts_corr.index #this is necessary since datetimeindex with freq is not editable, and Series is editable
+    ts_corr['timedelta'] = ts_corr.index #this is necessary since datetimeindex with freq is not editable, and Series is editable
     for i in np.arange(0,len(timesHW)-1):
         HW1_val = ts_corr.loc[timesHW[i],'values']
         HW2_val = ts_corr.loc[timesHW[i+1],'values']
@@ -363,9 +364,9 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
         ts_corr['values_new'] = temp
         
         tide_HWtoHW = ts_corr.loc[timesHW[i]:timesHW[i+1]]
-        ts_corr['times'] = pd.date_range(start=ts_corr.loc[timesHW[i],'times'],end=ts_corr.loc[timesHW[i],'times']+tP_goal,periods=len(tide_HWtoHW))
+        ts_corr['timedelta'] = pd.date_range(start=ts_corr.loc[timesHW[i],'timedelta'],end=ts_corr.loc[timesHW[i],'timedelta']+tP_goal,periods=len(tide_HWtoHW))
         
-    ts_corr = ts_corr.set_index('times',drop=True)
+    ts_corr = ts_corr.set_index('timedelta',drop=True)
     ts_corr['values'] = ts_corr['values_new']
     ts_corr = ts_corr.drop(['values_new'],axis=1)
     return ts_corr

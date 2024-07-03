@@ -16,6 +16,7 @@ def test_calc_havengetallen_outputtype(df_ext_12_2010):
         assert v.name == k
         assert isinstance(v.index, pd.Index)
         assert str(v.index.dtype) == 'object'
+        assert v.index.name == 'culm_hr'
 
 
 @pytest.mark.unittest
