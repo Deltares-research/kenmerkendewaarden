@@ -132,6 +132,8 @@ for current_station in station_list:
         ax1.set_xlim(fig_alltimes_ext)
 
         # plot and write slotgemiddelde value (for waterlevels only), the slotgemiddelde is the last value of the model fit
+        slotgemiddelden_valid['HW_mean_peryear'].to_csv(os.path.join(dir_slotgem,f'meanHW_{current_station}.txt'))
+        slotgemiddelden_valid['LW_mean_peryear'].to_csv(os.path.join(dir_slotgem,f'meanLW_{current_station}.txt'))
         slotgemiddelden_valid['wl_mean_peryear'].to_csv(os.path.join(dir_slotgem,f'meanwl_{current_station}.txt'))
         slotgemiddelden_valid['wl_model_fit'].to_csv(os.path.join(dir_slotgem,f'modelfit_{current_station}.txt'))
         
