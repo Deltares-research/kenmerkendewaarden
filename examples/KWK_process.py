@@ -29,7 +29,6 @@ dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
 dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
 # TODO: move to full data folder (otherwise overschrijding and slotgemiddelde is completely wrong)
 # dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
-dir_meas = r"c:\Users\veenstra\Downloads\measurements_wl_18700101_20240101"
 
 dir_indicators = os.path.join(dir_base,f'out_tidalindicators_{year_slotgem}')
 dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
@@ -135,6 +134,7 @@ for current_station in station_list:
         ax1.set_xlim(fig_alltimes_ext)
 
         # plot and write slotgemiddelde value (for waterlevels only), the slotgemiddelde is the last value of the model fit
+        # TODO: is upcasted to dataframe before csv writing which results in `values` or `0` column, align this
         slotgemiddelden_valid['HW_mean_peryear'].to_csv(os.path.join(dir_slotgem,f'meanHW_{current_station}.txt'))
         slotgemiddelden_valid['LW_mean_peryear'].to_csv(os.path.join(dir_slotgem,f'meanLW_{current_station}.txt'))
         slotgemiddelden_valid['wl_mean_peryear'].to_csv(os.path.join(dir_slotgem,f'meanwl_{current_station}.txt'))
