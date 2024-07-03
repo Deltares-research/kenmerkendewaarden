@@ -242,20 +242,23 @@ for current_station in station_list:
         file_hydra_nl = os.path.join(dir_overschr_hydra, f'{station}.xls')
         if os.path.exists(file_hydra_nl):
             df_hydra_nl = pd.read_table(file_hydra_nl, encoding='latin-1', decimal=',', header=0)
-            df_hydra_nl['values_Tfreq'] = 1/ df_hydra_nl['Terugkeertijd [jaar]']
+            df_hydra_nl.index = 1/df_hydra_nl['Terugkeertijd [jaar]']
             df_hydra_nl['values'] = df_hydra_nl['Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]']
-            df_hydra_nl = df_hydra_nl.loc[:, ['values_Tfreq','values']]
+            df_hydra_nl = df_hydra_nl[['values']]
             df_hydra_nl.attrs['station'] = station
             dist_dict['Hydra-NL'] = df_hydra_nl
         return dist_dict
 
     def add_validation_dist(dist_dict, dist_type, station):
-        dir_overschr_vali = os.path.join(dir_base,'data_overschrijding','Tables')
-        file_validation = os.path.join(dir_overschr_vali, f'{dist_type}_lines', f'{dist_type}_lines_{station}.csv')
-        if not os.path.exists(file_validation):
+        station_names_vali_dict = {"HOEKVHLD":"Hoek_van_Holland"}
+        if station not in station_names_vali_dict.keys():
             return
+        dir_overschr_vali = r"p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Tables"
+        file_validation = os.path.join(dir_overschr_vali, f'{dist_type}_lines', f'{dist_type}_lines_{station_names_vali_dict[station]}.csv')
         df_validation = pd.read_csv(file_validation, sep=';')
+        df_validation = df_validation.rename({"value":"values"},axis=1)
         df_validation['values'] /= 100
+        df_validation = df_validation.set_index("value_Tfreq", drop=True)
         df_validation.attrs['station'] = station
         dist_dict['validation'] = df_validation
     
@@ -274,8 +277,8 @@ for current_station in station_list:
                                           clip_physical_break=True, dist=dist_exc_hydra,
                                           interp_freqs=Tfreqs_interested)
         add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
-        dist_exc['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False)
-        dist_exc['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}_gecombineerd.csv'), index=False)
+        dist_exc['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'))
+        # dist_exc['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}_gecombineerd.csv'))
         
         fig, ax = kw.plot_overschrijding(dist_exc)
         ax.set_ylim(0,5.5)
@@ -286,8 +289,8 @@ for current_station in station_list:
                                           clip_physical_break=True, inverse=True,
                                           interp_freqs=Tfreqs_interested)
         add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)
-        dist_dec['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False)
-        dist_dec['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}_gecombineerd.csv'), index=False)
+        dist_dec['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'))
+        # dist_dec['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}_gecombineerd.csv'))
         
         fig, ax = kw.plot_overschrijding(dist_dec)
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))
