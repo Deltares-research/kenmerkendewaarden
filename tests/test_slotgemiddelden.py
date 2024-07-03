@@ -35,6 +35,7 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     # assert dtypes of dictionary contents
     for key in expected_keys_inclext:
         assert isinstance(slotgemiddelden_dict_inclext[key], pd.Series)
+        assert isinstance(slotgemiddelden_dict_inclext[key].index, pd.PeriodIndex)
     
     # assertion of values
     wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051 , 0.07010864, 0.10051922])

@@ -126,7 +126,8 @@ def plot_slotgemiddelden(slotgemiddelden_dict:dict, slotgemiddelden_dict_all:dic
     
     # plot timeseries of average waterlevels
     if slotgemiddelden_dict_all is not None:
-        wl_mean_peryear_all = slotgemiddelden_dict_all["wl_mean_peryear"]
+        wl_mean_peryear_all = slotgemiddelden_dict_all["wl_mean_peryear"].copy()
+        # wl_mean_peryear_all.index = wl_mean_peryear_all.index.to_timestamp()
         ax.plot(wl_mean_peryear_all, 'x', color='grey', label='yearly means incl invalid')
     wl_mean_peryear = slotgemiddelden_dict["wl_mean_peryear"]
     ax.plot(wl_mean_peryear, 'xr', label='yearly means')
