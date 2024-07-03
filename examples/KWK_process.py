@@ -57,6 +57,7 @@ station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCH
 station_list = ["HOEKVHLD"]
 
 nap_correction = False
+min_coverage = 0.9 # for tidalindicators and slotgemiddelde #TODO: can also be used for havengetallen and gemgetij
 
 compute_indicators = True
 compute_slotgem = True
@@ -90,17 +91,20 @@ for current_station in station_list:
     if compute_indicators and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         print(f'tidal indicators for {current_station}')
         # compute and plot tidal indicators
-        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all, min_coverage=1)
-        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12, min_coverage=1)
+        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all, min_coverage=min_coverage)
+        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12, min_coverage=min_coverage)
         
         # add hat/lat
         df_meas_19y = data_pd_meas_all.loc["2001":"2019"]
         hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_19y)
         dict_HWLWtidalindicators["hat"] = hat
         dict_HWLWtidalindicators["lat"] = lat
-        
+                
         # merge dictionaries
         dict_wltidalindicators.update(dict_HWLWtidalindicators)
+        
+        # csv for monthly indicators
+        dict_wltidalindicators['wl_mean_permonth'].to_csv(os.path.join(dir_indicators,f'meanwl_permonth_{current_station}.txt'))
         
         # plot
         fig, ax = kw.plot_tidalindicators(dict_wltidalindicators)
@@ -123,17 +127,17 @@ for current_station in station_list:
         # only years with enough values and after potential physical break
         slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
                                                         df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
-                                                        min_coverage=1, clip_physical_break=True)
+                                                        min_coverage=min_coverage, clip_physical_break=True)
         
         # plot slotgemiddelden
         fig1, ax1 = kw.plot_slotgemiddelden(slotgemiddelden_valid, slotgemiddelden_all)
         ax1.set_xlim(fig_alltimes_ext)
 
-        # plot and write slotgemiddelde value (for waterlevels only)
-        slotgem_time_value = slotgemiddelden_valid["wl_model_fit"].iloc[[-1]]
-        ax1.plot(slotgem_time_value, ".k", label=f'slotgemiddelde for {year_slotgem}')
-        # TODO: is upcasted to dataframe before csv writing which results in 0-column, avoid this
-        slotgem_time_value.to_csv(os.path.join(dir_slotgem,f'slotgem_value_{current_station}.txt'))
+        # plot and write slotgemiddelde value (for waterlevels only), the slotgemiddelde is the last value of the model fit
+        slotgemiddelden_valid['HW_mean_peryear'].to_csv(os.path.join(dir_slotgem,f'meanHW_{current_station}.txt'))
+        slotgemiddelden_valid['LW_mean_peryear'].to_csv(os.path.join(dir_slotgem,f'meanLW_{current_station}.txt'))
+        slotgemiddelden_valid['wl_mean_peryear'].to_csv(os.path.join(dir_slotgem,f'meanwl_{current_station}.txt'))
+        slotgemiddelden_valid['wl_model_fit'].to_csv(os.path.join(dir_slotgem,f'modelfit_{current_station}.txt'))
         
         # get and plot validation timeseries (yearly mean wl/HW/LW)
         station_name_dict = {'HOEKVHLD':'hoek',
@@ -169,10 +173,8 @@ for current_station in station_list:
         fig, (ax1,ax2) = kw.plot_aardappelgrafiek(df_havengetallen)
         fig.savefig(os.path.join(dir_havget, f'aardappelgrafiek_{year_slotgem}_{current_station}'))
         
-        #write to csv # TODO: do we need this in this format?
-        HWLW_culmhr_summary_exp = df_havengetallen.loc[[6,'mean',0]] #select neap/mean/springtide
-        HWLW_culmhr_summary_exp.index = ['neap','mean','spring']
-        HWLW_culmhr_summary_exp.to_csv(os.path.join(dir_havget, f'havengetallen_{year_slotgem}_{current_station}.csv'),float_format='%.3f')
+        #write to csv
+        df_havengetallen.to_csv(os.path.join(dir_havget, f'havengetallen_{year_slotgem}_{current_station}.csv'),float_format='%.3f')
     
     
     
@@ -196,24 +198,30 @@ for current_station in station_list:
         fig, ax = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
         
         # plot validation lines if available
-        # TODO: these index of this line is converted from datetimes to timedeltas to get it in the same plot
-        # TODO: the shape is different, so compare to gele boekje instead
+        # TODO: the shape is different, so compare krommes to gele boekje instead of validation data
         dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
         for tidaltype in ["gemgetij","springtij","doodtij"]:
             file_vali_getijkromme = os.path.join(dir_vali_krommen,f'{tidaltype}kromme_{current_station}_havengetallen{year_slotgem}.csv')
             if not os.path.exists(file_vali_getijkromme):
                 continue
             df_vali_getij = pd.read_csv(file_vali_getijkromme, index_col=0, parse_dates=True)
+            # convert from datetimes to timedeltas to get it in the same plot (we used datetimes before)
             df_vali_getij.index = df_vali_getij.index - df_vali_getij.index[0]
             ax.plot(df_vali_getij['Water Level [m]'], color='grey', zorder=0, label=f'validation KW2020 {tidaltype}')
         ax.legend(loc=4)
         fig.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
         
+        # write corrected timeseries to csv files
+        # TODO: better representation of negative timedeltas requested in https://github.com/pandas-dev/pandas/issues/17232#issuecomment-2205579156, maybe convert timedeltaIndex to minutes instead?
+        for key in gemgetij_corr.keys():
+            file_csv = os.path.join(dir_gemgetij, f'Getijkromme_{key}_{current_station}_slotgem{year_slotgem}.csv')
+            gemgetij_corr[key].to_csv(file_csv, float_format='%.3f')
+        
         # plot BOI figure and compare to KW2020
         fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, tick_hours=12)
         fig_boi.savefig(os.path.join(dir_gemgetij,f'gemspringdoodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.png'))
     
-        # write boi timeseries to csv files # TODO: maybe convert timedeltaIndex to minutes instead?
+        # write BOI timeseries to csv files
         for key in gemgetij_corr_boi.keys():
             file_boi_csv = os.path.join(dir_gemgetij, f'Getijkromme_BOI_{key}_{current_station}_slotgem{year_slotgem}.csv')
             gemgetij_corr_boi[key].to_csv(file_boi_csv, float_format='%.3f')
@@ -229,27 +237,30 @@ for current_station in station_list:
     def initiate_dist_with_hydra_nl(station):
         # get Hydra-NL and KWK-RMM validation data (only available for selection of stations)
         # TODO: this data is not reproducible yet: https://github.com/Deltares-research/kenmerkendewaarden/issues/107
-        # TODO: HOEKVHLD Hydra values are different than old ones in p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL
+        # TODO: HOEKVHLD Hydra values are different than old ones in validation line and p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL
 
         dist_dict = {}
         dir_overschr_hydra = os.path.join(dir_base,'data_hydraNL')
         file_hydra_nl = os.path.join(dir_overschr_hydra, f'{station}.xls')
         if os.path.exists(file_hydra_nl):
             df_hydra_nl = pd.read_table(file_hydra_nl, encoding='latin-1', decimal=',', header=0)
-            df_hydra_nl['values_Tfreq'] = 1/ df_hydra_nl['Terugkeertijd [jaar]']
+            df_hydra_nl.index = 1/df_hydra_nl['Terugkeertijd [jaar]']
             df_hydra_nl['values'] = df_hydra_nl['Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]']
-            df_hydra_nl = df_hydra_nl.loc[:, ['values_Tfreq','values']]
+            df_hydra_nl = df_hydra_nl[['values']]
             df_hydra_nl.attrs['station'] = station
             dist_dict['Hydra-NL'] = df_hydra_nl
         return dist_dict
 
     def add_validation_dist(dist_dict, dist_type, station):
-        dir_overschr_vali = os.path.join(dir_base,'data_overschrijding','Tables')
-        file_validation = os.path.join(dir_overschr_vali, f'{dist_type}_lines', f'{dist_type}_lines_{station}.csv')
-        if not os.path.exists(file_validation):
+        station_names_vali_dict = {"HOEKVHLD":"Hoek_van_Holland"}
+        if station not in station_names_vali_dict.keys():
             return
+        dir_overschr_vali = r"p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Tables"
+        file_validation = os.path.join(dir_overschr_vali, f'{dist_type}_lines', f'{dist_type}_lines_{station_names_vali_dict[station]}.csv')
         df_validation = pd.read_csv(file_validation, sep=';')
+        df_validation = df_validation.rename({"value":"values"},axis=1)
         df_validation['values'] /= 100
+        df_validation = df_validation.set_index("value_Tfreq", drop=True)
         df_validation.attrs['station'] = station
         dist_dict['validation'] = df_validation
     
@@ -268,8 +279,8 @@ for current_station in station_list:
                                           clip_physical_break=True, dist=dist_exc_hydra,
                                           interp_freqs=Tfreqs_interested)
         add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
-        df_interp = dist_exc['Geinterpoleerd']
-        df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False, sep=';')
+        dist_exc['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'))
+        # dist_exc['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}_gecombineerd.csv'))
         
         fig, ax = kw.plot_overschrijding(dist_exc)
         ax.set_ylim(0,5.5)
@@ -280,8 +291,8 @@ for current_station in station_list:
                                           clip_physical_break=True, inverse=True,
                                           interp_freqs=Tfreqs_interested)
         add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)
-        df_interp = dist_dec['Geinterpoleerd']
-        df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False, sep=';')
+        dist_dec['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'))
+        # dist_dec['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}_gecombineerd.csv'))
         
         fig, ax = kw.plot_overschrijding(dist_dec)
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))

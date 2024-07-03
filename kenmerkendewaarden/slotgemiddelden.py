@@ -55,7 +55,7 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
     wl_mean_peryear = dict_wltidalindicators['wl_mean_peryear']
     # convert periodindex to datetimeindex
     # TODO: alternatively let fit_models support periodindex
-    wl_mean_peryear.index = wl_mean_peryear.index.to_timestamp()
+    # wl_mean_peryear.index = wl_mean_peryear.index.to_timestamp()
     slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
     
     # clip part of mean timeseries before physical break to supply to model
@@ -79,8 +79,8 @@ def calc_slotgemiddelden(df_meas: pd.DataFrame, df_ext: pd.DataFrame=None,
         dict_HWLWtidalindicators = calc_HWLWtidalindicators(df_ext, min_coverage=min_coverage)
         HW_mean_peryear = dict_HWLWtidalindicators['HW_mean_peryear']
         LW_mean_peryear = dict_HWLWtidalindicators['LW_mean_peryear']
-        HW_mean_peryear.index = HW_mean_peryear.index.to_timestamp()
-        LW_mean_peryear.index = LW_mean_peryear.index.to_timestamp()
+        # HW_mean_peryear.index = HW_mean_peryear.index.to_timestamp()
+        # LW_mean_peryear.index = LW_mean_peryear.index.to_timestamp()
         slotgemiddelden_dict["HW_mean_peryear"] = HW_mean_peryear
         slotgemiddelden_dict["LW_mean_peryear"] = LW_mean_peryear
     
@@ -121,6 +121,15 @@ def plot_slotgemiddelden(slotgemiddelden_dict:dict, slotgemiddelden_dict_all:dic
     """
     station = slotgemiddelden_dict['wl_mean_peryear'].attrs["station"]
     
+    # convert to timeindex for plotting (first make deep copy)
+    slotgemiddelden_dict = {k:v.copy() for k, v in slotgemiddelden_dict.items()}
+    for k,v in slotgemiddelden_dict.items():
+        v.index = v.index.to_timestamp()
+    if slotgemiddelden_dict_all is not None:
+        slotgemiddelden_dict_all = {k:v.copy() for k, v in slotgemiddelden_dict_all.items()}
+        for k,v in slotgemiddelden_dict_all.items():
+            v.index = v.index.to_timestamp()
+    
     fig, ax = plt.subplots(figsize=(12,6))
     cmap = plt.get_cmap("tab10")
     
@@ -134,6 +143,9 @@ def plot_slotgemiddelden(slotgemiddelden_dict:dict, slotgemiddelden_dict_all:dic
     # plot model fits of average waterlevels
     wl_model_fit = slotgemiddelden_dict["wl_model_fit"]
     ax.plot(wl_model_fit, ".-", color=cmap(0), label='model fit')
+    # add single dot for slotgemiddelde value
+    slotgem_time_value = slotgemiddelden_dict["wl_model_fit"].iloc[[-1]]
+    ax.plot(slotgem_time_value, ".k", label=f'slotgemiddelde for {slotgem_time_value.index.year[0]}')
     
     # plot timeseries of average extremes
     if slotgemiddelden_dict_all is not None:
@@ -185,12 +197,12 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     """
     
     start = mean_array_todate.index.min()
-    end = mean_array_todate.index.max() + pd.Timedelta(days=370)
+    end = mean_array_todate.index.max() + 1
     
     logger.info(f"fit linear model (with_nodal={with_nodal}) for {start} to {end}")
     
     # We'll just use the years. This assumes that annual waterlevels are used that are stored left-padded, the mean waterlevel for 2020 is stored as 2020-1-1. This is not logical, but common practice.
-    allyears_dt = pd.date_range(start=start, end=end, freq='YS')
+    allyears_dt = pd.period_range(start=start, end=end)
     mean_array_allyears = pd.Series(mean_array_todate, index=allyears_dt)
     
     mean_array_allyears_nonans = mean_array_allyears.loc[~mean_array_allyears.isnull()]
@@ -206,7 +218,7 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     fit, _, X = linear_model(df, with_wind=False, with_nodal=with_nodal)
     pred_linear = fit.predict(X)
     
-    linear_fit = pd.Series(pred_linear, index=allyears_dt)
+    linear_fit = pd.Series(pred_linear, index=allyears_dt, name='values')
     return linear_fit
 
 

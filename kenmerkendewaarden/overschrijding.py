@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def get_threshold_rowidx(df):
     # TODO: base on frequency or value?
     thresholfreq = 3 # take a frequency that is at least higher than the max HYDRA frequency (which is 1)
-    rowidx_tresholdfreq = np.abs(df['values_Tfreq'] - thresholfreq).argmin()
+    rowidx_tresholdfreq = np.abs(df.index - thresholfreq).argmin()
     return rowidx_tresholdfreq
 
 
@@ -97,7 +97,7 @@ def calc_overschrijding(df_ext:pd.DataFrame, dist:dict = None,
     logger.info('Fit Weibull to filtered distribution with trendanalysis')
     idx_maxfreq_trend = get_threshold_rowidx(dist['Trendanalyse'])
     treshold_value = dist['Trendanalyse'].iloc[idx_maxfreq_trend]['values']
-    treshold_Tfreq = dist['Trendanalyse'].iloc[idx_maxfreq_trend]['values_Tfreq']
+    treshold_Tfreq = dist['Trendanalyse'].iloc[idx_maxfreq_trend].name
     dist['Weibull'] = get_weibull(dist['Trendanalyse'].copy(),
                                   threshold=treshold_value,
                                   Tfreqs=np.logspace(-5, np.log10(treshold_Tfreq), 5000),
@@ -171,11 +171,11 @@ def detect_peaks_hkv(df: pd.DataFrame, window: int, inverse: bool = False, thres
     _df = df.copy()
     if inverse:
         _df['values'] = -_df['values']
-    times, values = _df.index.values, _df['values'].values
+    times, values = _df.index, _df['values'].values
     indices = np.arange(len(times))
 
     __df = _df.sort_values(by=['values'], axis=0, ascending=False)
-    times_sorted, values_sorted = __df.index.values, __df['values'].values
+    times_sorted, values_sorted = __df.index, __df['values'].values
 
     if threshold is None:
         threshold = df['values'].mean() + 2*df['values'].std()
@@ -237,21 +237,19 @@ def distribution(df: pd.DataFrame, col: str = None,
     else:
         df = df.sort_values(by=col)
     rank = np.array(range(len(df[col]))) + 1
-    df[f'{col}_Tfreq'] = (1 - (rank + c) / (len(rank) + d)) * (len(rank) / years)
-    df_sorted = df.sort_values(by=f'{col}_Tfreq', ascending=False)
+    df.index = (1 - (rank + c) / (len(rank) + d)) * (len(rank) / years)
+    df_sorted = df.sort_index(ascending=False)
     
     return df_sorted
 
 
 def get_weibull(df: pd.DataFrame, threshold: float, Tfreqs: np.ndarray, col: str = None,
                 inverse: bool = False) -> pd.DataFrame:
-    col = df.columns[0] if col is None else col
-    
-    values = df[col].values
+    values = df["values"].values
     if inverse:
         values = -values
         threshold = -threshold
-    p_val_gt_threshold = df[f'{col}_Tfreq'].loc[values > threshold].iloc[0]
+    p_val_gt_threshold = df.index[values > threshold][0]
 
     def pfunc(x, p_val_gt_threshold, threshold, sigma, alpha):
         return p_val_gt_threshold * np.exp(-((x/sigma)**alpha) + ((threshold/sigma)**alpha))
@@ -279,7 +277,7 @@ def get_weibull(df: pd.DataFrame, threshold: float, Tfreqs: np.ndarray, col: str
     new_values = pfunc_inverse(Tfreqs, p_val_gt_threshold, threshold, sigma, alpha)
     if inverse:
         new_values = -new_values
-    pd_return = pd.DataFrame(data={f'{col}_Tfreq': Tfreqs,col: new_values}).sort_values(by=f'{col}_Tfreq', ascending=False)
+    pd_return = pd.DataFrame(data={"values": new_values},index=Tfreqs).sort_index(ascending=False)
     
     # copy attributes
     pd_return.attrs = df.attrs
@@ -304,7 +302,7 @@ def detect_peaks(df: pd.DataFrame,   prominence: int = 10, inverse: bool = False
         df['values'] = -1*df['values']
     peak_indices = signal.find_peaks(df['values'].values, prominence=prominence)[0]
     df_peaks = pd.DataFrame(data={'values': df['values'].iloc[peak_indices]},
-                            index=df.iloc[peak_indices].index.values)
+                            index=df.iloc[peak_indices].index)
     threshold = determine_threshold(values=df['values'].values, peak_indices=peak_indices)
     return df_peaks, threshold, peak_indices
 
@@ -349,53 +347,54 @@ def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hyd
     station_attrs = [df.attrs["station"] for df in df_list if df is not None]
     assert all(x == station_attrs[0] for x in station_attrs)
     
-    df_trend = df_trend.sort_values(by='values_Tfreq', ascending=False)
-    df_weibull = df_weibull.sort_values(by='values_Tfreq', ascending=False)
+    df_trend = df_trend.sort_index(ascending=False)
+    df_weibull = df_weibull.sort_index(ascending=False)
 
     # Trend to weibull
     idx_maxfreq_trend = get_threshold_rowidx(df_trend)
     df_blended1 = df_trend.iloc[:idx_maxfreq_trend].copy()
-    df_weibull = df_weibull.loc[df_weibull['values_Tfreq'] < df_blended1['values_Tfreq'].iloc[-1]].copy()
+    df_weibull = df_weibull.loc[df_weibull.index < df_blended1.index[-1]].copy()
 
     # Weibull to Hydra
     if df_hydra is not None:
-        df_hydra = df_hydra.sort_values(by='values_Tfreq', ascending=False)
+        df_hydra = df_hydra.sort_index(ascending=False)
 
-        Tfreqs_combined = np.unique(np.concatenate((df_weibull['values_Tfreq'].values, df_hydra['values_Tfreq'].values)))
+        Tfreqs_combined = np.unique(np.concatenate((df_weibull.index, df_hydra.index)))
         vals_weibull = np.interp(Tfreqs_combined,
-                                 np.flip(df_weibull['values_Tfreq'].values),
+                                 np.flip(df_weibull.index),
                                  np.flip(df_weibull['values'].values))
         vals_hydra = np.interp(Tfreqs_combined,
-                               np.flip(df_hydra['values_Tfreq'].values),
+                               np.flip(df_hydra.index),
                                np.flip(df_hydra['values'].values))
 
-        Tfreq0, TfreqN = df_hydra['values_Tfreq'].values[0], 1/50
+        Tfreq0, TfreqN = df_hydra.index[0], 1/50
         Tfreqs = np.logspace(np.log10(TfreqN), np.log10(Tfreq0), int(1e5))
         vals_weibull = np.interp(np.log10(Tfreqs),
-                                 np.log10(np.flip(df_weibull['values_Tfreq'].values)),
+                                 np.log10(np.flip(df_weibull.index)),
                                  np.flip(df_weibull['values'].values))
         vals_hydra = np.interp(np.log10(Tfreqs),
-                               np.log10(np.flip(df_hydra['values_Tfreq'].values)),
+                               np.log10(np.flip(df_hydra.index)),
                                np.flip(df_hydra['values'].values))
         indices = np.arange(len(Tfreqs))
         grads = np.flip(np.arange(len(indices))) / len(indices) * np.pi
 
         vals_blend = 0.5*(np.cos(grads)+1)*vals_weibull[indices] + (1-0.5*(np.cos(grads)+1))*vals_hydra[indices]
 
-        df_blended2 = pd.DataFrame(data={'values': vals_blend,
-                                         'values_Tfreq': Tfreqs}).sort_values(by='values_Tfreq', ascending=False)
+        df_blended2 = pd.DataFrame(data={'values': vals_blend}, 
+                                         index=Tfreqs).sort_index(ascending=False)
 
         df_blended = pd.concat([df_blended1,
-                                df_weibull.loc[(df_weibull['values_Tfreq'] > df_blended2['values_Tfreq'].iloc[0]) &
-                                               (df_weibull['values_Tfreq'] < df_blended1['values_Tfreq'].iloc[-1])],
+                                df_weibull.loc[(df_weibull.index > df_blended2.index[0]) &
+                                               (df_weibull.index < df_blended1.index[-1])],
                                 df_blended2,
-                                df_hydra.loc[df_hydra['values_Tfreq'] < df_blended2['values_Tfreq'].iloc[-1]]], axis=0)
+                                df_hydra.loc[df_hydra.index < df_blended2.index[-1]]], axis=0)
     else:        
         df_blended = pd.concat([df_blended1,
-                                df_weibull.loc[(df_weibull['values_Tfreq'] < df_blended1['values_Tfreq'].iloc[-1])]],
+                                df_weibull.loc[(df_weibull.index < df_blended1.index[-1])]],
                                axis=0)
-        
-    df_blended = df_blended.drop_duplicates(subset='values_Tfreq').sort_values(by='values_Tfreq', ascending=False)
+	
+    duplicated_freqs = df_blended.index.duplicated(keep='first')
+    df_blended = df_blended.loc[~duplicated_freqs].sort_index(ascending=False)
     
     # copy attrs
     df_blended.attrs = df_trend.attrs
@@ -403,10 +402,10 @@ def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hyd
 
 
 def interpolate_interested_Tfreqs(df: pd.DataFrame, Tfreqs: List[float]) -> pd.DataFrame:
-    df_interp = pd.DataFrame(data={'values': np.interp(Tfreqs,
-                                                      np.flip(df['values_Tfreq'].values),
-                                                      np.flip(df['values'].values)),
-                                   'values_Tfreq': Tfreqs}).sort_values(by='values_Tfreq', ascending=False)
+    
+    interp_vals = np.interp(Tfreqs, np.flip(df.index), np.flip(df['values'].values))
+    df_interp = pd.DataFrame(data={'values': interp_vals}, index=Tfreqs).sort_index(ascending=False)
+    
     # copy attrs
     df_interp.attrs = df.attrs
     return df_interp
@@ -446,11 +445,11 @@ def plot_overschrijding(dist: dict):
         else:
             c = None
         if k=='Gecombineerd':
-            ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], '--', label=k, c=c)
+            ax.plot(dist[k]['values'], '--', label=k, c=c)
         elif k=='Geinterpoleerd':
-            ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], 'o', label=k, c=c, markersize=5)
+            ax.plot(dist[k]['values'], 'o', label=k, c=c, markersize=5)
         else:
-            ax.plot(dist[k]['values_Tfreq'], dist[k]['values'], label=k, c=c)
+            ax.plot(dist[k]['values'], label=k, c=c)
     
     ax.set_title(f"Distribution for {station}")
     ax.set_xlabel('Frequency [1/yrs]')

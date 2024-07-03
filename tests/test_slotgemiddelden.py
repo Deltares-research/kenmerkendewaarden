@@ -7,10 +7,21 @@ import kenmerkendewaarden as kw
 
 
 @pytest.mark.unittest
+def test_calc_slotgemiddelden_outputtype(df_meas_2010_2014, df_ext_12_2010_2014):
+    slotgemiddelden_dict_inclext = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=df_ext_12_2010_2014)
+    
+    assert isinstance(slotgemiddelden_dict_inclext, dict)
+    for k,v in slotgemiddelden_dict_inclext.items():
+        assert isinstance(v, pd.Series)
+        assert v.name == 'values'
+        assert isinstance(v.index, pd.PeriodIndex)
+        assert v.index.name is None #TODO: rename to 'period'
+
+
+@pytest.mark.unittest
 def test_fit_models(df_meas_2010_2014):
     dict_wltidalindicators_valid = kw.calc_wltidalindicators(df_meas_2010_2014) #24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
     wl_mean_peryear_valid = dict_wltidalindicators_valid['wl_mean_peryear']
-    wl_mean_peryear_valid.index = wl_mean_peryear_valid.index.to_timestamp()
     
     wl_model_fit_nodal = kw.slotgemiddelden.fit_models(wl_mean_peryear_valid, with_nodal=True)
     nodal_expected = np.array([0.0141927 , 0.08612119, 0.0853051 , 0.07010864, 0.10051922, 0.23137634])
@@ -31,10 +42,6 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     expected_keys_noext = ['wl_mean_peryear', 'wl_model_fit']
     assert set(slotgemiddelden_dict_inclext.keys()) == set(expected_keys_inclext)
     assert set(slotgemiddelden_dict_noext.keys()) == set(expected_keys_noext)
-
-    # assert dtypes of dictionary contents
-    for key in expected_keys_inclext:
-        assert isinstance(slotgemiddelden_dict_inclext[key], pd.Series)
     
     # assertion of values
     wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051 , 0.07010864, 0.10051922])
@@ -70,6 +77,11 @@ def test_plot_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_noext = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=None)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_noext)
+    kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext, slotgemiddelden_dict_inclext)
+    kw.plot_slotgemiddelden(slotgemiddelden_dict_noext, slotgemiddelden_dict_noext)
+    # assert dtypes of dictionary index, to check if plot_slotgemiddelden made a proper copy before converting the index to datetimes
+    for key in slotgemiddelden_dict_inclext.keys():
+        assert isinstance(slotgemiddelden_dict_inclext[key].index, pd.PeriodIndex)
 
 
 @pytest.mark.unittest
@@ -81,8 +93,8 @@ def test_calc_slotgemiddelden_correct_tstop(df_meas_2010_2014):
     slotgemiddelden_incl_2014 = kw.calc_slotgemiddelden(df_meas=df_meas_incl_2014, df_ext=None)
     
     # check if we get 2021 as tstop if we supply up to 2020-12-31 23:50:00 and also if we supply up to 2021-01-01 00:00:00
-    assert slotgemiddelden_upto_2013["wl_model_fit"].index[-1] == pd.Timestamp('2014-01-01')
-    assert slotgemiddelden_incl_2014["wl_model_fit"].index[-1] == pd.Timestamp('2014-01-01')
+    assert slotgemiddelden_upto_2013["wl_model_fit"].index[-1] == pd.Period('2014')
+    assert slotgemiddelden_incl_2014["wl_model_fit"].index[-1] == pd.Period('2014')
 
 
 @pytest.mark.unittest
@@ -123,10 +135,10 @@ def test_calc_slotgemiddelden_physical_break(df_meas_2010_2014, df_ext_12_2010_2
     assert len(slotgemiddelden_with_clip["HW_model_fit"]) == 4
     
     # assert tstart/tstop of model fits
-    assert slotgemiddelden_with_clip["wl_model_fit"].index[0] == pd.Timestamp('1933-01-01')
-    assert slotgemiddelden_with_clip["wl_model_fit"].index[-1] == pd.Timestamp('1936-01-01')
-    assert slotgemiddelden_with_clip["HW_model_fit"].index[0] == pd.Timestamp('1933-01-01')
-    assert slotgemiddelden_with_clip["HW_model_fit"].index[-1] == pd.Timestamp('1936-01-01')
+    assert slotgemiddelden_with_clip["wl_model_fit"].index[0] == pd.Period('1933')
+    assert slotgemiddelden_with_clip["wl_model_fit"].index[-1] == pd.Period('1936')
+    assert slotgemiddelden_with_clip["HW_model_fit"].index[0] == pd.Period('1933')
+    assert slotgemiddelden_with_clip["HW_model_fit"].index[-1] == pd.Period('1936')
 
 
 @pytest.mark.unittest

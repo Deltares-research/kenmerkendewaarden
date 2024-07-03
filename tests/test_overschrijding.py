@@ -12,13 +12,27 @@ import pandas as pd
 
 
 @pytest.mark.unittest
+def test_calc_overschrijding_outputtype(df_ext_12_2010_2014):
+    Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200]
+    dist = kw.calc_overschrijding(df_ext=df_ext_12_2010_2014, interp_freqs=Tfreqs_interested)
+    
+    assert isinstance(dist, dict)
+    for k,v in dist.items():
+        assert isinstance(v, pd.DataFrame)
+        assert v.columns == ['values']
+        assert isinstance(v.index, pd.Index)
+        assert str(v.index.dtype) == 'float64'
+        assert v.index.name is None #TODO: rename to 'frequency'
+
+
+@pytest.mark.unittest
 def test_calc_overschrijding(df_ext_12_2010_2014):
     Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200]
     dist = kw.calc_overschrijding(df_ext=df_ext_12_2010_2014, interp_freqs=Tfreqs_interested)
     
     expected_keys = ['Ongefilterd', 'Trendanalyse', 'Weibull', 'Gecombineerd', 'Geinterpoleerd']
     assert set(dist.keys()) == set(expected_keys)
-    assert np.allclose(dist['Geinterpoleerd']['values_Tfreq'].values, Tfreqs_interested)
+    assert np.allclose(dist['Geinterpoleerd'].index, Tfreqs_interested)
     expected_values = np.array([1.93      , 2.09327434, 2.26311592, 2.44480348, 2.70434509,
                                 2.91627091, 3.14247786, 3.46480369, 3.72735283, 4.00701551])
     assert np.allclose(dist['Geinterpoleerd']['values'].values, expected_values)
@@ -28,17 +42,17 @@ def test_calc_overschrijding(df_ext_12_2010_2014):
 def test_calc_overschrijding_with_hydra(df_ext_12_2010_2014):
     Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200]
     df_hydra = pd.DataFrame({'values': np.array([2.473, 3.18 , 4.043, 4.164, 4.358, 
-                                                 4.696, 5.056, 5.468, 5.865, 6.328, 7.207]),
-                             'values_Tfreq': np.array([1.00000000e+00, 1.00000000e-01, 2.00000000e-02, 1.00000000e-02,
+                                                 4.696, 5.056, 5.468, 5.865, 6.328, 7.207])},
+                             index=np.array([1.00000000e+00, 1.00000000e-01, 2.00000000e-02, 1.00000000e-02,
                                                        3.33333333e-03, 1.00000000e-03, 3.33333333e-04, 1.00000000e-04,
-                                                       3.33333333e-05, 1.00000000e-05, 1.00000000e-06])})
+                                                       3.33333333e-05, 1.00000000e-05, 1.00000000e-06]))
     df_hydra.attrs = df_ext_12_2010_2014.attrs
     dist_hydra = {"Hydra-NL": df_hydra}
     dist = kw.calc_overschrijding(df_ext=df_ext_12_2010_2014, interp_freqs=Tfreqs_interested, dist=dist_hydra)
     
     expected_keys = ['Hydra-NL', 'Ongefilterd', 'Trendanalyse', 'Weibull', 'Gecombineerd', 'Geinterpoleerd']
     assert set(dist.keys()) == set(expected_keys)
-    assert np.allclose(dist['Geinterpoleerd']['values_Tfreq'].values, Tfreqs_interested)
+    assert np.allclose(dist['Geinterpoleerd'].index, Tfreqs_interested)
     expected_values = np.array([1.93      , 2.09327434, 2.26311587, 2.46299612, 2.79965222,
                                 3.08436295, 3.4987347 , 4.043     , 4.164     , 4.3095    ])
     assert np.allclose(dist['Geinterpoleerd']['values'].values, expected_values)
@@ -52,7 +66,7 @@ def test_calc_overschrijding_rule_type_break(df_ext_12_2010_2014):
     
     expected_keys = ['Ongefilterd', 'Trendanalyse', 'Weibull', 'Gecombineerd', 'Geinterpoleerd']
     assert set(dist.keys()) == set(expected_keys)
-    assert np.allclose(dist['Geinterpoleerd']['values_Tfreq'].values, Tfreqs_interested)
+    assert np.allclose(dist['Geinterpoleerd'].index, Tfreqs_interested)
     expected_values = np.array([1.93      , 2.11353631, 2.37418889, 2.61405772, 2.90685818,
                                 3.11376817, 3.31039598, 3.55705172, 3.73504553, 3.90661043])
     assert np.allclose(dist['Geinterpoleerd']['values'].values, expected_values)

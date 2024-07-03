@@ -3,10 +3,24 @@
 import pytest
 import kenmerkendewaarden as kw
 import numpy as np
+import pandas as pd
 
 
 @pytest.mark.unittest
-def test_havengetallen(df_ext_12_2010):
+def test_calc_havengetallen_outputtype(df_ext_12_2010):
+    df_havengetallen = kw.calc_havengetallen(df_ext=df_ext_12_2010)
+    
+    assert isinstance(df_havengetallen, pd.DataFrame)
+    for k,v in df_havengetallen.items():
+        assert isinstance(v, pd.Series)
+        assert v.name == k
+        assert isinstance(v.index, pd.Index)
+        assert str(v.index.dtype) == 'object'
+        assert v.index.name == 'culm_hr'
+
+
+@pytest.mark.unittest
+def test_calc_havengetallen(df_ext_12_2010):
     df_havengetallen, data_pd_hwlw = kw.calc_havengetallen(df_ext=df_ext_12_2010, return_df_ext=True)
     
     # check if all expected columns are present
@@ -43,7 +57,7 @@ def test_havengetallen(df_ext_12_2010):
 
 
 @pytest.mark.unittest
-def test_havengetallen_moonculm_offset(df_ext_12_2010_2014):
+def test_calc_havengetallen_moonculm_offset(df_ext_12_2010_2014):
     df_havengetallen = kw.calc_havengetallen(df_ext_12_2010_2014, moonculm_offset=0)
     
     # assert the havengetallen values
@@ -61,7 +75,7 @@ def test_havengetallen_moonculm_offset(df_ext_12_2010_2014):
 
 
 @pytest.mark.unittest
-def test_havengetallen_toolittle_data(df_ext_12_2010_2014):
+def test_calc_havengetallen_toolittle_data(df_ext_12_2010_2014):
     df_ext = df_ext_12_2010_2014.copy() # copy to prevent altering the original dataset
     # set 25% of one year to nan, so 75% of valid data remains
     df_ext.loc["2013-01":"2013-03","values"] = np.nan
@@ -97,7 +111,7 @@ def test_plot_aardappelgrafiek(df_ext_12_2010):
 
 
 @pytest.mark.unittest
-def test_havengetallen_aggers_input(df_ext_2010):
+def test_calc_havengetallen_aggers_input(df_ext_2010):
     with pytest.raises(ValueError) as e:
         kw.calc_havengetallen(df_ext=df_ext_2010)
     assert "contains aggers" in str(e.value)

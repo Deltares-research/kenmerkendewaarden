@@ -3,6 +3,23 @@
 import pytest
 import kenmerkendewaarden as kw
 import numpy as np
+import pandas as pd
+
+
+@pytest.mark.unittest
+def test_calc_gemiddeldgetij_outputtype(df_meas_2010):
+    pred_freq = "60s"
+    gemgetij_dict_raw = kw.calc_gemiddeldgetij(
+                                    df_meas=df_meas_2010, df_ext=None,
+                                    freq=pred_freq, nb=0, nf=0, 
+                                    scale_extremes=False, scale_period=False)
+    
+    assert isinstance(gemgetij_dict_raw, dict)
+    for k,v in gemgetij_dict_raw.items():
+        assert isinstance(v, pd.DataFrame)
+        assert v.columns == ['values']
+        assert isinstance(v.index, pd.TimedeltaIndex)
+        assert v.index.name == 'timedelta'
 
 
 @pytest.mark.unittest
