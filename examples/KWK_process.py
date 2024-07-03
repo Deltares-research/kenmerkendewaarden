@@ -58,6 +58,7 @@ station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCH
 station_list = ["HOEKVHLD"]
 
 nap_correction = False
+min_coverage = 0.9 # for tidalindicators and slotgemiddelde #TODO: can also be used for havengetallen and gemgetij
 
 compute_indicators = True
 compute_slotgem = True
@@ -91,8 +92,8 @@ for current_station in station_list:
     if compute_indicators and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
         print(f'tidal indicators for {current_station}')
         # compute and plot tidal indicators
-        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all, min_coverage=1)
-        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12, min_coverage=1)
+        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all, min_coverage=min_coverage)
+        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12, min_coverage=min_coverage)
         
         # add hat/lat
         df_meas_19y = data_pd_meas_all.loc["2001":"2019"]
@@ -124,17 +125,15 @@ for current_station in station_list:
         # only years with enough values and after potential physical break
         slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
                                                         df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
-                                                        min_coverage=1, clip_physical_break=True)
+                                                        min_coverage=min_coverage, clip_physical_break=True)
         
         # plot slotgemiddelden
         fig1, ax1 = kw.plot_slotgemiddelden(slotgemiddelden_valid, slotgemiddelden_all)
         ax1.set_xlim(fig_alltimes_ext)
 
-        # plot and write slotgemiddelde value (for waterlevels only)
-        df_csv = pd.DataFrame()
-        df_csv['wl_mean_peryear'] = slotgemiddelden_valid['wl_mean_peryear']
-        df_csv['wl_model_fit'] = slotgemiddelden_valid['wl_model_fit'] # the slotgemiddelde is the last value of this series
-        df_csv.to_csv(os.path.join(dir_slotgem,f'meanwl_modelfit_{current_station}.txt'))
+        # plot and write slotgemiddelde value (for waterlevels only), the slotgemiddelde is the last value of the model fit
+        slotgemiddelden_valid['wl_mean_peryear'].to_csv(os.path.join(dir_slotgem,f'meanwl_{current_station}.txt'))
+        slotgemiddelden_valid['wl_model_fit'].to_csv(os.path.join(dir_slotgem,f'modelfit_{current_station}.txt'))
         
         # get and plot validation timeseries (yearly mean wl/HW/LW)
         station_name_dict = {'HOEKVHLD':'hoek',
@@ -273,8 +272,8 @@ for current_station in station_list:
                                           clip_physical_break=True, dist=dist_exc_hydra,
                                           interp_freqs=Tfreqs_interested)
         add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
-        df_interp = dist_exc['Geinterpoleerd']
-        df_interp.to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False)
+        dist_exc['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'), index=False)
+        dist_exc['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}_gecombineerd.csv'), index=False)
         
         fig, ax = kw.plot_overschrijding(dist_exc)
         ax.set_ylim(0,5.5)
@@ -285,8 +284,8 @@ for current_station in station_list:
                                           clip_physical_break=True, inverse=True,
                                           interp_freqs=Tfreqs_interested)
         add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)
-        df_interp = dist_dec['Geinterpoleerd']
-        df_interp.to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False)
+        dist_dec['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'), index=False)
+        dist_dec['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}_gecombineerd.csv'), index=False)
         
         fig, ax = kw.plot_overschrijding(dist_dec)
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))
