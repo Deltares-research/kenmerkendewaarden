@@ -32,7 +32,7 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     assert set(slotgemiddelden_dict_inclext.keys()) == set(expected_keys_inclext)
     assert set(slotgemiddelden_dict_noext.keys()) == set(expected_keys_noext)
 
-    # assert dtypes of dictionary contents
+    # assert dtypes of dictionary contents and index
     for key in expected_keys_inclext:
         assert isinstance(slotgemiddelden_dict_inclext[key], pd.Series)
         assert isinstance(slotgemiddelden_dict_inclext[key].index, pd.PeriodIndex)
@@ -71,6 +71,9 @@ def test_plot_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_noext = kw.calc_slotgemiddelden(df_meas=df_meas_2010_2014, df_ext=None)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_noext)
+    # assert dtypes of dictionary index, to check if plot_slotgemiddelden made a proper copy before converting the index to datetimes
+    for key in slotgemiddelden_dict_inclext.keys():
+        assert isinstance(slotgemiddelden_dict_inclext[key].index, pd.PeriodIndex)
 
 
 @pytest.mark.unittest

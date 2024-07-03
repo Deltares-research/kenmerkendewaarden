@@ -121,13 +121,21 @@ def plot_slotgemiddelden(slotgemiddelden_dict:dict, slotgemiddelden_dict_all:dic
     """
     station = slotgemiddelden_dict['wl_mean_peryear'].attrs["station"]
     
+    # convert to timeindex for plotting (first make deep copy)
+    slotgemiddelden_dict = {k:v.copy() for k, v in slotgemiddelden_dict.items()}
+    for k,v in slotgemiddelden_dict.items():
+        v.index = v.index.to_timestamp()
+    if slotgemiddelden_dict_all is not None:
+        slotgemiddelden_dict_all = {k:v.copy() for k, v in slotgemiddelden_dict_all.items()}
+        for k,v in slotgemiddelden_dict_all.items():
+            v.index = v.index.to_timestamp()
+    
     fig, ax = plt.subplots(figsize=(12,6))
     cmap = plt.get_cmap("tab10")
     
     # plot timeseries of average waterlevels
     if slotgemiddelden_dict_all is not None:
-        wl_mean_peryear_all = slotgemiddelden_dict_all["wl_mean_peryear"].copy()
-        # wl_mean_peryear_all.index = wl_mean_peryear_all.index.to_timestamp()
+        wl_mean_peryear_all = slotgemiddelden_dict_all["wl_mean_peryear"]
         ax.plot(wl_mean_peryear_all, 'x', color='grey', label='yearly means incl invalid')
     wl_mean_peryear = slotgemiddelden_dict["wl_mean_peryear"]
     ax.plot(wl_mean_peryear, 'xr', label='yearly means')
