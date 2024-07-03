@@ -195,24 +195,30 @@ for current_station in station_list:
         fig, ax = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
         
         # plot validation lines if available
-        # TODO: these index of this line is converted from datetimes to timedeltas to get it in the same plot
-        # TODO: the shape is different, so compare to gele boekje instead
+        # TODO: the shape is different, so compare krommes to gele boekje instead of validation data
         dir_vali_krommen = r'p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211'
         for tidaltype in ["gemgetij","springtij","doodtij"]:
             file_vali_getijkromme = os.path.join(dir_vali_krommen,f'{tidaltype}kromme_{current_station}_havengetallen{year_slotgem}.csv')
             if not os.path.exists(file_vali_getijkromme):
                 continue
             df_vali_getij = pd.read_csv(file_vali_getijkromme, index_col=0, parse_dates=True)
+            # convert from datetimes to timedeltas to get it in the same plot (we used datetimes before)
             df_vali_getij.index = df_vali_getij.index - df_vali_getij.index[0]
             ax.plot(df_vali_getij['Water Level [m]'], color='grey', zorder=0, label=f'validation KW2020 {tidaltype}')
         ax.legend(loc=4)
         fig.savefig(os.path.join(dir_gemgetij,f'gemgetij_trefHW_{current_station}'))
         
+        # write corrected timeseries to csv files
+        # TODO: better representation of negative timedeltas requested in https://github.com/pandas-dev/pandas/issues/17232#issuecomment-2205579156, maybe convert timedeltaIndex to minutes instead?
+        for key in gemgetij_corr.keys():
+            file_csv = os.path.join(dir_gemgetij, f'Getijkromme_{key}_{current_station}_slotgem{year_slotgem}.csv')
+            gemgetij_corr[key].to_csv(file_csv, float_format='%.3f')
+        
         # plot BOI figure and compare to KW2020
         fig_boi, ax1_boi = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr_boi, tick_hours=12)
         fig_boi.savefig(os.path.join(dir_gemgetij,f'gemspringdoodtijkromme_BOI_{current_station}_slotgem{year_slotgem}.png'))
     
-        # write boi timeseries to csv files # TODO: maybe convert timedeltaIndex to minutes instead?
+        # write BOI timeseries to csv files
         for key in gemgetij_corr_boi.keys():
             file_boi_csv = os.path.join(dir_gemgetij, f'Getijkromme_BOI_{key}_{current_station}_slotgem{year_slotgem}.csv')
             gemgetij_corr_boi[key].to_csv(file_boi_csv, float_format='%.3f')
