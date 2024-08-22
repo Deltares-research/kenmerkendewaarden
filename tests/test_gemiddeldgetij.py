@@ -10,27 +10,37 @@ import pandas as pd
 def test_calc_gemiddeldgetij_outputtype(df_meas_2010):
     pred_freq = "60s"
     gemgetij_dict_raw = kw.calc_gemiddeldgetij(
-                                    df_meas=df_meas_2010, df_ext=None,
-                                    freq=pred_freq, nb=0, nf=0, 
-                                    scale_extremes=False, scale_period=False)
-    
+        df_meas=df_meas_2010,
+        df_ext=None,
+        freq=pred_freq,
+        nb=0,
+        nf=0,
+        scale_extremes=False,
+        scale_period=False,
+    )
+
     assert isinstance(gemgetij_dict_raw, dict)
-    for k,v in gemgetij_dict_raw.items():
+    for k, v in gemgetij_dict_raw.items():
         assert isinstance(v, pd.DataFrame)
-        assert v.columns == ['values']
+        assert v.columns == ["values"]
         assert isinstance(v.index, pd.TimedeltaIndex)
-        assert v.index.name == 'timedelta'
+        assert v.index.name == "timedelta"
 
 
 @pytest.mark.unittest
 def test_calc_gemiddeldgetij_raw(df_meas_2010):
     pred_freq = "60s"
-    
+
     gemgetij_dict_raw = kw.calc_gemiddeldgetij(
-                                    df_meas=df_meas_2010, df_ext=None,
-                                    freq=pred_freq, nb=0, nf=0, 
-                                    scale_extremes=False, scale_period=False)
-    
+        df_meas=df_meas_2010,
+        df_ext=None,
+        freq=pred_freq,
+        nb=0,
+        nf=0,
+        scale_extremes=False,
+        scale_period=False,
+    )
+
     prediction_av_raw = gemgetij_dict_raw["mean"]
     prediction_sp_raw = gemgetij_dict_raw["spring"]
     prediction_np_raw = gemgetij_dict_raw["neap"]
@@ -51,74 +61,96 @@ def test_calc_gemiddeldgetij_raw(df_meas_2010):
 @pytest.mark.unittest
 def test_calc_gemiddeldgetij_corr(df_meas_2010, df_ext_12_2010):
     pred_freq = "60s"
-    
+
     gemgetij_dict_corr = kw.calc_gemiddeldgetij(
-                                    df_meas=df_meas_2010, df_ext=df_ext_12_2010,
-                                    freq=pred_freq, nb=2, nf=2, 
-                                    scale_extremes=True, scale_period=False)
-    
+        df_meas=df_meas_2010,
+        df_ext=df_ext_12_2010,
+        freq=pred_freq,
+        nb=2,
+        nf=2,
+        scale_extremes=True,
+        scale_period=False,
+    )
+
     prediction_av_corr = gemgetij_dict_corr["mean"]
     prediction_sp_corr = gemgetij_dict_corr["spring"]
     prediction_np_corr = gemgetij_dict_corr["neap"]
-    
+
     assert len(prediction_av_corr) == 3726
     assert np.isclose(prediction_av_corr["values"].min(), -0.6095833333333333)
-    assert np.isclose(prediction_av_corr["values"].max(), 1.1300000000000003) # 1.1229166666666668 in pandas>=2.2
+    assert np.isclose(prediction_av_corr["values"].max(), 1.1300000000000003)
 
     assert len(prediction_sp_corr) == 3701
-    assert np.isclose(prediction_sp_corr["values"].min(), -0.5700000000000001) # -0.635 in pandas>=2.2
-    assert np.isclose(prediction_sp_corr["values"].max(), 1.3450000000000002) # 1.32 in pandas>=2.2
+    assert np.isclose(prediction_sp_corr["values"].min(), -0.5700000000000001)
+    assert np.isclose(prediction_sp_corr["values"].max(), 1.3450000000000002)
 
     assert len(prediction_np_corr) == 3771
     assert np.isclose(prediction_np_corr["values"].min(), -0.61)
-    assert np.isclose(prediction_np_corr["values"].max(), 0.8650000000000001) # 0.89 in pandas>=2.2
+    assert np.isclose(prediction_np_corr["values"].max(), 0.8650000000000001)
 
 
 @pytest.mark.unittest
 def test_calc_gemiddeldgetij_corr_boi(df_meas_2010, df_ext_12_2010):
     pred_freq = "60s"
-    
+
     gemgetij_dict_corr_boi = kw.calc_gemiddeldgetij(
-                                    df_meas=df_meas_2010, df_ext=df_ext_12_2010,
-                                    freq=pred_freq, nb=0, nf=10, 
-                                    scale_extremes=True, scale_period=True)
-    
+        df_meas=df_meas_2010,
+        df_ext=df_ext_12_2010,
+        freq=pred_freq,
+        nb=0,
+        nf=10,
+        scale_extremes=True,
+        scale_period=True,
+    )
+
     prediction_av_corr_boi = gemgetij_dict_corr_boi["mean"]
     prediction_sp_corr_boi = gemgetij_dict_corr_boi["spring"]
     prediction_np_corr_boi = gemgetij_dict_corr_boi["neap"]
-    
+
     assert len(prediction_av_corr_boi) == 8196
     assert np.isclose(prediction_av_corr_boi["values"].min(), -0.6095833333333333)
-    assert np.isclose(prediction_av_corr_boi["values"].max(),  1.1300000000000003) # 1.1229166666666668 in pandas>=2.2
+    assert np.isclose(prediction_av_corr_boi["values"].max(), 1.1300000000000003)
 
     assert len(prediction_sp_corr_boi) == 8196
-    assert np.isclose(prediction_sp_corr_boi["values"].min(), -0.5700000000000001) # -0.635 in pandas>=2.2
-    assert np.isclose(prediction_sp_corr_boi["values"].max(), 1.3450000000000002) # 1.32 in pandas>=2.2
+    assert np.isclose(prediction_sp_corr_boi["values"].min(), -0.5700000000000001)
+    assert np.isclose(prediction_sp_corr_boi["values"].max(), 1.3450000000000002)
 
     assert len(prediction_np_corr_boi) == 8196
     assert np.isclose(prediction_np_corr_boi["values"].min(), -0.61)
-    assert np.isclose(prediction_np_corr_boi["values"].max(), 0.8650000000000001) # 0.89 in pandas>=2.2
+    assert np.isclose(prediction_np_corr_boi["values"].max(), 0.8650000000000001)
 
 
 @pytest.mark.unittest
 def test_calc_gemiddeldgetij_aggers(df_meas_2010, df_ext_2010):
     pred_freq = "60s"
-        
+
     with pytest.raises(ValueError) as e:
-        kw.calc_gemiddeldgetij(df_meas=df_meas_2010, df_ext=df_ext_2010,
-                               freq=pred_freq, nb=0, nf=10, 
-                               scale_extremes=True, scale_period=True)
+        kw.calc_gemiddeldgetij(
+            df_meas=df_meas_2010,
+            df_ext=df_ext_2010,
+            freq=pred_freq,
+            nb=0,
+            nf=10,
+            scale_extremes=True,
+            scale_period=True,
+        )
     assert "contains aggers" in str(e.value)
 
 
 @pytest.mark.unittest
 def test_calc_gemiddeldgetij_noext(df_meas_2010):
     pred_freq = "60s"
-    
+
     with pytest.raises(ValueError) as e:
-        kw.calc_gemiddeldgetij(df_meas=df_meas_2010, df_ext=None,
-                               freq=pred_freq, nb=0, nf=0, 
-                               scale_extremes=True, scale_period=False)
+        kw.calc_gemiddeldgetij(
+            df_meas=df_meas_2010,
+            df_ext=None,
+            freq=pred_freq,
+            nb=0,
+            nf=0,
+            scale_extremes=True,
+            scale_period=False,
+        )
     assert "df_ext should be provided if scale_extremes=True" in str(e.value)
 
 
@@ -126,22 +158,35 @@ def test_calc_gemiddeldgetij_noext(df_meas_2010):
 def test_calc_gemiddeldgetij_failedanalysis(df_meas_2010_2014):
     df_meas_2010_extra = df_meas_2010_2014.loc["2010":"2011-01-02"]
     pred_freq = "60s"
-    
+
     with pytest.raises(ValueError) as e:
-        kw.calc_gemiddeldgetij(df_meas=df_meas_2010_extra, df_ext=None,
-                               freq=pred_freq, nb=0, nf=0, 
-                               scale_extremes=False, scale_period=False)
+        kw.calc_gemiddeldgetij(
+            df_meas=df_meas_2010_extra,
+            df_ext=None,
+            freq=pred_freq,
+            nb=0,
+            nf=0,
+            scale_extremes=False,
+            scale_period=False,
+        )
     assert "analysis result contains nan values" in str(e.value)
 
 
 @pytest.mark.unittest
 def test_plot_gemiddeldgetij(df_meas_2010):
     pred_freq = "60s"
-    
+
     gemgetij_dict_raw = kw.calc_gemiddeldgetij(
-                                    df_meas=df_meas_2010, df_ext=None,
-                                    freq=pred_freq, nb=0, nf=0, 
-                                    scale_extremes=False, scale_period=False)
-    kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_dict_raw,
-                           gemgetij_dict_raw=gemgetij_dict_raw,
-                           tick_hours=12)
+        df_meas=df_meas_2010,
+        df_ext=None,
+        freq=pred_freq,
+        nb=0,
+        nf=0,
+        scale_extremes=False,
+        scale_period=False,
+    )
+    kw.plot_gemiddeldgetij(
+        gemgetij_dict=gemgetij_dict_raw,
+        gemgetij_dict_raw=gemgetij_dict_raw,
+        tick_hours=12,
+    )

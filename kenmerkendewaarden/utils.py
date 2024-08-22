@@ -7,9 +7,11 @@ from matplotlib.ticker import Formatter
 def raise_extremes_with_aggers(df_ext):
     # TODO: alternatively we can convert 12345 to 12 here
     if len(df_ext["HWLWcode"].drop_duplicates()) != 2:
-        raise ValueError("df_ext should only contain extremes (HWLWcode 1/2), "
-                         "but it also contains aggers (HWLWcode 3/4/5). "
-                         "You can convert with `hatyan.calc_HWLW12345to12()`")
+        raise ValueError(
+            "df_ext should only contain extremes (HWLWcode 1/2), "
+            "but it also contains aggers (HWLWcode 3/4/5). "
+            "You can convert with `hatyan.calc_HWLW12345to12()`"
+        )
 
 
 # TODO: fixing display of negative timedeltas was requested in https://github.com/pandas-dev/pandas/issues/17232#issuecomment-2205579156
@@ -40,7 +42,7 @@ class TimeSeries_TimedeltaFormatter_improved(Formatter):
         if d != 0:
             s = f"{int(d):d} days {s}"
         if negative:
-            s = '-'+s
+            s = "-" + s
         return s
 
     def __call__(self, x, pos: int = 0) -> str:

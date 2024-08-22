@@ -13,27 +13,33 @@ import logging
 from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
 from kenmerkendewaarden.utils import raise_extremes_with_aggers
 
-__all__ = ["calc_overschrijding",
-           "plot_overschrijding",
-           ]
+__all__ = [
+    "calc_overschrijding",
+    "plot_overschrijding",
+]
 
 logger = logging.getLogger(__name__)
 
 
 def get_threshold_rowidx(df):
     # TODO: base on frequency or value?
-    thresholfreq = 3 # take a frequency that is at least higher than the max HYDRA frequency (which is 1)
+    thresholfreq = 3  # take a frequency that is at least higher than the max HYDRA frequency (which is 1)
     rowidx_tresholdfreq = np.abs(df.index - thresholfreq).argmin()
     return rowidx_tresholdfreq
 
 
-def calc_overschrijding(df_ext:pd.DataFrame, dist:dict = None, 
-                        inverse:bool = False, clip_physical_break:bool = False, 
-                        rule_type:str = None, rule_value:(pd.Timestamp, float) = None,
-                        interp_freqs:list = None):
+def calc_overschrijding(
+    df_ext: pd.DataFrame,
+    dist: dict = None,
+    inverse: bool = False,
+    clip_physical_break: bool = False,
+    rule_type: str = None,
+    rule_value: (pd.Timestamp, float) = None,
+    interp_freqs: list = None,
+):
     """
     Compute exceedance/deceedance frequencies based on measured extreme waterlevels.
-    
+
     Parameters
     ----------
     df_ext : pd.DataFrame, optional
@@ -47,10 +53,10 @@ def calc_overschrijding(df_ext:pd.DataFrame, dist:dict = None,
     rule_type : str, optional
         break/linear/None, passed on to apply_trendanalysis(). The default is None.
     rule_value : (pd.Timestamp, float), optional
-        Value corresponding to rule_type, pd.Timestamp (or anything understood by pd.Timestamp) 
+        Value corresponding to rule_type, pd.Timestamp (or anything understood by pd.Timestamp)
         in case of rule_type='break', float in case of rule_type='linear'. The default is None.
     interp_freqs : list, optional
-        The frequencies to interpolate to, providing this will result in a 
+        The frequencies to interpolate to, providing this will result in a
         "Geinterpoleerd" key in the returned dictionary. The default is None.
 
     Returns
@@ -59,25 +65,27 @@ def calc_overschrijding(df_ext:pd.DataFrame, dist:dict = None,
         A dictionary with several distributions.
 
     """
-    
+
     raise_extremes_with_aggers(df_ext)
     # take only high or low extremes
     # TODO: this might not be useful in case of river discharge influenced stations where a filter is needed
     if inverse:
-        df_extrema = df_ext.loc[df_ext['HWLWcode']!=1]
+        df_extrema = df_ext.loc[df_ext["HWLWcode"] != 1]
     else:
-        df_extrema = df_ext.loc[df_ext['HWLWcode']==1]
+        df_extrema = df_ext.loc[df_ext["HWLWcode"] == 1]
 
     if clip_physical_break:
         df_extrema = clip_timeseries_physical_break(df_extrema)
-    df_extrema_clean = df_extrema.copy()[['values']] #drop all info but the values (times-idx, HWLWcode etc)
-    
+    df_extrema_clean = df_extrema.copy()[
+        ["values"]
+    ]  # drop all info but the values (times-idx, HWLWcode etc)
+
     if dist is None:
         dist = {}
-    
-    logger.info(f'Calculate unfiltered distribution (inverse={inverse})')
-    dist['Ongefilterd'] = distribution(df_extrema_clean, inverse=inverse)
-    
+
+    logger.info(f"Calculate unfiltered distribution (inverse={inverse})")
+    dist["Ongefilterd"] = distribution(df_extrema_clean, inverse=inverse)
+
     # TODO: re-enable filter for river discharge peaks
     """# filtering is only applicable for stations with high river discharge influence, so disabled #TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem. Er is dan een treshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
     logger.info('Calculate filtered distribution')
@@ -89,42 +97,49 @@ def calc_overschrijding(df_ext:pd.DataFrame, dist:dict = None,
         df_extrema_filt = df_extrema_clean.copy()
     dist['Gefilterd'] = distribution(df_extrema_filt.copy())
     """
-    
-    logger.info('Calculate filtered distribution with trendanalysis')
-    df_trend = apply_trendanalysis(df_extrema_clean, rule_type=rule_type, rule_value=rule_value)
-    dist['Trendanalyse'] = distribution(df_trend.copy(), inverse=inverse)
-    
-    logger.info('Fit Weibull to filtered distribution with trendanalysis')
-    idx_maxfreq_trend = get_threshold_rowidx(dist['Trendanalyse'])
-    treshold_value = dist['Trendanalyse'].iloc[idx_maxfreq_trend]['values']
-    treshold_Tfreq = dist['Trendanalyse'].iloc[idx_maxfreq_trend].name
-    dist['Weibull'] = get_weibull(dist['Trendanalyse'].copy(),
-                                  threshold=treshold_value,
-                                  Tfreqs=np.logspace(-5, np.log10(treshold_Tfreq), 5000),
-                                  inverse=inverse)
-    
+
+    logger.info("Calculate filtered distribution with trendanalysis")
+    df_trend = apply_trendanalysis(
+        df_extrema_clean, rule_type=rule_type, rule_value=rule_value
+    )
+    dist["Trendanalyse"] = distribution(df_trend.copy(), inverse=inverse)
+
+    logger.info("Fit Weibull to filtered distribution with trendanalysis")
+    idx_maxfreq_trend = get_threshold_rowidx(dist["Trendanalyse"])
+    treshold_value = dist["Trendanalyse"].iloc[idx_maxfreq_trend]["values"]
+    treshold_Tfreq = dist["Trendanalyse"].iloc[idx_maxfreq_trend].name
+    dist["Weibull"] = get_weibull(
+        dist["Trendanalyse"].copy(),
+        threshold=treshold_value,
+        Tfreqs=np.logspace(-5, np.log10(treshold_Tfreq), 5000),
+        inverse=inverse,
+    )
+
     if "Hydra-NL" in dist.keys():
-        logger.info('Blend trend, weibull and Hydra-NL')
+        logger.info("Blend trend, weibull and Hydra-NL")
         # TODO: now based on hardcoded Hydra-NL dict key which is already part of the input dist dict, this is tricky
-        df_hydra = dist['Hydra-NL'].copy()
+        df_hydra = dist["Hydra-NL"].copy()
     else:
-        logger.info('Blend trend and weibull')
+        logger.info("Blend trend and weibull")
         df_hydra = None
-    dist['Gecombineerd'] = blend_distributions(df_trend=dist['Trendanalyse'].copy(), 
-                                               df_weibull=dist['Weibull'].copy(), 
-                                               df_hydra=df_hydra)
-    
+    dist["Gecombineerd"] = blend_distributions(
+        df_trend=dist["Trendanalyse"].copy(),
+        df_weibull=dist["Weibull"].copy(),
+        df_hydra=df_hydra,
+    )
+
     if interp_freqs is not None:
-        dist['Geinterpoleerd'] = interpolate_interested_Tfreqs(dist['Gecombineerd'], Tfreqs=interp_freqs)
-       
-    
+        dist["Geinterpoleerd"] = interpolate_interested_Tfreqs(
+            dist["Gecombineerd"], Tfreqs=interp_freqs
+        )
+
     """
     if row['apply_treshold']:
         keys = list(dist.keys())
     else:
         keys = [x for x in list(dist.keys()) if x != 'Gefilterd']
     """
-    
+
     return dist
 
 
@@ -150,14 +165,17 @@ def check_peakside(values, _i, multiplier, window, threshold):
     check = True
     while check:
         try:
-            while (values[_i + _i_extra + multiplier] <= values[_i + _i_extra]) and (values[_i + _i_extra + multiplier] != -9999.0):
+            while (values[_i + _i_extra + multiplier] <= values[_i + _i_extra]) and (
+                values[_i + _i_extra + multiplier] != -9999.0
+            ):
                 _i_extra += multiplier
         except IndexError:
             pass
         try:
             _i1, _i2 = (_i + _i_extra + (multiplier * window)), (_i + _i_extra)
-            if any(values[np.min([_i1, _i2]):np.max([_i1, _i2])] > threshold):
-                new_peak = values[np.min([_i1, _i2]):np.max([_i1, _i2])].max()
+            values_sel = values[np.min([_i1, _i2]) : np.max([_i1, _i2])]
+            if any(values_sel > threshold):
+                new_peak = values_sel.max()
                 while values[_i + _i_extra] != new_peak:
                     _i_extra += multiplier
             else:
@@ -167,26 +185,28 @@ def check_peakside(values, _i, multiplier, window, threshold):
     return _i_extra
 
 
-def detect_peaks_hkv(df: pd.DataFrame, window: int, inverse: bool = False, threshold: float = None) -> pd.DataFrame:
+def detect_peaks_hkv(
+    df: pd.DataFrame, window: int, inverse: bool = False, threshold: float = None
+) -> pd.DataFrame:
     _df = df.copy()
     if inverse:
-        _df['values'] = -_df['values']
-    times, values = _df.index, _df['values'].values
+        _df["values"] = -_df["values"]
+    times, values = _df.index, _df["values"].values
     indices = np.arange(len(times))
 
-    __df = _df.sort_values(by=['values'], axis=0, ascending=False)
-    times_sorted, values_sorted = __df.index, __df['values'].values
+    __df = _df.sort_values(by=["values"], axis=0, ascending=False)
+    times_sorted, values_sorted = __df.index, __df["values"].values
 
     if threshold is None:
-        threshold = df['values'].mean() + 2*df['values'].std()
+        threshold = df["values"].mean() + 2 * df["values"].std()
     else:
         if inverse:
             threshold = -threshold
 
     peaks = np.ones(len(values)) * np.nan
     t_peaks, dt_left_peaks, dt_right_peaks = peaks.copy(), peaks.copy(), peaks.copy()
-    
-    logger.info(f'Determining peaks (inverse={inverse})')
+
+    logger.info(f"Determining peaks (inverse={inverse})")
     peak_count = 0
     while len(values_sorted) != 0:
         _t, _p = times_sorted[0], values_sorted[0]
@@ -195,18 +215,36 @@ def detect_peaks_hkv(df: pd.DataFrame, window: int, inverse: bool = False, thres
         _i = indices[_t == times][0]
 
         # first left peak
-        _i_extra = check_peakside(filter_identified_peaks(values, times, times_sorted),
-                                  _i, -1, window, threshold)
-        dt_left_peaks[peak_count] = (times[_i] - times[_i + _i_extra]) / np.timedelta64(1, 's')
-        times_sorted, values_sorted = delete_values_between_peak_trough(times[(_i + _i_extra):(_i+1)],
-                                                                        times_sorted, values_sorted)
+        _i_extra = check_peakside(
+            filter_identified_peaks(values, times, times_sorted),
+            _i,
+            -1,
+            window,
+            threshold,
+        )
+        dt_left_peaks[peak_count] = (times[_i] - times[_i + _i_extra]) / np.timedelta64(
+            1, "s"
+        )
+        times_sel = times[(_i + _i_extra) : (_i + 1)]
+        times_sorted, values_sorted = delete_values_between_peak_trough(
+            times_sel, times_sorted, values_sorted
+        )
 
         # right peak
-        _i_extra = check_peakside(filter_identified_peaks(values, times, times_sorted),
-                                  _i, 1, window, threshold)
-        dt_right_peaks[peak_count] = (times[_i + _i_extra] - times[_i]) / np.timedelta64(1, 's')
-        times_sorted, values_sorted = delete_values_between_peak_trough(times[(_i-1):(_i + _i_extra)],
-                                                                        times_sorted, values_sorted)
+        _i_extra = check_peakside(
+            filter_identified_peaks(values, times, times_sorted),
+            _i,
+            1,
+            window,
+            threshold,
+        )
+        dt_right_peaks[peak_count] = (
+            times[_i + _i_extra] - times[_i]
+        ) / np.timedelta64(1, "s")
+        times_sel = times[(_i - 1) : (_i + _i_extra)]
+        times_sorted, values_sorted = delete_values_between_peak_trough(
+            times_sel, times_sorted, values_sorted
+        )
 
         peak_count += 1
 
@@ -217,19 +255,30 @@ def detect_peaks_hkv(df: pd.DataFrame, window: int, inverse: bool = False, thres
 
     dt_total_peaks = dt_left_peaks + dt_right_peaks
 
-    df_peaks = pd.DataFrame(index=pd.to_datetime(t_peaks),
-                            data={'values': peaks, 'dt_left': dt_left_peaks,
-                                  'dt_right': dt_right_peaks, 'dt_total': dt_total_peaks})
-    df_peaks = df_peaks.loc[df_peaks['dt_total'] > 0]
+    df_peaks = pd.DataFrame(
+        index=pd.to_datetime(t_peaks),
+        data={
+            "values": peaks,
+            "dt_left": dt_left_peaks,
+            "dt_right": dt_right_peaks,
+            "dt_total": dt_total_peaks,
+        },
+    )
+    df_peaks = df_peaks.loc[df_peaks["dt_total"] > 0]
 
     if inverse:
-        df_peaks['values'] = -df_peaks['values']
+        df_peaks["values"] = -df_peaks["values"]
 
     return df_peaks
 
 
-def distribution(df: pd.DataFrame, col: str = None,
-                 c: float = -0.3, d: float = 0.4, inverse: bool = False) -> pd.DataFrame:
+def distribution(
+    df: pd.DataFrame,
+    col: str = None,
+    c: float = -0.3,
+    d: float = 0.4,
+    inverse: bool = False,
+) -> pd.DataFrame:
     col = df.columns[0] if col is None else col
     years = get_total_years(df)
     if inverse:
@@ -239,12 +288,17 @@ def distribution(df: pd.DataFrame, col: str = None,
     rank = np.array(range(len(df[col]))) + 1
     df.index = (1 - (rank + c) / (len(rank) + d)) * (len(rank) / years)
     df_sorted = df.sort_index(ascending=False)
-    
+
     return df_sorted
 
 
-def get_weibull(df: pd.DataFrame, threshold: float, Tfreqs: np.ndarray, col: str = None,
-                inverse: bool = False) -> pd.DataFrame:
+def get_weibull(
+    df: pd.DataFrame,
+    threshold: float,
+    Tfreqs: np.ndarray,
+    col: str = None,
+    inverse: bool = False,
+) -> pd.DataFrame:
     values = df["values"].values
     if inverse:
         values = -values
@@ -252,23 +306,39 @@ def get_weibull(df: pd.DataFrame, threshold: float, Tfreqs: np.ndarray, col: str
     p_val_gt_threshold = df.index[values > threshold][0]
 
     def pfunc(x, p_val_gt_threshold, threshold, sigma, alpha):
-        return p_val_gt_threshold * np.exp(-((x/sigma)**alpha) + ((threshold/sigma)**alpha))
+        return p_val_gt_threshold * np.exp(
+            -((x / sigma) ** alpha) + ((threshold / sigma) ** alpha)
+        )
 
     def pfunc_inverse(p_X_gt_x, p_val_gt_threshold, threshold, sigma, alpha):
-        return sigma * (((threshold/sigma)**alpha) - np.log(p_X_gt_x / p_val_gt_threshold))**(1/alpha)
+        return sigma * (
+            ((threshold / sigma) ** alpha) - np.log(p_X_gt_x / p_val_gt_threshold)
+        ) ** (1 / alpha)
 
     def der_pfunc(x, p_val_gt_threshold, threshold, alpha, sigma):
-        return -p_val_gt_threshold * (alpha * x**(alpha - 1)) * (sigma**(-alpha)) * np.exp(-((x/sigma)**alpha) + ((threshold/sigma)**alpha))
+        return (
+            -p_val_gt_threshold
+            * (alpha * x ** (alpha - 1))
+            * (sigma ** (-alpha))
+            * np.exp(-((x / sigma) ** alpha) + ((threshold / sigma) ** alpha))
+        )
 
     def cost_func(params, *args):
-        return -np.sum([np.log(-der_pfunc(x, args[0], args[1], params[0], params[1])) for x in args[2]])
+        return -np.sum(
+            [
+                np.log(-der_pfunc(x, args[0], args[1], params[0], params[1]))
+                for x in args[2]
+            ]
+        )
 
     initial_guess = np.array([1, abs(threshold)])
-    result = optimize.minimize(cost_func,
-                               x0=initial_guess,
-                               args=(p_val_gt_threshold, threshold, values[values > threshold]),
-                               method='Nelder-Mead',
-                               options={'maxiter': 1e4})
+    result = optimize.minimize(
+        cost_func,
+        x0=initial_guess,
+        args=(p_val_gt_threshold, threshold, values[values > threshold]),
+        method="Nelder-Mead",
+        options={"maxiter": 1e4},
+    )
     if result.success:
         alpha, sigma = result.x[0], result.x[1]
     else:
@@ -277,42 +347,63 @@ def get_weibull(df: pd.DataFrame, threshold: float, Tfreqs: np.ndarray, col: str
     new_values = pfunc_inverse(Tfreqs, p_val_gt_threshold, threshold, sigma, alpha)
     if inverse:
         new_values = -new_values
-    pd_return = pd.DataFrame(data={"values": new_values},index=Tfreqs).sort_index(ascending=False)
-    
+    pd_return = pd.DataFrame(data={"values": new_values}, index=Tfreqs).sort_index(
+        ascending=False
+    )
+
     # copy attributes
     pd_return.attrs = df.attrs
     return pd_return
 
 
-def filter_with_threshold(df_raw: pd.DataFrame,
-                          df_filtered: pd.DataFrame,
-                          threshold: float,
-                          inverse: bool = False) -> pd.DataFrame:
+def filter_with_threshold(
+    df_raw: pd.DataFrame,
+    df_filtered: pd.DataFrame,
+    threshold: float,
+    inverse: bool = False,
+) -> pd.DataFrame:
     if inverse:
-        return pd.concat([df_raw[df_raw['values'] >= threshold],
-                          df_filtered[df_filtered['values'] < threshold]], axis=0).sort_index()
+        return pd.concat(
+            [
+                df_raw[df_raw["values"] >= threshold],
+                df_filtered[df_filtered["values"] < threshold],
+            ],
+            axis=0,
+        ).sort_index()
     else:
-        return pd.concat([df_raw[df_raw['values'] <= threshold],
-                          df_filtered[df_filtered['values'] > threshold]], axis=0).sort_index()
+        return pd.concat(
+            [
+                df_raw[df_raw["values"] <= threshold],
+                df_filtered[df_filtered["values"] > threshold],
+            ],
+            axis=0,
+        ).sort_index()
 
 
-def detect_peaks(df: pd.DataFrame,   prominence: int = 10, inverse: bool = False):
+def detect_peaks(df: pd.DataFrame, prominence: int = 10, inverse: bool = False):
     df = df.copy()
     if inverse:
-        df['values'] = -1*df['values']
-    peak_indices = signal.find_peaks(df['values'].values, prominence=prominence)[0]
-    df_peaks = pd.DataFrame(data={'values': df['values'].iloc[peak_indices]},
-                            index=df.iloc[peak_indices].index)
-    threshold = determine_threshold(values=df['values'].values, peak_indices=peak_indices)
+        df["values"] = -1 * df["values"]
+    peak_indices = signal.find_peaks(df["values"].values, prominence=prominence)[0]
+    df_peaks = pd.DataFrame(
+        data={"values": df["values"].iloc[peak_indices]},
+        index=df.iloc[peak_indices].index,
+    )
+    threshold = determine_threshold(
+        values=df["values"].values, peak_indices=peak_indices
+    )
     return df_peaks, threshold, peak_indices
 
 
 def determine_threshold(values: np.ndarray, peak_indices: np.ndarray) -> float:
     w = signal.peak_widths(values, peak_indices)[0]
-    for threshold in reversed(range(int(np.floor(values.min())),
-                                    int(np.ceil(values.max())))):
+    for threshold in reversed(
+        range(int(np.floor(values.min())), int(np.ceil(values.max())))
+    ):
         _t = w[values[peak_indices] > threshold]
-        if len(_t[_t <= 3]) > (0.1*len(_t)):  # min of 3 tidal periods and at least more than 10%
+        if len(_t[_t <= 3]) > (
+            0.1 * len(_t)
+        ):  # min of 3 tidal periods and at least more than 10%
             break
     return threshold
 
@@ -321,32 +412,43 @@ def get_total_years(df: pd.DataFrame) -> float:
     return (df.index[-1] - df.index[0]).total_seconds() / (3600 * 24 * 365)
 
 
-def apply_trendanalysis(df: pd.DataFrame, rule_type: str, rule_value: Union[pd.Timestamp, float]):
+def apply_trendanalysis(
+    df: pd.DataFrame, rule_type: str, rule_value: Union[pd.Timestamp, float]
+):
     # There are 2 rule types:  - break -> Values before break are removed
     #                          - linear -> Values are increased/lowered based on value in value/year. It is assumes
     #                                      that there is no linear trend at the latest time (so it works its way back
     #                                      in the past). rule_value should be entered as going forward in time
-    if rule_type == 'break':
+    if rule_type == "break":
         return df[rule_value:].copy()
-    elif rule_type == 'linear':
+    elif rule_type == "linear":
         rule_value = float(rule_value)
         df = df.copy()
-        dx = np.array([rule_value*x.total_seconds()/(365*24*3600) for x in (df.index[-1] - df.index)])
-        df['values'] = df['values'] + dx
+        dx = np.array(
+            [
+                rule_value * x.total_seconds() / (365 * 24 * 3600)
+                for x in (df.index[-1] - df.index)
+            ]
+        )
+        df["values"] = df["values"] + dx
         return df
     elif rule_type is None:
         return df.copy()
     else:
-        raise ValueError(f'Incorrect rule_type="{rule_type}" passed to function. Only "break", "linear" or None are supported')
+        raise ValueError(
+            f'Incorrect rule_type="{rule_type}" passed to function. Only "break", "linear" or None are supported'
+        )
 
 
-def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hydra: pd.DataFrame = None) -> pd.DataFrame:
-    
+def blend_distributions(
+    df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hydra: pd.DataFrame = None
+) -> pd.DataFrame:
+
     # get and compare station attributes
     df_list = [df_trend, df_weibull, df_hydra]
     station_attrs = [df.attrs["station"] for df in df_list if df is not None]
     assert all(x == station_attrs[0] for x in station_attrs)
-    
+
     df_trend = df_trend.sort_index(ascending=False)
     df_weibull = df_weibull.sort_index(ascending=False)
 
@@ -360,52 +462,74 @@ def blend_distributions(df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hyd
         df_hydra = df_hydra.sort_index(ascending=False)
 
         Tfreqs_combined = np.unique(np.concatenate((df_weibull.index, df_hydra.index)))
-        vals_weibull = np.interp(Tfreqs_combined,
-                                 np.flip(df_weibull.index),
-                                 np.flip(df_weibull['values'].values))
-        vals_hydra = np.interp(Tfreqs_combined,
-                               np.flip(df_hydra.index),
-                               np.flip(df_hydra['values'].values))
+        vals_weibull = np.interp(
+            Tfreqs_combined,
+            np.flip(df_weibull.index),
+            np.flip(df_weibull["values"].values),
+        )
+        vals_hydra = np.interp(
+            Tfreqs_combined, np.flip(df_hydra.index), np.flip(df_hydra["values"].values)
+        )
 
-        Tfreq0, TfreqN = df_hydra.index[0], 1/50
+        Tfreq0, TfreqN = df_hydra.index[0], 1 / 50
         Tfreqs = np.logspace(np.log10(TfreqN), np.log10(Tfreq0), int(1e5))
-        vals_weibull = np.interp(np.log10(Tfreqs),
-                                 np.log10(np.flip(df_weibull.index)),
-                                 np.flip(df_weibull['values'].values))
-        vals_hydra = np.interp(np.log10(Tfreqs),
-                               np.log10(np.flip(df_hydra.index)),
-                               np.flip(df_hydra['values'].values))
+        vals_weibull = np.interp(
+            np.log10(Tfreqs),
+            np.log10(np.flip(df_weibull.index)),
+            np.flip(df_weibull["values"].values),
+        )
+        vals_hydra = np.interp(
+            np.log10(Tfreqs),
+            np.log10(np.flip(df_hydra.index)),
+            np.flip(df_hydra["values"].values),
+        )
         indices = np.arange(len(Tfreqs))
         grads = np.flip(np.arange(len(indices))) / len(indices) * np.pi
 
-        vals_blend = 0.5*(np.cos(grads)+1)*vals_weibull[indices] + (1-0.5*(np.cos(grads)+1))*vals_hydra[indices]
+        vals_blend = (
+            0.5 * (np.cos(grads) + 1) * vals_weibull[indices]
+            + (1 - 0.5 * (np.cos(grads) + 1)) * vals_hydra[indices]
+        )
 
-        df_blended2 = pd.DataFrame(data={'values': vals_blend}, 
-                                         index=Tfreqs).sort_index(ascending=False)
+        df_blended2 = pd.DataFrame(
+            data={"values": vals_blend}, index=Tfreqs
+        ).sort_index(ascending=False)
 
-        df_blended = pd.concat([df_blended1,
-                                df_weibull.loc[(df_weibull.index > df_blended2.index[0]) &
-                                               (df_weibull.index < df_blended1.index[-1])],
-                                df_blended2,
-                                df_hydra.loc[df_hydra.index < df_blended2.index[-1]]], axis=0)
-    else:        
-        df_blended = pd.concat([df_blended1,
-                                df_weibull.loc[(df_weibull.index < df_blended1.index[-1])]],
-                               axis=0)
-	
-    duplicated_freqs = df_blended.index.duplicated(keep='first')
+        df_blended = pd.concat(
+            [
+                df_blended1,
+                df_weibull.loc[
+                    (df_weibull.index > df_blended2.index[0])
+                    & (df_weibull.index < df_blended1.index[-1])
+                ],
+                df_blended2,
+                df_hydra.loc[df_hydra.index < df_blended2.index[-1]],
+            ],
+            axis=0,
+        )
+    else:
+        df_blended = pd.concat(
+            [df_blended1, df_weibull.loc[(df_weibull.index < df_blended1.index[-1])]],
+            axis=0,
+        )
+
+    duplicated_freqs = df_blended.index.duplicated(keep="first")
     df_blended = df_blended.loc[~duplicated_freqs].sort_index(ascending=False)
-    
+
     # copy attrs
     df_blended.attrs = df_trend.attrs
     return df_blended
 
 
-def interpolate_interested_Tfreqs(df: pd.DataFrame, Tfreqs: List[float]) -> pd.DataFrame:
-    
-    interp_vals = np.interp(Tfreqs, np.flip(df.index), np.flip(df['values'].values))
-    df_interp = pd.DataFrame(data={'values': interp_vals}, index=Tfreqs).sort_index(ascending=False)
-    
+def interpolate_interested_Tfreqs(
+    df: pd.DataFrame, Tfreqs: List[float]
+) -> pd.DataFrame:
+
+    interp_vals = np.interp(Tfreqs, np.flip(df.index), np.flip(df["values"].values))
+    df_interp = pd.DataFrame(data={"values": interp_vals}, index=Tfreqs).sort_index(
+        ascending=False
+    )
+
     # copy attrs
     df_interp.attrs = df.attrs
     return df_interp
@@ -427,43 +551,58 @@ def plot_overschrijding(dist: dict):
     ax : matplotlib.axes._axes.Axes
         Figure axis handle.
     """
-    
+
     # get and compare station attributes
-    station_attrs = [v.attrs["station"] for k,v in dist.items()]
+    station_attrs = [v.attrs["station"] for k, v in dist.items()]
     assert all(x == station_attrs[0] for x in station_attrs)
     station = station_attrs[0]
-    
-    color_map = {'Ongefilterd':  'b', 'Gefilterd': 'orange', 'Trendanalyse': 'g',
-                 'Weibull': 'r', 'Hydra-NL': 'm', 'Hydra-NL met modelonzekerheid': 'cyan',
-                 'Gecombineerd': 'k', 'Geinterpoleerd': 'lime'}
+
+    color_map = {
+        "Ongefilterd": "b",
+        "Gefilterd": "orange",
+        "Trendanalyse": "g",
+        "Weibull": "r",
+        "Hydra-NL": "m",
+        "Hydra-NL met modelonzekerheid": "cyan",
+        "Gecombineerd": "k",
+        "Geinterpoleerd": "lime",
+    }
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    
+
     for k in dist.keys():
         if k in color_map.keys():
             c = color_map[k]
         else:
             c = None
-        if k=='Gecombineerd':
-            ax.plot(dist[k]['values'], '--', label=k, c=c)
-        elif k=='Geinterpoleerd':
-            ax.plot(dist[k]['values'], 'o', label=k, c=c, markersize=5)
+        if k == "Gecombineerd":
+            ax.plot(dist[k]["values"], "--", label=k, c=c)
+        elif k == "Geinterpoleerd":
+            ax.plot(dist[k]["values"], "o", label=k, c=c, markersize=5)
         else:
-            ax.plot(dist[k]['values'], label=k, c=c)
-    
+            ax.plot(dist[k]["values"], label=k, c=c)
+
     ax.set_title(f"Distribution for {station}")
-    ax.set_xlabel('Frequency [1/yrs]')
-    ax.set_xscale('log')
+    ax.set_xlabel("Frequency [1/yrs]")
+    ax.set_xscale("log")
     ax.set_xlim([1e-5, 1e3])
     ax.invert_xaxis()
     ax.set_ylabel("Waterlevel [m]")
-    ax.legend(fontsize='medium', loc='lower right')
-    ax.xaxis.set_minor_locator(ticker.LogLocator(base=10.0, subs=tuple(i / 10 for i in range(1, 10)), numticks=12))
+    ax.legend(fontsize="medium", loc="lower right")
+    ax.xaxis.set_minor_locator(
+        ticker.LogLocator(
+            base=10.0, subs=tuple(i / 10 for i in range(1, 10)), numticks=12
+        )
+    )
     ax.xaxis.set_minor_formatter(ticker.NullFormatter()),
-    ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.1)) #this was 10, but now meters instead of cm
+    ax.yaxis.set_minor_locator(
+        ticker.MultipleLocator(0.1)
+    )  # this was 10, but now meters instead of cm
     ax.yaxis.set_minor_formatter(ticker.NullFormatter()),
-    ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f')) #to force 2 decimal places
-    ax.grid(visible=True, which='major'), ax.grid(visible=True, which='minor', ls=':')
+    ax.yaxis.set_major_formatter(
+        ticker.FormatStrFormatter("%.2f")
+    )  # to force 2 decimal places
+    ax.grid(visible=True, which="major"), ax.grid(visible=True, which="minor", ls=":")
     ax.set_axisbelow(True)
     fig.tight_layout()
-    return fig,ax
+    return fig, ax

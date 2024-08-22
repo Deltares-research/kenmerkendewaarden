@@ -235,7 +235,9 @@ for current_station in station_list:
     # plots beoordelen: rode lijn moet ongeveer verlengde zijn van groene, als die ineens omhoog piekt komt dat door hele extreme waardes die je dan vermoedelijk ook al ziet in je groene lijn
     
     def initiate_dist_with_hydra_nl(station):
-        # get Hydra-NL and KWK-RMM validation data (only available for selection of stations)
+        """
+        get Hydra-NL and KWK-RMM validation data (only available for selection of stations)
+        """
         # TODO: this data is not reproducible yet: https://github.com/Deltares-research/kenmerkendewaarden/issues/107
         # TODO: HOEKVHLD Hydra values are different than old ones in validation line and p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL
 
