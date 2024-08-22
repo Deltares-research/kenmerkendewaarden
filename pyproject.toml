@@ -60,6 +60,7 @@ dev = [
 	"pytest-cov",
 	"twine",
 	"build",
+	"black",
 ]
 docs = [
 	"sphinx>=1.8.1",

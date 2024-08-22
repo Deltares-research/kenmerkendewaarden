@@ -6,10 +6,13 @@ import hatyan
 import pandas as pd
 import kenmerkendewaarden as kw
 import logging
+
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-dir_tests = os.path.dirname(__file__) #F9 doesnt work, only F5 (F5 also only method to reload external definition scripts)
-dir_testdata = os.path.join(dir_tests,'testdata')
+dir_tests = os.path.dirname(
+    __file__
+)  # F9 doesnt work, only F5 (F5 also only method to reload external definition scripts)
+dir_testdata = os.path.join(dir_tests, "testdata")
 
 
 @pytest.fixture(scope="session")
@@ -82,15 +85,25 @@ def df_components_2010(df_meas_2010):
 @pytest.fixture
 def dir_meas(tmp_path):
     dir_meas = tmp_path
-    start_date = pd.Timestamp(2010,1,1, tz="UTC+01:00")
-    end_date = pd.Timestamp(2011,1,1, tz="UTC+01:00")
+    start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2011, 1, 1, tz="UTC+01:00")
     current_station = "HOEKVHLD"
 
     # retrieve measurements
-    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
-                             start_date=start_date, end_date=end_date)
-    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=True,
-                             start_date=start_date, end_date=end_date)
+    kw.retrieve_measurements(
+        dir_output=dir_meas,
+        station=current_station,
+        extremes=False,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    kw.retrieve_measurements(
+        dir_output=dir_meas,
+        station=current_station,
+        extremes=True,
+        start_date=start_date,
+        end_date=end_date,
+    )
     return dir_meas
 
 
@@ -98,14 +111,22 @@ def dir_meas(tmp_path):
 @pytest.fixture
 def dir_meas_amount(tmp_path):
     dir_meas_amount = tmp_path
-    start_date = pd.Timestamp(2010,11,1, tz="UTC+01:00")
-    end_date = pd.Timestamp(2011,2,1, tz="UTC+01:00")
+    start_date = pd.Timestamp(2010, 11, 1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2011, 2, 1, tz="UTC+01:00")
     station_list = ["HOEKVHLD"]
-    
-    kw.retrieve_measurements_amount(dir_output=dir_meas_amount, station_list=station_list, 
-                                    start_date=start_date, end_date=end_date,
-                                    extremes=False)
-    kw.retrieve_measurements_amount(dir_output=dir_meas_amount, station_list=station_list, 
-                                    start_date=start_date, end_date=end_date,
-                                    extremes=True)
+
+    kw.retrieve_measurements_amount(
+        dir_output=dir_meas_amount,
+        station_list=station_list,
+        start_date=start_date,
+        end_date=end_date,
+        extremes=False,
+    )
+    kw.retrieve_measurements_amount(
+        dir_output=dir_meas_amount,
+        station_list=station_list,
+        start_date=start_date,
+        end_date=end_date,
+        extremes=True,
+    )
     return dir_meas_amount

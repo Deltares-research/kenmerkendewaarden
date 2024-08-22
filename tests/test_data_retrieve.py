@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_retrieve_catalog():
     crs = 28992
     locs_meas_ts, locs_meas_ext, _ = kw.data_retrieve.retrieve_catalog(crs=crs)
-    
+
     assert np.isclose(locs_meas_ts.loc["HOEKVHLD"]["X"], 67930.00003341127)
     assert np.isclose(locs_meas_ts.loc["HOEKVHLD"]["Y"], 444000.0027572268)
     assert np.isclose(locs_meas_ext.loc["HOEKVHLD"]["X"], 67930.00003341127)
@@ -22,15 +22,17 @@ def test_retrieve_catalog():
     assert int(df_crs[0]) == crs
 
 
-@pytest.mark.timeout(120) # useful in case of ddl failure
+@pytest.mark.timeout(120)  # useful in case of ddl failure
 @pytest.mark.systemtest
-@pytest.mark.parametrize("extremes", [False,True], ids=["timeseries", "extremes"])
+@pytest.mark.parametrize("extremes", [False, True], ids=["timeseries", "extremes"])
 def test_retrieve_read_measurements_amount(dir_meas_amount, extremes):
-    df_amount = kw.read_measurements_amount(dir_output=dir_meas_amount, extremes=extremes)
-    
+    df_amount = kw.read_measurements_amount(
+        dir_output=dir_meas_amount, extremes=extremes
+    )
+
     # assert amounts, this might change if ddl data is updated
     assert df_amount.columns.tolist() == ["HOEKVHLD"]
-    assert df_amount.index.tolist() == [2010,2011]
+    assert df_amount.index.tolist() == [2010, 2011]
     if extremes:
         df_vals = np.array([312, 157])
     else:
@@ -38,21 +40,25 @@ def test_retrieve_read_measurements_amount(dir_meas_amount, extremes):
     assert len(df_amount) == 2
     assert np.allclose(df_amount["HOEKVHLD"].values, df_vals)
 
- 
-@pytest.mark.timeout(60) # useful in case of ddl failure
+
+@pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_retrieve_read_measurements(dir_meas):
-    df_meas = kw.read_measurements(dir_output=dir_meas, station="HOEKVHLD", extremes=False)
-    df_ext = kw.read_measurements(dir_output=dir_meas, station="HOEKVHLD", extremes=True)
-    assert df_meas.index.tz.zone == 'Etc/GMT-1'
-    assert df_ext.index.tz.zone == 'Etc/GMT-1'
-    assert df_meas.index[0] == pd.Timestamp('2010-01-01 00:00:00+0100', tz='Etc/GMT-1')
-    assert df_meas.index[-1] == pd.Timestamp('2011-01-01 00:00:00+0100', tz='Etc/GMT-1')
-    assert df_ext.index[0] == pd.Timestamp('2010-01-01 02:35:00+0100', tz='Etc/GMT-1')
-    assert df_ext.index[-1] == pd.Timestamp('2010-12-31 23:50:00+0100', tz='Etc/GMT-1')
+    df_meas = kw.read_measurements(
+        dir_output=dir_meas, station="HOEKVHLD", extremes=False
+    )
+    df_ext = kw.read_measurements(
+        dir_output=dir_meas, station="HOEKVHLD", extremes=True
+    )
+    assert df_meas.index.tz.zone == "Etc/GMT-1"
+    assert df_ext.index.tz.zone == "Etc/GMT-1"
+    assert df_meas.index[0] == pd.Timestamp("2010-01-01 00:00:00+0100", tz="Etc/GMT-1")
+    assert df_meas.index[-1] == pd.Timestamp("2011-01-01 00:00:00+0100", tz="Etc/GMT-1")
+    assert df_ext.index[0] == pd.Timestamp("2010-01-01 02:35:00+0100", tz="Etc/GMT-1")
+    assert df_ext.index[-1] == pd.Timestamp("2010-12-31 23:50:00+0100", tz="Etc/GMT-1")
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_read_measurements_amount_notfound(tmp_path):
     with pytest.raises(FileNotFoundError) as e:
@@ -60,30 +66,37 @@ def test_read_measurements_amount_notfound(tmp_path):
     assert "data_amount_ts.csv does not exist" in str(e.value)
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_read_measurements_notfound(tmp_path):
     # this will silently continue the process, returing None
-    df_meas = kw.read_measurements(dir_output=tmp_path, station="HOEKVHLD", extremes=False)
+    df_meas = kw.read_measurements(
+        dir_output=tmp_path, station="HOEKVHLD", extremes=False
+    )
     assert df_meas is None
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_retrieve_measurements_wrongperiod():
-    dir_meas = '.'
-    start_date = pd.Timestamp(3010,1,1, tz="UTC+01:00")
-    end_date = pd.Timestamp(3010,1,2, tz="UTC+01:00")
+    dir_meas = "."
+    start_date = pd.Timestamp(3010, 1, 1, tz="UTC+01:00")
+    end_date = pd.Timestamp(3010, 1, 2, tz="UTC+01:00")
     current_station = "HOEKVHLD"
-    
+
     # retrieve measurements
     with pytest.raises(ValueError) as e:
-        kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
-                                 start_date=start_date, end_date=end_date)
+        kw.retrieve_measurements(
+            dir_output=dir_meas,
+            station=current_station,
+            extremes=False,
+            start_date=start_date,
+            end_date=end_date,
+        )
     assert "[NO DATA]" in str(e.value)
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_check_locations_amount_toomuch():
     locs_meas_ts, _, _ = kw.data_retrieve.retrieve_catalog()
@@ -94,7 +107,7 @@ def test_check_locations_amount_toomuch():
     assert "multiple stations present after station subsetting" in str(e.value)
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_check_locations_amount_toolittle():
     locs_meas_ts, _, _ = kw.data_retrieve.retrieve_catalog()
@@ -105,13 +118,15 @@ def test_check_locations_amount_toolittle():
     assert returned_value is None
 
 
-@pytest.mark.timeout(60) # useful in case of ddl failure
+@pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_read_measurements_napcorrection(dir_meas):
     """
     the necessary assertions are done in non-ddl tests below
     """
-    kw.read_measurements(dir_output=dir_meas, station="HOEKVHLD", extremes=True, nap_correction=True)
+    kw.read_measurements(
+        dir_output=dir_meas, station="HOEKVHLD", extremes=True, nap_correction=True
+    )
 
 
 @pytest.mark.unittest
@@ -119,13 +134,19 @@ def test_napcorrection(df_meas):
     df_meas_sel = df_meas.loc["2004":"2005"]
     df_meas_sel_nap = kw.data_retrieve.nap2005_correction(df_meas=df_meas_sel)
     assert (df_meas_sel.index == df_meas_sel_nap.index).all()
-    assert np.isclose(df_meas_sel["values"].iloc[0] - df_meas_sel_nap["values"].iloc[0], 0.0277)
-    assert np.isclose(df_meas_sel["values"].iloc[-1] - df_meas_sel_nap["values"].iloc[-1], 0)
+    assert np.isclose(
+        df_meas_sel["values"].iloc[0] - df_meas_sel_nap["values"].iloc[0], 0.0277
+    )
+    assert np.isclose(
+        df_meas_sel["values"].iloc[-1] - df_meas_sel_nap["values"].iloc[-1], 0
+    )
 
 
 @pytest.mark.unittest
 def test_napcorrection_notdefined(df_meas_2010):
-    df_meas_nonexistentstation = df_meas_2010.copy() # only change attributes on a copy of the dataframe
+    df_meas_nonexistentstation = (
+        df_meas_2010.copy()
+    )  # only change attributes on a copy of the dataframe
     df_meas_nonexistentstation.attrs["station"] = "NONEXISTENTSTATION"
     with pytest.raises(KeyError) as e:
         kw.data_retrieve.nap2005_correction(df_meas=df_meas_nonexistentstation)
@@ -134,9 +155,11 @@ def test_napcorrection_notdefined(df_meas_2010):
 
 @pytest.mark.unittest
 def test_clip_timeseries_physical_break(df_ext):
-    df_ext_vlie = df_ext.copy() # only change attributes on a copy of the dataframe
+    df_ext_vlie = df_ext.copy()  # only change attributes on a copy of the dataframe
     df_ext_vlie.attrs["station"] = "VLIELHVN"
-    df_ext_vlie_clipped = kw.data_retrieve.clip_timeseries_physical_break(df_meas=df_ext_vlie)
+    df_ext_vlie_clipped = kw.data_retrieve.clip_timeseries_physical_break(
+        df_meas=df_ext_vlie
+    )
     assert len(df_ext_vlie_clipped) != len(df_ext_vlie)
     assert df_ext_vlie_clipped.index[0] >= pd.Timestamp("1933-01-01 00:00:00 +01:00")
 
