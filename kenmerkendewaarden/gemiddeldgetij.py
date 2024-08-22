@@ -487,17 +487,17 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
             tP_goal = tP_val
 
         temp1 = (
-            ts_corr.loc[timesHW[i]:timesLW[i], "values"] - LW_val
+            ts_corr.loc[timesHW[i] : timesLW[i], "values"] - LW_val
         ) / TR1_val * TR_goal + LW_goal
         temp2 = (
-            ts_corr.loc[timesLW[i]:timesHW[i + 1], "values"] - LW_val
+            ts_corr.loc[timesLW[i] : timesHW[i + 1], "values"] - LW_val
         ) / TR2_val * TR_goal + LW_goal
         temp = pd.concat(
             [temp1, temp2.iloc[1:]]
         )  # .iloc[1:] since timesLW[i] is in both timeseries (values are equal)
         ts_corr["values_new"] = temp
 
-        tide_HWtoHW = ts_corr.loc[timesHW[i]:timesHW[i + 1]]
+        tide_HWtoHW = ts_corr.loc[timesHW[i] : timesHW[i + 1]]
         ts_corr["timedelta"] = pd.date_range(
             start=ts_corr.loc[timesHW[i], "timedelta"],
             end=ts_corr.loc[timesHW[i], "timedelta"] + tP_goal,

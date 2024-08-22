@@ -9,9 +9,8 @@ import logging
 
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-dir_tests = os.path.dirname(
-    __file__
-)  # F9 doesnt work, only F5 (F5 also only method to reload external definition scripts)
+# F9 doesnt work, only F5 (F5 also only method to reload external definition scripts)
+dir_tests = os.path.dirname(__file__)
 dir_testdata = os.path.join(dir_tests, "testdata")
 
 
