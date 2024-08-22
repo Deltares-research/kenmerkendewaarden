@@ -385,7 +385,8 @@ def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> tuple:
     """
     Derive highest and lowest astronomical tide (HAT/LAT) from a measurement timeseries of 19 years.
     Tidal components are derived for each year of the measurement timeseries.
-    The resulting component sets are used to make a tidal prediction each year of the measurement timeseries with a 10 minute interval.
+    The resulting component sets are used to make a tidal prediction each year of the measurement
+    timeseries with a 10 minute interval.
     The max/min values of the predictions of all years are the HAT/LAT values.
     The HAT/LAT is very dependent on the A0 of the component sets. Therefore, the HAT/LAT values are
     relevant for the same period as the measurement timeseries.

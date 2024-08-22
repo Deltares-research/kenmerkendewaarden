@@ -131,15 +131,16 @@ def calc_gemiddeldgetij(
     # =============================================================================
     """
     uit: gemiddelde getijkrommen 1991.0
-    Voor de ruwe krommen voor springtij en doodtij is het getij voorspeld voor een jaar met gemiddelde helling maansbaan 
-    met uitsluitend zuivere combinaties van de componenten M2 en S2:
+    Voor de ruwe krommen voor springtij en doodtij is het getij voorspeld
+    voor een jaar met gemiddelde helling maansbaan met
+    uitsluitend zuivere combinaties van de componenten M2 en S2:
     tabel: Gebruikte componenten voor de spring- en doodtijkromme
-    SM, 3MS2, mu2, M2, S2, 2SM2, 3MS4, M4, MS4, 
+    SM, 3MS2, mu2, M2, S2, 2SM2, 3MS4, M4, MS4,
     4MS6, M6, 2MS6, M8, 3MS8, M10, 4MS10, M12, 5MS12
-    
-    In het aldus gemodelleerde getij is de vorm van iedere getijslag, gegeven de getijfase, identiek. 
+
+    In het aldus gemodelleerde getij is de vorm van iedere getijslag, gegeven de getijfase, identiek.
     Vervolgens is aan de hand van de havengetallen een springtij- en een doodtijkromme geselecteerd.
-    
+
     #NOTE: background on choice of components
     #below is different than provided list, these shallow ones are extra: ['S4','2SM6','M7','4MS4','2(MS)8','3M2S10','4M2S12']
     #shallow relations, derive 'zuivere harmonischen van M2 en S2' (this means averaging over eenmaaldaagse componenten, but why is that chosen?)
@@ -394,13 +395,14 @@ def get_gemgetij_components(data_pd_meas):
     # =============================================================================
     """
     uit: gemiddelde getijkrommen 1991.0
-    Voor meetpunten in het onbeinvloed gebied is per getijfase eerst een "ruwe kromme" berekend met de resultaten van de harmonische analyse, 
+    Voor meetpunten in het onbeinvloed gebied is per getijfase eerst een "ruwe kromme" berekend met
+    de resultaten van de harmonische analyse,
     welke daarna een weinig is bijgesteld aan de hand van de volgende slotgemiddelden:
-    gemiddeld hoog- en laagwater, duur daling. Deze bijstelling bestaat uit een eenvoudige vermenigvuldiging.    
-    
-    Voor de ruwe krommen voor gemiddeld tij zijn uitsluitend zuivere harmonischen van M2 gebruikt: M2, M4, M6, M8, M10, M12, 
-    waarbij de amplituden per component zijn vervangen door de wortel uit de kwadraatsom van de amplituden 
-    van alle componenten in de betreffende band, voor zover voorkomend in de standaardset van 94 componenten. 
+    gemiddeld hoog- en laagwater, duur daling. Deze bijstelling bestaat uit een eenvoudige vermenigvuldiging.
+
+    Voor de ruwe krommen voor gemiddeld tij zijn uitsluitend zuivere harmonischen van M2 gebruikt: M2, M4, M6, M8, M10, M12,
+    waarbij de amplituden per component zijn vervangen door de wortel uit de kwadraatsom van de amplituden
+    van alle componenten in de betreffende band, voor zover voorkomend in de standaardset van 94 componenten.
     Zoals te verwachten is de verhouding per component tussen deze wortel en de oorspronkelijke amplitude voor alle plaatsen gelijk.
     tabel: Verhouding tussen amplitude en oorspronkelijke amplitude
     M2 (tweemaaldaagse band) 1,06
@@ -409,12 +411,12 @@ def get_gemgetij_components(data_pd_meas):
     M8 2,18
     M10 2,86
     M12 3,46
-    
+
     In het aldus gemodelleerde getij is de vorm van iedere getijslag identiek, met een getijduur van 12 h 25 min.
-    Bij meetpunten waar zich aggers voordoen, is, afgezien van de dominantie, de vorm bepaald door de ruwe krommen; 
-    dit in tegenstelling tot vroegere bepalingen. Bij spring- en doodtij is bovendien de differentiele getijduur, 
+    Bij meetpunten waar zich aggers voordoen, is, afgezien van de dominantie, de vorm bepaald door de ruwe krommen;
+    dit in tegenstelling tot vroegere bepalingen. Bij spring- en doodtij is bovendien de differentiele getijduur,
     en daarmee de duur rijzing, afgeleid uit de ruwe krommen.
-    
+
     """
     # kwadraatsommen voor M2 tot M12
     components_av = ["M2", "M4", "M6", "M8", "M10", "M12"]
@@ -485,17 +487,17 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
             tP_goal = tP_val
 
         temp1 = (
-            ts_corr.loc[timesHW[i] : timesLW[i], "values"] - LW_val
+            ts_corr.loc[timesHW[i]:timesLW[i], "values"] - LW_val
         ) / TR1_val * TR_goal + LW_goal
         temp2 = (
-            ts_corr.loc[timesLW[i] : timesHW[i + 1], "values"] - LW_val
+            ts_corr.loc[timesLW[i]:timesHW[i + 1], "values"] - LW_val
         ) / TR2_val * TR_goal + LW_goal
         temp = pd.concat(
             [temp1, temp2.iloc[1:]]
         )  # .iloc[1:] since timesLW[i] is in both timeseries (values are equal)
         ts_corr["values_new"] = temp
 
-        tide_HWtoHW = ts_corr.loc[timesHW[i] : timesHW[i + 1]]
+        tide_HWtoHW = ts_corr.loc[timesHW[i]:timesHW[i + 1]]
         ts_corr["timedelta"] = pd.date_range(
             start=ts_corr.loc[timesHW[i], "timedelta"],
             end=ts_corr.loc[timesHW[i], "timedelta"] + tP_goal,

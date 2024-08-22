@@ -173,8 +173,9 @@ def check_peakside(values, _i, multiplier, window, threshold):
             pass
         try:
             _i1, _i2 = (_i + _i_extra + (multiplier * window)), (_i + _i_extra)
-            if any(values[np.min([_i1, _i2]) : np.max([_i1, _i2])] > threshold):
-                new_peak = values[np.min([_i1, _i2]) : np.max([_i1, _i2])].max()
+            values_sel = values[np.min([_i1, _i2]):np.max([_i1, _i2])]
+            if any(values_sel > threshold):
+                new_peak = values_sel.max()
                 while values[_i + _i_extra] != new_peak:
                     _i_extra += multiplier
             else:
@@ -224,8 +225,9 @@ def detect_peaks_hkv(
         dt_left_peaks[peak_count] = (times[_i] - times[_i + _i_extra]) / np.timedelta64(
             1, "s"
         )
+        times_sel = times[(_i + _i_extra):(_i + 1)]
         times_sorted, values_sorted = delete_values_between_peak_trough(
-            times[(_i + _i_extra) : (_i + 1)], times_sorted, values_sorted
+            times_sel, times_sorted, values_sorted
         )
 
         # right peak
@@ -239,8 +241,9 @@ def detect_peaks_hkv(
         dt_right_peaks[peak_count] = (
             times[_i + _i_extra] - times[_i]
         ) / np.timedelta64(1, "s")
+        times_sel = times[(_i - 1):(_i + _i_extra)]
         times_sorted, values_sorted = delete_values_between_peak_trough(
-            times[(_i - 1) : (_i + _i_extra)], times_sorted, values_sorted
+            times_sel, times_sorted, values_sorted
         )
 
         peak_count += 1
