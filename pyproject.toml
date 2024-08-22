@@ -87,6 +87,3 @@ markers = [
 	"systemtest: mark a test as systemtest. Used for testing at a higher level, verifying a given input returns the expected output",
 	"acceptance: mark a test as acceptance. Used for non-functional requirements and data that needs to be human-verified",
 ]
-
-[tool.flake8]
-exclude = "docs"
