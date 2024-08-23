@@ -18,11 +18,11 @@ logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 retrieve_meas_amount = False
 plot_meas_amount = False
-retrieve_meas = True
+retrieve_meas = False
 derive_stats = False
 plot_meas = False
 plot_stations = False
-test = True
+test = False
 
 # TODO: add timezone to start/stop date? (and re-retrieve all data): https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 start_date = "1870-01-01"
@@ -53,11 +53,17 @@ station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCH
 # short list for testing
 station_list = ["HOEKVHLD"]
 
-# skip duplicate code stations from station_list_tk (hist/realtime) # TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
+# skip duplicate code stations from station_list_tk (hist/realtime)
+# TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
 stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
-# skip MSL/NAP duplicate stations from station_list_tk # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
+# skip MSL/NAP duplicate stations from station_list_tk
+# TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
 stations_nap_mls_dupl = ["EURPFM", "LICHTELGRE"]
 stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
+# remove stations from station_list
+for stat_remove in stations_dupl:
+    if stat_remove in station_list:
+        station_list.remove(stat_remove)
 
 
 ### RETRIEVE MEASUREMENTS AMOUNT
@@ -89,9 +95,6 @@ for current_station in station_list:
     if not retrieve_meas:
         continue
     
-    if current_station in stations_dupl:
-        continue
-    
     kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
                              start_date=start_date, end_date=end_date)
     kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=True,
@@ -113,8 +116,6 @@ for current_station in station_list:
     if not plot_meas:
         continue
     
-    if current_station in stations_dupl:
-        continue
     print(f'plotting timeseries data for {current_station}')
     
     # load data
