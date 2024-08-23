@@ -20,7 +20,7 @@
 - added modular check for timeseries coverage in [#76](https://github.com/Deltares-research/kenmerkendewaarden/pull/76)
 - simplified methods for overschrijdingsfreqs and reducing public functions to `kw.calc_overschrijding()` in [#81](https://github.com/Deltares-research/kenmerkendewaarden/pull/81)
 - add station attribute to measurements in [#96](https://github.com/Deltares-research/kenmerkendewaarden/pull/96) and [#108](https://github.com/Deltares-research/kenmerkendewaarden/pull/108)
-- simplified methods for overschrijdingen as preparation for eventual method in [#106](https://github.com/Deltares-research/kenmerkendewaarden/pull/106)
+- add hydra statistics for overschrijdingen as preparation for eventual method in [#106](https://github.com/Deltares-research/kenmerkendewaarden/pull/106)
 - improvements to output csv files in [#109](https://github.com/Deltares-research/kenmerkendewaarden/pull/109)
 - drop duplicate times in `kw.read_measurements()` in [#116](https://github.com/Deltares-research/kenmerkendewaarden/pull/116)
 
