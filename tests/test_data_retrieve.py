@@ -39,6 +39,17 @@ def test_drop_duplicate_times(df_meas_2010, caplog):
     assert '30 additional rows with duplicated times dropped' in caplog.text
 
 
+@pytest.mark.unittest
+def test_drop_duplicate_times_noaction(df_meas_2010, caplog):
+    meas_clean = drop_duplicate_times(df_meas_2010)
+
+    assert len(df_meas_2010) == 52560
+    assert len(meas_clean) == 52560
+    
+    # assert that there is no logging messages
+    assert caplog.text == ""
+
+
 @pytest.mark.timeout(120)  # useful in case of ddl failure
 @pytest.mark.systemtest
 @pytest.mark.parametrize("extremes", [False, True], ids=["timeseries", "extremes"])
