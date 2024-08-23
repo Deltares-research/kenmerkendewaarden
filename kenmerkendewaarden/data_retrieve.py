@@ -371,7 +371,9 @@ def drop_duplicate_times(df_meas):
     df_meas_clean2 = df_meas_clean1.loc[~dupl_times]
     nrows_dropped2 = len(df_meas_clean1) - len(df_meas_clean2)
     if nrows_dropped2 > 0:
-        logger.warning(f"{nrows_dropped2} additional rows with duplicated times dropped (unique values were lost)")
+        logger.warning(
+            f"{nrows_dropped2} rows with duplicated times dropped (unique values dropped)"
+        )
 
     return df_meas_clean2
 
