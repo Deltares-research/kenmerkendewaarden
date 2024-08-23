@@ -6,7 +6,9 @@ from matplotlib.ticker import Formatter
 
 def raise_extremes_with_aggers(df_ext):
     # TODO: alternatively we can convert 12345 to 12 here
-    if len(df_ext["HWLWcode"].drop_duplicates()) != 2:
+    hwlwcodes = df_ext["HWLWcode"].drop_duplicates()
+    bool_is_12 = np.asarray([x in [1,2] for x in set(hwlwcodes)])
+    if not bool_is_12.all():
         raise ValueError(
             "df_ext should only contain extremes (HWLWcode 1/2), "
             "but it also contains aggers (HWLWcode 3/4/5). "
