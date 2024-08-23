@@ -18,11 +18,11 @@ logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 retrieve_meas_amount = False
 plot_meas_amount = False
-retrieve_meas = False
+retrieve_meas = True
 derive_stats = False
 plot_meas = False
 plot_stations = False
-test = False
+test = True
 
 # TODO: add timezone to start/stop date? (and re-retrieve all data): https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 start_date = "1870-01-01"

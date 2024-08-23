@@ -318,7 +318,7 @@ def retrieve_measurements(
         )
 
     # write to netcdf (including metadata)
-    ds_meas.to_netcdf(file_nc)
+    ds_meas.to_netcdf(file_nc, format="NETCDF4_CLASSIC")
     ds_meas.close()
 
 
