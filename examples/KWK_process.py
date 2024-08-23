@@ -14,7 +14,7 @@ logging.basicConfig() # calling basicConfig is essential to set logging level fo
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 # TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT'], overview in https://github.com/Deltares-research/kenmerkendewaarden/issues/101 and the linked wm-ws-dl issue.
-# TODO: consider catching exception (first convert to ValueError): https://github.com/Deltares/hatyan/issues/311
+# TODO: if persists with updated ddl data, consider catching this ValueError: https://github.com/Deltares/hatyan/issues/311 and https://github.com/Deltares/hatyan/issues/327
 
 tstart_dt = pd.Timestamp(2011,1,1, tz="UTC+01:00")
 tstop_dt = pd.Timestamp(2021,1,1, tz="UTC+01:00")
@@ -58,6 +58,7 @@ station_list = ["HOEKVHLD"]
 
 nap_correction = False
 min_coverage = 0.9 # for tidalindicators and slotgemiddelde #TODO: can also be used for havengetallen and gemgetij
+drop_duplicates = True
 
 compute_indicators = True
 compute_slotgem = True
@@ -71,13 +72,15 @@ for current_station in station_list:
     plt.close('all')
     
     # timeseries are used for slotgemiddelden, gemgetijkrommen (needs slotgem+havget)
-    data_pd_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False, nap_correction=nap_correction)
+    data_pd_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False, 
+                                            nap_correction=nap_correction, drop_duplicates=drop_duplicates)
     if data_pd_meas_all is not None:
         #crop measurement data
         data_pd_meas_10y = hatyan.crop_timeseries(data_pd_meas_all, times=slice(tstart_dt,tstop_dt-dt.timedelta(minutes=10)))#,onlyfull=False)
     
     # extremes are used for slotgemiddelden, havengetallen, overschrijding
-    data_pd_HWLW_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True, nap_correction=nap_correction)
+    data_pd_HWLW_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True,
+                                            nap_correction=nap_correction, drop_duplicates=drop_duplicates)
     if data_pd_HWLW_all is not None:
         # TODO: make calc_HWLW12345to12() faster: https://github.com/Deltares/hatyan/issues/311
         data_pd_HWLW_all_12 = hatyan.calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
