@@ -357,7 +357,7 @@ def drop_duplicate_times(df_meas):
     """
     # drop unique time-value-combinations
     df_meas_withtime = df_meas.copy()
-    df_meas_withtime[df_meas.index.name] = df_meas.index
+    df_meas_withtime['time'] = df_meas.index
     dupl_timevals = df_meas_withtime.duplicated(keep="first")
     df_meas_clean1 = df_meas.loc[~dupl_timevals]
     nrows_dropped1 = len(df_meas) - len(df_meas_clean1)
