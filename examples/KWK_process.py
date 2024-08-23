@@ -54,7 +54,7 @@ station_list = ['A12','AWGPFM','BAALHK','BATH','BERGSDSWT','BROUWHVSGT02','BROUW
 # subset of 11 stations along the coast
 station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
 # short list for testing
-station_list = ["HOEKVHLD"]
+station_list = ["IJMDBTHVN"]
 
 nap_correction = False
 min_coverage = 0.9 # for tidalindicators and slotgemiddelde #TODO: can also be used for havengetallen and gemgetij

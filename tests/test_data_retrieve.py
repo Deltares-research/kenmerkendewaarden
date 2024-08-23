@@ -4,6 +4,7 @@ import pytest
 import kenmerkendewaarden as kw
 import numpy as np
 import pandas as pd
+from kenmerkendewaarden.data_retrieve import drop_duplicate_times
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
@@ -20,6 +21,22 @@ def test_retrieve_catalog():
     assert len(df_crs) == 1
     assert isinstance(df_crs[0], str)
     assert int(df_crs[0]) == crs
+
+
+@pytest.mark.unittest
+def test_drop_duplicate_times(df_meas_2010, caplog):
+    # create dataframe with many duplicated time-value-combinations
+    meas_duplicated = pd.concat([df_meas_2010, df_meas_2010], axis=0)
+    # convert 30 rows to only-times-duplicated by setting arbitrary value
+    meas_duplicated.iloc[:30] = 1
+    meas_clean = drop_duplicate_times(meas_duplicated)
+
+    assert len(meas_duplicated) == 105120
+    assert len(meas_clean) == 52560
+    
+    # assert logging messages
+    assert '52530 rows with duplicated time-value-combinations dropped' in caplog.text
+    assert '30 additional rows with duplicated times dropped' in caplog.text
 
 
 @pytest.mark.timeout(120)  # useful in case of ddl failure

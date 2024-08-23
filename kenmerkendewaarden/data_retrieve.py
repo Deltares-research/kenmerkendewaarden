@@ -349,12 +349,37 @@ def xarray_to_hatyan(ds):
     return df
 
 
+def drop_duplicate_times(df_meas):
+    """
+    First drop all duplicate time-value-combinations and then all duplicate times.
+    The second step makes the first step redundant, but the distinction is still
+    visible in the logging which is valuable for assessing the data.
+    """
+    # drop unique time-value-combinations
+    df_meas_withtime = df_meas.copy()
+    df_meas_withtime[df_meas.index.name] = df_meas.index
+    dupl_timevals = df_meas_withtime.duplicated(keep="first")
+    df_meas_clean1 = df_meas.loc[~dupl_timevals]
+    rows_dropped1 = len(df_meas) - len(df_meas_clean1)
+    logger.warning(
+        f"{rows_dropped1} rows with duplicated time-value-combinations dropped"
+    )
+
+    # drop unique times that have unique values
+    dupl_times = df_meas_clean1.index.duplicated(keep="first")
+    df_meas_clean2 = df_meas_clean1.loc[~dupl_times]
+    rows_dropped2 = len(df_meas_clean1) - len(df_meas_clean2)
+    logger.warning(f"{rows_dropped2} additional rows with duplicated times dropped (unique values were lost)")
+    return df_meas_clean2
+
+
 def read_measurements(
     dir_output: str,
     station: str,
     extremes: bool,
     return_xarray: bool = False,
     nap_correction: bool = False,
+    drop_duplicates: bool = True,
 ):
     """
     Read the measurements netcdf as a dataframe.
@@ -371,6 +396,8 @@ def read_measurements(
         Whether to return raw xarray.Dataset instead of a DataFrame. The default is False.
     nap_correction : bool, optional
         Whether to correct for NAP2005. The default is False.
+    drop_duplicates : bool, optional
+        Whether to drop duplicated timesteps. The default is True.
 
     Returns
     -------
@@ -396,6 +423,9 @@ def read_measurements(
         return ds_meas
 
     df_meas = xarray_to_hatyan(ds_meas)
+
+    if drop_duplicates:
+        df_meas = drop_duplicate_times(ds_meas)
 
     if nap_correction:
         # TODO: not available for all stations
