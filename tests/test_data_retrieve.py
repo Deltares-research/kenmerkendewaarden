@@ -36,7 +36,7 @@ def test_drop_duplicate_times(df_meas_2010, caplog):
     
     # assert logging messages
     assert '52530 rows with duplicated time-value-combinations dropped' in caplog.text
-    assert '30 additional rows with duplicated times dropped' in caplog.text
+    assert '30 rows with duplicated times dropped' in caplog.text
 
 
 @pytest.mark.unittest
