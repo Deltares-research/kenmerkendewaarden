@@ -23,6 +23,7 @@
 - add hydra statistics for overschrijdingen as preparation for eventual method in [#106](https://github.com/Deltares-research/kenmerkendewaarden/pull/106)
 - improvements to output csv files in [#109](https://github.com/Deltares-research/kenmerkendewaarden/pull/109)
 - drop duplicate times in `kw.read_measurements()` in [#116](https://github.com/Deltares-research/kenmerkendewaarden/pull/116)
+- use NETCDF4_CLASSIC format to reduce file sizes written by `kw.retrieve_measurements()` in [#119](https://github.com/Deltares-research/kenmerkendewaarden/pull/119)
 
 ### Fix
 - implemented workaround for pandas 2.2.0 with different rounding behaviour in [#69](https://github.com/Deltares-research/kenmerkendewaarden/pull/69)
