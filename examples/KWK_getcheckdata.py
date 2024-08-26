@@ -24,20 +24,19 @@ plot_meas = False
 plot_stations = False
 test = False
 
-# TODO: add timezone to start/stop date? (and re-retrieve all data): https://github.com/Deltares-research/kenmerkendewaarden/issues/29
-start_date = "1870-01-01"
-end_date = "2024-01-01"
+start_date = pd.Timestamp(1870, 1, 1, tz="UTC+01:00")
+end_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
 if test:
-    start_date = "2021-12-01"
-    end_date = "2022-02-01"
-    # start_date = "2010-12-01"
-    # end_date = "2022-02-01"
+    start_date = pd.Timestamp(2021, 12, 1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2022, 2, 1, tz="UTC+01:00")
+    # start_date = pd.Timestamp(2010, 12, 1, tz="UTC+01:00")
+    # end_date = pd.Timestamp(2022, 2, 1, tz="UTC+01:00")
 
 # dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r"p:\11210325-005-kenmerkende-waarden\work"
-dir_meas = os.path.join(dir_base, f"measurements_wl_{start_date.replace('-','')}_{end_date.replace('-','')}")
+dir_meas = os.path.join(dir_base, f"measurements_wl_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}")
 os.makedirs(dir_meas, exist_ok=True)
-dir_meas_amount = os.path.join(dir_base, f"measurements_amount_wl_{start_date.replace('-','')}_{end_date.replace('-','')}")
+dir_meas_amount = os.path.join(dir_base, f"measurements_amount_wl_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}")
 os.makedirs(dir_meas_amount, exist_ok=True)
 
 # all stations from TK (dataTKdia)
