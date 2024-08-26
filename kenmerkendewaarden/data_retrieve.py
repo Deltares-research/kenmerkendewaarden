@@ -88,18 +88,14 @@ def retrieve_catalog(overwrite=False, crs: int = None):
     return locs_meas_ts, locs_meas_ext, locs_meas_exttype
 
 
-def check_locations_amount(locations):
+def raise_multiple_locations(locations):
     """
     checks the amount of rows in a ddlpy.locations dataframe.
-    It allows for zero stations, since this regularly happens for extremes, in that case the station is skipped
-    It raises an error in case of multiple stations, stricter station selection is required.
+    It allows for zero stations, since this regularly happens for extremes.
+    It also allows for single stations. It raises an error in case of 
+    multiple stations, stricter station selection is required.
     """
-    if len(locations) == 0:
-        logger.info(
-            f"no stations present after station subsetting, skipping station:\n{locations}"
-        )
-        return
-    elif len(locations) != 1:
+    if len(locations) > 1:
         raise ValueError(
             f"multiple stations present after station subsetting:\n{locations}"
         )
@@ -156,7 +152,7 @@ def retrieve_measurements_amount(
         bool_station = locs_meas.index.isin([station])
         loc_meas_one = locs_meas.loc[bool_station]
 
-        check_locations_amount(loc_meas_one)
+        raise_multiple_locations(loc_meas_one)
 
         if len(loc_meas_one) == 0:
             logger.info(f"no station available (extremes={extremes})")
@@ -282,11 +278,15 @@ def retrieve_measurements(
     # retrieving waterlevel extremes or timeseries
     if os.path.exists(file_nc):
         logger.info(
-            f"meas data (extremes={extremes}) for {station} already available in {os.path.basename(dir_output)}, skipping station"
+            f"meas data (extremes={extremes}) for {station} already available in "
+            f"{os.path.basename(dir_output)}, skipping station"
         )
         return
 
-    check_locations_amount(loc_meas_one)
+    raise_multiple_locations(loc_meas_one)
+    if len(loc_meas_one) == 0:
+        logger.info(f"no station available (extremes={extremes}), skipping station")
+        return
 
     logger.info(
         f"retrieving meas data (extremes={extremes}) from DDL for {station} to {os.path.basename(dir_output)}"

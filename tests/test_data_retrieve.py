@@ -126,23 +126,23 @@ def test_retrieve_measurements_wrongperiod():
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
-def test_check_locations_amount_toomuch():
+def test_raise_multiple_locations_toomuch():
     locs_meas_ts, _, _ = kw.data_retrieve.retrieve_catalog()
     bool_stations = locs_meas_ts.index.isin(["BATH"])
     locs_sel = locs_meas_ts.loc[bool_stations]
     with pytest.raises(ValueError) as e:
-        kw.data_retrieve.check_locations_amount(locs_sel)
+        kw.data_retrieve.raise_multiple_locations(locs_sel)
     assert "multiple stations present after station subsetting" in str(e.value)
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
-def test_check_locations_amount_toolittle():
+def test_raise_multiple_locations_toolittle():
     locs_meas_ts, _, _ = kw.data_retrieve.retrieve_catalog()
     bool_stations = locs_meas_ts.index.isin(["NONEXISTENTSTATION"])
     locs_sel = locs_meas_ts.loc[bool_stations]
     # this will silently continue the process, returing None
-    returned_value = kw.data_retrieve.check_locations_amount(locs_sel)
+    returned_value = kw.data_retrieve.raise_multiple_locations(locs_sel)
     assert returned_value is None
 
 
