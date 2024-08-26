@@ -22,15 +22,9 @@ retrieve_meas = False
 derive_stats = False
 plot_meas = False
 plot_stations = False
-test = False
 
 start_date = pd.Timestamp(1870, 1, 1, tz="UTC+01:00")
 end_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
-if test:
-    start_date = pd.Timestamp(2021, 12, 1, tz="UTC+01:00")
-    end_date = pd.Timestamp(2022, 2, 1, tz="UTC+01:00")
-    # start_date = pd.Timestamp(2010, 12, 1, tz="UTC+01:00")
-    # end_date = pd.Timestamp(2022, 2, 1, tz="UTC+01:00")
 
 # dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r"p:\11210325-005-kenmerkende-waarden\work"
