@@ -56,6 +56,7 @@ stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
 # remove stations from station_list
 for stat_remove in stations_dupl:
     if stat_remove in station_list:
+        print(f"removing {stat_remove} from station_list")
         station_list.remove(stat_remove)
 
 

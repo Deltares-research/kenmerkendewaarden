@@ -56,6 +56,15 @@ station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCH
 # short list for testing
 station_list = ["HOEKVHLD"]
 
+# skip STELLDBTN since it has only extremes from 1984 to 1996: https://github.com/Deltares-research/kenmerkendewaarden/issues/125
+stations_skip = ["STELLDBTN"]
+# remove stations from station_list
+for stat_remove in stations_skip:
+    if stat_remove in station_list:
+        print(f"removing {stat_remove} from station_list")
+        station_list.remove(stat_remove)
+
+
 nap_correction = False
 min_coverage = 0.9 # for tidalindicators and slotgemiddelde #TODO: can also be used for havengetallen and gemgetij
 drop_duplicates = True
