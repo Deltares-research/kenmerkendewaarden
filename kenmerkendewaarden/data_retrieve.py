@@ -307,7 +307,7 @@ def retrieve_measurements(
             location=loc_meas_exttype_one.iloc[0],
             start_date=start_date,
             end_date=end_date,
-            freq=dateutil.rrule.YEARLY,
+            freq=freq,
         )
         ts_meas_ext_pd = hatyan.ddlpy_to_hatyan(measurements, measurements_exttyp)
         ds_meas["extreme_type"] = xr.DataArray(
