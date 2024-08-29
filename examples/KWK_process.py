@@ -259,10 +259,11 @@ for current_station in station_list:
         if os.path.exists(file_hydra_nl):
             df_hydra_nl = pd.read_table(file_hydra_nl, encoding='latin-1', decimal=',', header=0)
             df_hydra_nl.index = 1/df_hydra_nl['Terugkeertijd [jaar]']
+            df_hydra_nl.index.name = 'frequency'
             df_hydra_nl['values'] = df_hydra_nl['Belastingniveau [m+NAP]/Golfparameter [m]/[s]/Sterkte bekleding [-]']
             df_hydra_nl = df_hydra_nl[['values']]
             df_hydra_nl.attrs['station'] = station
-            dist_dict['Hydra-NL'] = df_hydra_nl
+            dist_dict['Hydra-NL'] = df_hydra_nl['values']
         return dist_dict
 
     def add_validation_dist(dist_dict, dist_type, station):
@@ -275,10 +276,11 @@ for current_station in station_list:
         df_validation = df_validation.rename({"value":"values"},axis=1)
         df_validation['values'] /= 100
         df_validation = df_validation.set_index("value_Tfreq", drop=True)
+        df_validation.index.name = 'frequency'
         df_validation.attrs['station'] = station
-        dist_dict['validation'] = df_validation
+        dist_dict['validation'] = df_validation['values']
     
-    Tfreqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200,
+    freqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200,
                          1/500, 1/1000, 1/2000, 1/4000, 1/5000, 1/10000]
     
     if compute_overschrijding and data_pd_HWLW_all is not None:
@@ -291,7 +293,7 @@ for current_station in station_list:
         dist_exc_hydra = initiate_dist_with_hydra_nl(station=current_station)
         dist_exc = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, dist=dist_exc_hydra,
-                                          interp_freqs=Tfreqs_interested)
+                                          interp_freqs=freqs_interested)
         add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
         dist_exc['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'))
         # dist_exc['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}_gecombineerd.csv'))
@@ -303,7 +305,7 @@ for current_station in station_list:
         # 2. Deceedance
         dist_dec = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, inverse=True,
-                                          interp_freqs=Tfreqs_interested)
+                                          interp_freqs=freqs_interested)
         add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)
         dist_dec['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'))
         # dist_dec['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}_gecombineerd.csv'))

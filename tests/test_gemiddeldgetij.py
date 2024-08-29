@@ -21,8 +21,8 @@ def test_calc_gemiddeldgetij_outputtype(df_meas_2010):
 
     assert isinstance(gemgetij_dict_raw, dict)
     for k, v in gemgetij_dict_raw.items():
-        assert isinstance(v, pd.DataFrame)
-        assert v.columns == ["values"]
+        assert isinstance(v, pd.Series)
+        assert v.name == "values"
         assert isinstance(v.index, pd.TimedeltaIndex)
         assert v.index.name == "timedelta"
 
@@ -46,16 +46,16 @@ def test_calc_gemiddeldgetij_raw(df_meas_2010):
     prediction_np_raw = gemgetij_dict_raw["neap"]
 
     assert len(prediction_av_raw) == 746
-    assert np.isclose(prediction_av_raw["values"].min(), -0.567608885905236)
-    assert np.isclose(prediction_av_raw["values"].max(), 1.1665100442336331)
+    assert np.isclose(prediction_av_raw.min(), -0.567608885905236)
+    assert np.isclose(prediction_av_raw.max(), 1.1665100442336331)
 
     assert len(prediction_sp_raw) == 741
-    assert np.isclose(prediction_sp_raw["values"].min(), -0.5305575695904736)
-    assert np.isclose(prediction_sp_raw["values"].max(), 1.313379801706846)
+    assert np.isclose(prediction_sp_raw.min(), -0.5305575695904736)
+    assert np.isclose(prediction_sp_raw.max(), 1.313379801706846)
 
     assert len(prediction_np_raw) == 755
-    assert np.isclose(prediction_np_raw["values"].min(), -0.579937620616439)
-    assert np.isclose(prediction_np_raw["values"].max(), 0.8044625899304197)
+    assert np.isclose(prediction_np_raw.min(), -0.579937620616439)
+    assert np.isclose(prediction_np_raw.max(), 0.8044625899304197)
 
 
 @pytest.mark.unittest
@@ -77,16 +77,16 @@ def test_calc_gemiddeldgetij_corr(df_meas_2010, df_ext_12_2010):
     prediction_np_corr = gemgetij_dict_corr["neap"]
 
     assert len(prediction_av_corr) == 3726
-    assert np.isclose(prediction_av_corr["values"].min(), -0.6095833333333333)
-    assert np.isclose(prediction_av_corr["values"].max(), 1.1300000000000003)
+    assert np.isclose(prediction_av_corr.min(), -0.6095833333333333)
+    assert np.isclose(prediction_av_corr.max(), 1.1300000000000003)
 
     assert len(prediction_sp_corr) == 3701
-    assert np.isclose(prediction_sp_corr["values"].min(), -0.5700000000000001)
-    assert np.isclose(prediction_sp_corr["values"].max(), 1.3450000000000002)
+    assert np.isclose(prediction_sp_corr.min(), -0.5700000000000001)
+    assert np.isclose(prediction_sp_corr.max(), 1.3450000000000002)
 
     assert len(prediction_np_corr) == 3771
-    assert np.isclose(prediction_np_corr["values"].min(), -0.61)
-    assert np.isclose(prediction_np_corr["values"].max(), 0.8650000000000001)
+    assert np.isclose(prediction_np_corr.min(), -0.61)
+    assert np.isclose(prediction_np_corr.max(), 0.8650000000000001)
 
 
 @pytest.mark.unittest
@@ -108,16 +108,16 @@ def test_calc_gemiddeldgetij_corr_boi(df_meas_2010, df_ext_12_2010):
     prediction_np_corr_boi = gemgetij_dict_corr_boi["neap"]
 
     assert len(prediction_av_corr_boi) == 8196
-    assert np.isclose(prediction_av_corr_boi["values"].min(), -0.6095833333333333)
-    assert np.isclose(prediction_av_corr_boi["values"].max(), 1.1300000000000003)
+    assert np.isclose(prediction_av_corr_boi.min(), -0.6095833333333333)
+    assert np.isclose(prediction_av_corr_boi.max(), 1.1300000000000003)
 
     assert len(prediction_sp_corr_boi) == 8196
-    assert np.isclose(prediction_sp_corr_boi["values"].min(), -0.5700000000000001)
-    assert np.isclose(prediction_sp_corr_boi["values"].max(), 1.3450000000000002)
+    assert np.isclose(prediction_sp_corr_boi.min(), -0.5700000000000001)
+    assert np.isclose(prediction_sp_corr_boi.max(), 1.3450000000000002)
 
     assert len(prediction_np_corr_boi) == 8196
-    assert np.isclose(prediction_np_corr_boi["values"].min(), -0.61)
-    assert np.isclose(prediction_np_corr_boi["values"].max(), 0.8650000000000001)
+    assert np.isclose(prediction_np_corr_boi.min(), -0.61)
+    assert np.isclose(prediction_np_corr_boi.max(), 0.8650000000000001)
 
 
 @pytest.mark.unittest

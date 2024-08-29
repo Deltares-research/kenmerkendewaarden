@@ -231,7 +231,7 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     # We'll just use the years. This assumes that annual waterlevels are used that are stored left-padded, the mean waterlevel for 2020 is stored as 2020-1-1. This is not logical, but common practice.
     allyears_dt = pd.period_range(start=start, end=end)
     mean_array_allyears = pd.Series(mean_array_todate, index=allyears_dt)
-
+    
     mean_array_allyears_nonans = mean_array_allyears.loc[~mean_array_allyears.isnull()]
     if len(mean_array_allyears_nonans) < 2:
         raise ValueError(
@@ -250,6 +250,7 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
     pred_linear = fit.predict(X)
 
     linear_fit = pd.Series(pred_linear, index=allyears_dt, name="values")
+    linear_fit.index.name = mean_array_todate.index.name
     return linear_fit
 
 
