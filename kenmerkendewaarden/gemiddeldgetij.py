@@ -366,9 +366,9 @@ def get_gemgetij_components(data_pd_meas):
     # =============================================================================
     # Hatyan analyse voor 10 jaar (alle componenten voor gemiddelde getijcyclus) #TODO: maybe use original 4y period/componentfile instead? SA/SM should come from 19y analysis
     # =============================================================================
-    const_list = hatyan.get_const_list_hatyan(
-        "year"
-    )  # components should not be reduced, since higher harmonics are necessary
+    
+    # components should not be reduced, since higher harmonics are necessary
+    const_list = hatyan.get_const_list_hatyan("year")  
     hatyan_settings_ana = dict(
         nodalfactors=True,
         fu_alltimes=False,
@@ -430,16 +430,18 @@ def get_gemgetij_components(data_pd_meas):
             .str.isalpha()
         )
         comp_iM = comp_frommeasurements_avg.loc[bool_endswithiM]
-        comp_av.loc[comp_higherharmonics, "A"] = np.sqrt(
-            (comp_iM["A"] ** 2).sum()
-        )  # kwadraatsom
+        # kwadraatsom
+        comp_av.loc[comp_higherharmonics, "A"] = np.sqrt((comp_iM["A"] ** 2).sum())
 
     comp_av.loc["A0"] = comp_frommeasurements_avg.loc["A0"]
 
+    # values are different than 1991.0 document and differs per station while the
+    # document states "Zoals te verwachten is de verhouding per component tussen deze
+    # wortel en de oorspronkelijke amplitude voor alle plaatsen gelijk"    
     logger.debug(
         "verhouding tussen originele en kwadratensom componenten:\n"
         f"{comp_av/comp_frommeasurements_avg.loc[components_av]}"
-    )  # values are different than 1991.0 document and differs per station while the document states "Zoals te verwachten is de verhouding per component tussen deze wortel en de oorspronkelijke amplitude voor alle plaatsen gelijk"
+    )
 
     return comp_frommeasurements_avg, comp_av
 
@@ -464,18 +466,16 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     bool_HW = ts_ext["HWLWcode"] == 1
     idx_HW = np.where(bool_HW)[0]
     timesHW = ts_ext.index[idx_HW]
-    timesLW = ts_ext.index[
-        idx_HW[:-1] + 1
-    ]  # assuming alternating 1,2,1 or 1,3,1, this is always valid in this workflow
+    # assuming alternating 1,2,1 or 1,3,1, this is always valid in this workflow
+    timesLW = ts_ext.index[idx_HW[:-1] + 1]
 
     # crop from first to last HW (rest is not scaled anyway)
     ts_time_firstHW = ts_ext[bool_HW].index[0]
     ts_time_lastHW = ts_ext[bool_HW].index[-1]
     ts_corr = ts.copy().loc[ts_time_firstHW:ts_time_lastHW]
 
-    ts_corr["timedelta"] = (
-        ts_corr.index
-    )  # this is necessary since datetimeindex with freq is not editable, and Series is editable
+    # this is necessary since datetimeindex with freq is not editable, and Series is editable
+    ts_corr["timedelta"] = (ts_corr.index)
     for i in np.arange(0, len(timesHW) - 1):
         HW1_val = ts_corr.loc[timesHW[i], "values"]
         HW2_val = ts_corr.loc[timesHW[i + 1], "values"]
@@ -492,9 +492,8 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
         temp2 = (
             ts_corr.loc[timesLW[i] : timesHW[i + 1], "values"] - LW_val
         ) / TR2_val * TR_goal + LW_goal
-        temp = pd.concat(
-            [temp1, temp2.iloc[1:]]
-        )  # .iloc[1:] since timesLW[i] is in both timeseries (values are equal)
+        # .iloc[1:] since timesLW[i] is in both timeseries (values are equal)
+        temp = pd.concat([temp1, temp2.iloc[1:]])
         ts_corr["values_new"] = temp
 
         tide_HWtoHW = ts_corr.loc[timesHW[i] : timesHW[i + 1]]
