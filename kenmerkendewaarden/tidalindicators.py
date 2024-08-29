@@ -48,49 +48,38 @@ def calc_HWLWtidalindicators(df_ext: pd.DataFrame, min_coverage: float = None):
     raise_extremes_with_aggers(df_ext)
 
     # split to HW and LW separately, also groupby year
-    data_pd_HW = df_ext.loc[df_ext["HWLWcode"] == 1]
-    data_pd_LW = df_ext.loc[df_ext["HWLWcode"] == 2]
+    ser_ext = df_ext["values"]
+    data_pd_HW = df_ext.loc[df_ext["HWLWcode"] == 1]["values"]
+    data_pd_LW = df_ext.loc[df_ext["HWLWcode"] == 2]["values"]
 
     # yearmean HWLW from HWLW values #maybe also add *_mean_permonth
-    HW_mean_peryear = data_pd_HW.groupby(pd.PeriodIndex(data_pd_HW.index, freq="Y"))[
-        ["values"]
-    ].mean()
-    LW_mean_peryear = data_pd_LW.groupby(pd.PeriodIndex(data_pd_LW.index, freq="Y"))[
-        ["values"]
-    ].mean()
+    pi_hw_y = pd.PeriodIndex(data_pd_HW.index, freq="Y")
+    pi_lw_y = pd.PeriodIndex(data_pd_LW.index, freq="Y")
+    HW_mean_peryear = data_pd_HW.groupby(pi_hw_y).mean()
+    LW_mean_peryear = data_pd_LW.groupby(pi_lw_y).mean()
 
     # derive GHHW/GHWS (gemiddeld hoogwater springtij) per month
-    HW_monthmax_permonth = data_pd_HW.groupby(
-        pd.PeriodIndex(data_pd_HW.index, freq="M")
-    )[
-        ["values"]
-    ].max()  # proxy for HW at spring tide
-    LW_monthmin_permonth = data_pd_LW.groupby(
-        pd.PeriodIndex(data_pd_LW.index, freq="M")
-    )[
-        ["values"]
-    ].min()  # proxy for LW at spring tide
-    HW_monthmin_permonth = data_pd_HW.groupby(
-        pd.PeriodIndex(data_pd_HW.index, freq="M")
-    )[
-        ["values"]
-    ].min()  # proxy for HW at neap tide
-    LW_monthmax_permonth = data_pd_LW.groupby(
-        pd.PeriodIndex(data_pd_LW.index, freq="M")
-    )[
-        ["values"]
-    ].max()  # proxy for LW at neap tide
+    pi_hw_m = pd.PeriodIndex(data_pd_HW.index, freq="M")
+    pi_lw_m = pd.PeriodIndex(data_pd_LW.index, freq="M")
+    # proxy for HW at spring tide
+    HW_monthmax_permonth = data_pd_HW.groupby(pi_hw_m).max()
+    # proxy for LW at spring tide
+    LW_monthmin_permonth = data_pd_LW.groupby(pi_lw_m).min()
+    # proxy for HW at neap tide
+    HW_monthmin_permonth = data_pd_HW.groupby(pi_hw_m).min()
+    # proxy for LW at neap tide
+    LW_monthmax_permonth = data_pd_LW.groupby(pi_lw_m).max()
 
     # replace invalids with nan (in case of too less values per month or year)
     if min_coverage is not None:
         assert 0 <= min_coverage <= 1
         # count timeseries values per year/month
-        ext_count_peryear = compute_actual_counts(df_ext, freq="Y")
-        ext_count_permonth = compute_actual_counts(df_ext, freq="M")
+        ext_count_peryear = compute_actual_counts(ser_ext, freq="Y")
+        ext_count_permonth = compute_actual_counts(ser_ext, freq="M")
 
         # compute expected counts and multiply with min_coverage to get minimal counts
-        min_count_peryear = compute_expected_counts(df_ext, freq="Y") * min_coverage
-        min_count_permonth = compute_expected_counts(df_ext, freq="M") * min_coverage
+        min_count_peryear = compute_expected_counts(ser_ext, freq="Y") * min_coverage
+        min_count_permonth = compute_expected_counts(ser_ext, freq="M") * min_coverage
 
         # set all statistics that were based on too little values to nan
         HW_mean_peryear.loc[ext_count_peryear < min_count_peryear] = np.nan
@@ -108,39 +97,27 @@ def calc_HWLWtidalindicators(df_ext: pd.DataFrame, min_coverage: float = None):
     HW_monthmin_permonth = make_periodindex_contiguous(HW_monthmin_permonth)
     LW_monthmax_permonth = make_periodindex_contiguous(LW_monthmax_permonth)
 
-    # derive GHHW/GHWS (gemiddeld hoogwater springtij)
-    HW_monthmax_mean_peryear = HW_monthmax_permonth.groupby(
-        pd.PeriodIndex(HW_monthmax_permonth.index, freq="Y")
-    )[["values"]].mean()
-    LW_monthmin_mean_peryear = LW_monthmin_permonth.groupby(
-        pd.PeriodIndex(LW_monthmin_permonth.index, freq="Y")
-    )[["values"]].mean()
-    HW_monthmin_mean_peryear = HW_monthmin_permonth.groupby(
-        pd.PeriodIndex(HW_monthmin_permonth.index, freq="Y")
-    )[["values"]].mean()
-    LW_monthmax_mean_peryear = LW_monthmax_permonth.groupby(
-        pd.PeriodIndex(LW_monthmax_permonth.index, freq="Y")
-    )[["values"]].mean()
-
+    # derive GHHW/GHWS (proxy for gemiddeld hoogwater/laagwater springtij/doodtij)
+    pi_hw_mmax_pm_y = pd.PeriodIndex(HW_monthmax_permonth.index, freq="Y")
+    pi_lw_mmax_pm_y = pd.PeriodIndex(LW_monthmax_permonth.index, freq="Y")
+    pi_hw_mmin_pm_y = pd.PeriodIndex(HW_monthmin_permonth.index, freq="Y")
+    pi_lw_mmin_pm_y = pd.PeriodIndex(LW_monthmin_permonth.index, freq="Y")
+    HW_monthmax_mean_peryear = HW_monthmax_permonth.groupby(pi_hw_mmax_pm_y).mean()
+    LW_monthmax_mean_peryear = LW_monthmax_permonth.groupby(pi_lw_mmax_pm_y).mean()
+    HW_monthmin_mean_peryear = HW_monthmin_permonth.groupby(pi_hw_mmin_pm_y).mean()
+    LW_monthmin_mean_peryear = LW_monthmin_permonth.groupby(pi_lw_mmin_pm_y).mean()
+    
     dict_tidalindicators = {
-        "HW_mean": data_pd_HW["values"].mean(),  # GHW
-        "LW_mean": data_pd_LW["values"].mean(),  # GLW
-        "HW_mean_peryear": HW_mean_peryear["values"],  # GHW peryear
-        "LW_mean_peryear": LW_mean_peryear["values"],  # GLW peryear
-        "HW_monthmax_permonth": HW_monthmax_permonth["values"],  # GHHW/GHWS permonth
-        "LW_monthmin_permonth": LW_monthmin_permonth["values"],  # GLLW/GLWS permonth
-        "HW_monthmax_mean_peryear": HW_monthmax_mean_peryear[
-            "values"
-        ],  # GHHW/GHWS peryear
-        "LW_monthmin_mean_peryear": LW_monthmin_mean_peryear[
-            "values"
-        ],  # GLLW/GLWS peryear
-        "HW_monthmin_mean_peryear": HW_monthmin_mean_peryear[
-            "values"
-        ],  # GLHW/GHWN peryear
-        "LW_monthmax_mean_peryear": LW_monthmax_mean_peryear[
-            "values"
-        ],  # GHLW/GLWN peryear
+        "HW_mean": data_pd_HW.mean(),  # GHW
+        "LW_mean": data_pd_LW.mean(),  # GLW
+        "HW_mean_peryear": HW_mean_peryear,  # GHW peryear
+        "LW_mean_peryear": LW_mean_peryear,  # GLW peryear
+        "HW_monthmax_permonth": HW_monthmax_permonth,  # GHHW/GHWS permonth
+        "LW_monthmin_permonth": LW_monthmin_permonth,  # GLLW/GLWS permonth
+        "HW_monthmax_mean_peryear": HW_monthmax_mean_peryear,  # GHHW/GHWS peryear
+        "LW_monthmax_mean_peryear": LW_monthmax_mean_peryear,  # GHLW/GLWN peryear
+        "HW_monthmin_mean_peryear": HW_monthmin_mean_peryear,  # GLHW/GHWN peryear
+        "LW_monthmin_mean_peryear": LW_monthmin_mean_peryear,  # GLLW/GLWS peryear
     }
 
     return dict_tidalindicators
@@ -168,24 +145,25 @@ def calc_wltidalindicators(df_meas: pd.DataFrame, min_coverage: float = None):
     if df_meas.index.tz is not None:
         df_meas = df_meas.tz_localize(None)
 
+    # series from dataframe
+    ser_meas = df_meas["values"]
+    
     # yearmean wl from wl values
-    wl_mean_peryear = df_meas.groupby(pd.PeriodIndex(df_meas.index, freq="Y"))[
-        ["values"]
-    ].mean()
-    wl_mean_permonth = df_meas.groupby(pd.PeriodIndex(df_meas.index, freq="M"))[
-        ["values"]
-    ].mean()
+    pi_wl_y = pd.PeriodIndex(ser_meas.index, freq="Y")
+    pi_wl_m = pd.PeriodIndex(ser_meas.index, freq="M")
+    wl_mean_peryear = ser_meas.groupby(pi_wl_y).mean()
+    wl_mean_permonth = ser_meas.groupby(pi_wl_m).mean()
 
     # replace invalids with nan (in case of too less values per month or year)
     if min_coverage is not None:
         assert 0 <= min_coverage <= 1
         # count timeseries values per year/month
-        wl_count_peryear = compute_actual_counts(df_meas, freq="Y")
-        wl_count_permonth = compute_actual_counts(df_meas, freq="M")
+        wl_count_peryear = compute_actual_counts(ser_meas, freq="Y")
+        wl_count_permonth = compute_actual_counts(ser_meas, freq="M")
 
         # compute expected counts and multiply with min_coverage to get minimal counts
-        min_count_peryear = compute_expected_counts(df_meas, freq="Y") * min_coverage
-        min_count_permonth = compute_expected_counts(df_meas, freq="M") * min_coverage
+        min_count_peryear = compute_expected_counts(ser_meas, freq="Y") * min_coverage
+        min_count_permonth = compute_expected_counts(ser_meas, freq="M") * min_coverage
 
         # set all statistics that were based on too little values to nan
         wl_mean_peryear.loc[wl_count_peryear < min_count_peryear] = np.nan
@@ -196,31 +174,31 @@ def calc_wltidalindicators(df_meas: pd.DataFrame, min_coverage: float = None):
     wl_mean_permonth = make_periodindex_contiguous(wl_mean_permonth)
 
     dict_tidalindicators = {
-        "wl_mean": df_meas["values"].mean(),
-        "wl_mean_peryear": wl_mean_peryear["values"],  # yearly mean wl
-        "wl_mean_permonth": wl_mean_permonth["values"],  # monthly mean wl
+        "wl_mean": ser_meas.mean(),
+        "wl_mean_peryear": wl_mean_peryear,  # yearly mean wl
+        "wl_mean_permonth": wl_mean_permonth,  # monthly mean wl
     }
 
     return dict_tidalindicators
 
 
-def compute_actual_counts(df_meas, freq, column="values"):
+def compute_actual_counts(ser_meas, freq):
     """
     Compute the number of non-nan values in a column for all years/months in a timeseries index.
     """
-    df_meas_isnotnull = ~df_meas[column].isnull()
-    period_index = pd.PeriodIndex(df_meas_isnotnull.index, freq=freq)
-    df_actual_counts = df_meas_isnotnull.groupby(period_index).sum()
-    return df_actual_counts
+    ser_meas_isnotnull = ~ser_meas.isnull()
+    period_index = pd.PeriodIndex(ser_meas_isnotnull.index, freq=freq)
+    ser_actual_counts = ser_meas_isnotnull.groupby(period_index).sum()
+    return ser_actual_counts
 
 
-def compute_expected_counts(df_meas, freq):
+def compute_expected_counts(ser_meas, freq):
     """
     Compute the expected number of values for all years/months in a timeseries index,
     by taking the number of days for each year/month and dividing it by the median frequency in that period.
     """
     # TODO: beware of series with e.g. only first and last value of month/year, this will result in freq=30days and then expected count of 2, it will pass even if there is almost no data
-    df_meas = df_meas.copy()
+    df_meas = pd.DataFrame(ser_meas)
     df_meas["timediff"] = pd.TimedeltaIndex([pd.NaT]).append(
         df_meas.index[1:] - df_meas.index[:-1]
     )  # TODO: from pandas>=2.1.4 the following also works: df_times.diff() (which results in a timedeltaindex of the correct length)
@@ -234,8 +212,8 @@ def compute_expected_counts(df_meas, freq):
     else:
         raise ValueError(f"invalid freq: '{freq}'")
     days_inperiod_td = pd.to_timedelta(days_inperiod, unit="D")
-    df_expected_counts = days_inperiod_td / median_freq
-    return df_expected_counts
+    ser_expected_counts = days_inperiod_td / median_freq
+    return ser_expected_counts
 
 
 def make_periodindex_contiguous(df):
