@@ -267,9 +267,9 @@ def calc_gemiddeldgetij(
 
     # combine in single dictionary
     gemgetij_dict = {}
-    gemgetij_dict["mean"] = prediction_av
-    gemgetij_dict["spring"] = prediction_sp
-    gemgetij_dict["neap"] = prediction_np
+    gemgetij_dict["mean"] = prediction_av['values']
+    gemgetij_dict["spring"] = prediction_sp['values']
+    gemgetij_dict["neap"] = prediction_np['values']
 
     return gemgetij_dict
 
@@ -310,21 +310,21 @@ def plot_gemiddeldgetij(
         prediction_av_raw = gemgetij_dict_raw["mean"]
         prediction_sp_raw = gemgetij_dict_raw["spring"]
         prediction_np_raw = gemgetij_dict_raw["neap"]
-        prediction_av_raw["values"].plot(
+        prediction_av_raw.plot(
             ax=ax,
             linestyle="--",
             color=cmap(0),
             linewidth=0.7,
             label="gemiddeldgetij mean (raw)",
         )
-        prediction_sp_raw["values"].plot(
+        prediction_sp_raw.plot(
             ax=ax,
             linestyle="--",
             color=cmap(1),
             linewidth=0.7,
             label="gemiddeldgetij spring (raw)",
         )
-        prediction_np_raw["values"].plot(
+        prediction_np_raw.plot(
             ax=ax,
             linestyle="--",
             color=cmap(2),
@@ -335,11 +335,11 @@ def plot_gemiddeldgetij(
     prediction_av_corr = gemgetij_dict["mean"]
     prediction_sp_corr = gemgetij_dict["spring"]
     prediction_np_corr = gemgetij_dict["neap"]
-    prediction_av_corr["values"].plot(ax=ax, color=cmap(0), label="gemiddeldgetij mean")
-    prediction_sp_corr["values"].plot(
+    prediction_av_corr.plot(ax=ax, color=cmap(0), label="gemiddeldgetij mean")
+    prediction_sp_corr.plot(
         ax=ax, color=cmap(1), label="gemiddeldgetij spring"
     )
-    prediction_np_corr["values"].plot(ax=ax, color=cmap(2), label="gemiddeldgetij neap")
+    prediction_np_corr.plot(ax=ax, color=cmap(2), label="gemiddeldgetij neap")
 
     ax.set_title(f"getijkrommes for {station}")
     ax.legend(loc=4)
