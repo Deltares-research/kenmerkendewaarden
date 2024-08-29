@@ -21,11 +21,18 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-def get_threshold_rowidx(df):
+def get_threshold_rowidx(ser):
     # TODO: base on frequency or value?
     thresholfreq = 3  # take a frequency that is at least higher than the max HYDRA frequency (which is 1)
-    rowidx_tresholdfreq = np.abs(df.index - thresholfreq).argmin()
+    rowidx_tresholdfreq = np.abs(ser.index - thresholfreq).argmin()
     return rowidx_tresholdfreq
+
+
+def series_copy_properties(ser, ser_reference):
+    # copy attrs index name and values name from reference to series
+    ser.attrs = ser_reference.attrs
+    ser.index.name = ser_reference.index.name
+    ser.name = ser_reference.name
 
 
 def calc_overschrijding(
@@ -76,38 +83,38 @@ def calc_overschrijding(
 
     if clip_physical_break:
         df_extrema = clip_timeseries_physical_break(df_extrema)
-    df_extrema_clean = df_extrema.copy()[
-        ["values"]
-    ]  # drop all info but the values (times-idx, HWLWcode etc)
+    # drop all info but the values (times-idx, HWLWcode etc)
+    ser_extrema = df_extrema.copy()["values"]
 
     if dist is None:
         dist = {}
 
     logger.info(f"Calculate unfiltered distribution (inverse={inverse})")
-    dist["Ongefilterd"] = distribution(df_extrema_clean, inverse=inverse)
+    dist["Ongefilterd"] = distribution(ser_extrema, inverse=inverse)
 
     # TODO: re-enable filter for river discharge peaks
-    """# filtering is only applicable for stations with high river discharge influence, so disabled #TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem. Er is dan een treshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
+    #TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem. Er is dan een treshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
+    """# filtering is only applicable for stations with high river discharge influence, so disabled
     logger.info('Calculate filtered distribution')
-    df_peaks, threshold, _ = detect_peaks(df_extrema_clean)
+    ser_peaks, threshold, _ = detect_peaks(ser_extrema)
     if metadata_station['apply_treshold']:
         temp[metadata_station['id']] = threshold
-        df_extrema_filt = filter_with_threshold(df_extrema_clean, df_peaks, threshold)
+        ser_extrema_filt = filter_with_threshold(ser_extrema, ser_peaks, threshold)
     else:
-        df_extrema_filt = df_extrema_clean.copy()
-    dist['Gefilterd'] = distribution(df_extrema_filt.copy())
+        ser_extrema_filt = ser_extrema.copy()
+    dist['Gefilterd'] = distribution(ser_extrema_filt.copy())
     """
 
     logger.info("Calculate filtered distribution with trendanalysis")
-    df_trend = apply_trendanalysis(
-        df_extrema_clean, rule_type=rule_type, rule_value=rule_value
+    ser_trend = apply_trendanalysis(
+        ser_extrema, rule_type=rule_type, rule_value=rule_value
     )
-    dist["Trendanalyse"] = distribution(df_trend.copy(), inverse=inverse)
+    dist["Trendanalyse"] = distribution(ser_trend.copy(), inverse=inverse)
 
     logger.info("Fit Weibull to filtered distribution with trendanalysis")
     idx_maxfreq_trend = get_threshold_rowidx(dist["Trendanalyse"])
-    treshold_value = dist["Trendanalyse"].iloc[idx_maxfreq_trend]["values"]
-    treshold_Tfreq = dist["Trendanalyse"].iloc[idx_maxfreq_trend].name
+    treshold_value = dist["Trendanalyse"].iloc[idx_maxfreq_trend]
+    treshold_Tfreq = dist["Trendanalyse"].index[idx_maxfreq_trend]
     dist["Weibull"] = get_weibull(
         dist["Trendanalyse"].copy(),
         threshold=treshold_value,
@@ -118,27 +125,20 @@ def calc_overschrijding(
     if "Hydra-NL" in dist.keys():
         logger.info("Blend trend, weibull and Hydra-NL")
         # TODO: now based on hardcoded Hydra-NL dict key which is already part of the input dist dict, this is tricky
-        df_hydra = dist["Hydra-NL"].copy()
+        ser_hydra = dist["Hydra-NL"].copy()
     else:
         logger.info("Blend trend and weibull")
-        df_hydra = None
+        ser_hydra = None
     dist["Gecombineerd"] = blend_distributions(
-        df_trend=dist["Trendanalyse"].copy(),
-        df_weibull=dist["Weibull"].copy(),
-        df_hydra=df_hydra,
+        ser_trend=dist["Trendanalyse"].copy(),
+        ser_weibull=dist["Weibull"].copy(),
+        ser_hydra=ser_hydra,
     )
 
     if interp_freqs is not None:
         dist["Geinterpoleerd"] = interpolate_interested_Tfreqs(
             dist["Gecombineerd"], Tfreqs=interp_freqs
         )
-
-    """
-    if row['apply_treshold']:
-        keys = list(dist.keys())
-    else:
-        keys = [x for x in list(dist.keys()) if x != 'Gefilterd']
-    """
 
     return dist
 
@@ -188,6 +188,7 @@ def check_peakside(values, _i, multiplier, window, threshold):
 def detect_peaks_hkv(
     df: pd.DataFrame, window: int, inverse: bool = False, threshold: float = None
 ) -> pd.DataFrame:
+    # TODO: still to be converted from dataframe to series
     _df = df.copy()
     if inverse:
         _df["values"] = -_df["values"]
@@ -273,37 +274,38 @@ def detect_peaks_hkv(
 
 
 def distribution(
-    df: pd.DataFrame,
-    col: str = None,
+    ser: pd.Series,
     c: float = -0.3,
     d: float = 0.4,
     inverse: bool = False,
-) -> pd.DataFrame:
-    col = df.columns[0] if col is None else col
-    years = get_total_years(df)
+) -> pd.Series:
+    years = get_total_years(ser)
     if inverse:
-        df = df.sort_values(by=col, ascending=False)
+        ser = ser.sort_values(ascending=False)
     else:
-        df = df.sort_values(by=col)
-    rank = np.array(range(len(df[col]))) + 1
-    df.index = (1 - (rank + c) / (len(rank) + d)) * (len(rank) / years)
-    df_sorted = df.sort_index(ascending=False)
-
-    return df_sorted
+        ser = ser.sort_values()
+    rank = np.array(range(len(ser))) + 1
+    ser.index = (1 - (rank + c) / (len(rank) + d)) * (len(rank) / years)
+    ser_sorted = ser.sort_index(ascending=False)
+    
+    series_copy_properties(ser=ser_sorted, ser_reference=ser)
+    ser_sorted.index.name = "frequency"
+    return ser_sorted
 
 
 def get_weibull(
-    df: pd.DataFrame,
+    ser: pd.Series,
     threshold: float,
     Tfreqs: np.ndarray,
     col: str = None,
     inverse: bool = False,
-) -> pd.DataFrame:
-    values = df["values"].values
+) -> pd.Series:
+    
+    values = ser.values
     if inverse:
         values = -values
         threshold = -threshold
-    p_val_gt_threshold = df.index[values > threshold][0]
+    p_val_gt_threshold = ser.index[values > threshold][0]
 
     def pfunc(x, p_val_gt_threshold, threshold, sigma, alpha):
         return p_val_gt_threshold * np.exp(
@@ -347,52 +349,48 @@ def get_weibull(
     new_values = pfunc_inverse(Tfreqs, p_val_gt_threshold, threshold, sigma, alpha)
     if inverse:
         new_values = -new_values
-    pd_return = pd.DataFrame(data={"values": new_values}, index=Tfreqs).sort_index(
-        ascending=False
-    )
+    ser_weibull = pd.Series(new_values, index=Tfreqs).sort_index(ascending=False)
 
-    # copy attributes
-    pd_return.attrs = df.attrs
-    return pd_return
+    series_copy_properties(ser=ser_weibull, ser_reference=ser)
+    return ser_weibull
 
 
 def filter_with_threshold(
-    df_raw: pd.DataFrame,
-    df_filtered: pd.DataFrame,
+    ser_raw: pd.Series,
+    ser_filtered: pd.Series,
     threshold: float,
     inverse: bool = False,
-) -> pd.DataFrame:
+) -> pd.Series:
     if inverse:
         return pd.concat(
             [
-                df_raw[df_raw["values"] >= threshold],
-                df_filtered[df_filtered["values"] < threshold],
+                ser_raw[ser_raw >= threshold],
+                ser_filtered[ser_filtered < threshold],
             ],
             axis=0,
         ).sort_index()
     else:
         return pd.concat(
             [
-                df_raw[df_raw["values"] <= threshold],
-                df_filtered[df_filtered["values"] > threshold],
+                ser_raw[ser_raw <= threshold],
+                ser_filtered[ser_filtered > threshold],
             ],
             axis=0,
         ).sort_index()
 
 
-def detect_peaks(df: pd.DataFrame, prominence: int = 10, inverse: bool = False):
-    df = df.copy()
+def detect_peaks(ser: pd.Series, prominence: int = 10, inverse: bool = False):
+    ser = ser.copy()
     if inverse:
-        df["values"] = -1 * df["values"]
-    peak_indices = signal.find_peaks(df["values"].values, prominence=prominence)[0]
-    df_peaks = pd.DataFrame(
-        data={"values": df["values"].iloc[peak_indices]},
-        index=df.iloc[peak_indices].index,
-    )
+        ser = -1 * ser
+    peak_indices = signal.find_peaks(ser.values, prominence=prominence)[0]
+    ser_peaks = pd.Series(ser.iloc[peak_indices],
+                          index=ser.iloc[peak_indices].index,
+                          )
     threshold = determine_threshold(
-        values=df["values"].values, peak_indices=peak_indices
+        values=ser.values, peak_indices=peak_indices
     )
-    return df_peaks, threshold, peak_indices
+    return ser_peaks, threshold, peak_indices
 
 
 def determine_threshold(values: np.ndarray, peak_indices: np.ndarray) -> float:
@@ -408,80 +406,82 @@ def determine_threshold(values: np.ndarray, peak_indices: np.ndarray) -> float:
     return threshold
 
 
-def get_total_years(df: pd.DataFrame) -> float:
-    return (df.index[-1] - df.index[0]).total_seconds() / (3600 * 24 * 365)
+def get_total_years(ser: pd.Series) -> float:
+    return (ser.index[-1] - ser.index[0]).total_seconds() / (3600 * 24 * 365)
 
 
 def apply_trendanalysis(
-    df: pd.DataFrame, rule_type: str, rule_value: Union[pd.Timestamp, float]
+    ser: pd.Series, rule_type: str, rule_value: Union[pd.Timestamp, float]
 ):
     # There are 2 rule types:  - break -> Values before break are removed
     #                          - linear -> Values are increased/lowered based on value in value/year. It is assumes
     #                                      that there is no linear trend at the latest time (so it works its way back
     #                                      in the past). rule_value should be entered as going forward in time
     if rule_type == "break":
-        return df[rule_value:].copy()
+        ser_out = ser[rule_value:].copy()
     elif rule_type == "linear":
         rule_value = float(rule_value)
-        df = df.copy()
+        ser = ser.copy()
         dx = np.array(
             [
                 rule_value * x.total_seconds() / (365 * 24 * 3600)
-                for x in (df.index[-1] - df.index)
+                for x in (ser.index[-1] - ser.index)
             ]
         )
-        df["values"] = df["values"] + dx
-        return df
+        ser = ser + dx
+        ser_out = ser
     elif rule_type is None:
-        return df.copy()
+        ser_out = ser.copy()
     else:
         raise ValueError(
             f'Incorrect rule_type="{rule_type}" passed to function. Only "break", "linear" or None are supported'
         )
+    ser_out.index.name = "frequency"
+    return ser_out
 
 
 def blend_distributions(
-    df_trend: pd.DataFrame, df_weibull: pd.DataFrame, df_hydra: pd.DataFrame = None
+    ser_trend: pd.Series, ser_weibull: pd.Series, ser_hydra: pd.Series = None
 ) -> pd.DataFrame:
 
     # get and compare station attributes
-    df_list = [df_trend, df_weibull, df_hydra]
-    station_attrs = [df.attrs["station"] for df in df_list if df is not None]
+    ser_list = [ser_trend, ser_weibull, ser_hydra]
+    station_attrs = [ser.attrs["station"] for ser in ser_list if ser is not None]
     assert all(x == station_attrs[0] for x in station_attrs)
 
-    df_trend = df_trend.sort_index(ascending=False)
-    df_weibull = df_weibull.sort_index(ascending=False)
+    ser_trend = ser_trend.sort_index(ascending=False)
+    ser_weibull = ser_weibull.sort_index(ascending=False)
 
     # Trend to weibull
-    idx_maxfreq_trend = get_threshold_rowidx(df_trend)
-    df_blended1 = df_trend.iloc[:idx_maxfreq_trend].copy()
-    df_weibull = df_weibull.loc[df_weibull.index < df_blended1.index[-1]].copy()
+    idx_maxfreq_trend = get_threshold_rowidx(ser_trend)
+    ser_blended1 = ser_trend.iloc[:idx_maxfreq_trend].copy()
+    ser_weibull = ser_weibull.loc[ser_weibull.index < ser_blended1.index[-1]].copy()
 
     # Weibull to Hydra
-    if df_hydra is not None:
-        df_hydra = df_hydra.sort_index(ascending=False)
+    if ser_hydra is not None:
+        ser_hydra = ser_hydra.sort_index(ascending=False)
 
-        Tfreqs_combined = np.unique(np.concatenate((df_weibull.index, df_hydra.index)))
+        Tfreqs_combined = np.unique(np.concatenate((ser_weibull.index, ser_hydra.index)))
         vals_weibull = np.interp(
             Tfreqs_combined,
-            np.flip(df_weibull.index),
-            np.flip(df_weibull["values"].values),
+            np.flip(ser_weibull.index),
+            np.flip(ser_weibull.values),
         )
         vals_hydra = np.interp(
-            Tfreqs_combined, np.flip(df_hydra.index), np.flip(df_hydra["values"].values)
+            Tfreqs_combined, np.flip(ser_hydra.index), np.flip(ser_hydra.values)
         )
 
-        Tfreq0, TfreqN = df_hydra.index[0], 1 / 50
+        Tfreq0, TfreqN = ser_hydra.index[0], 1 / 50
         Tfreqs = np.logspace(np.log10(TfreqN), np.log10(Tfreq0), int(1e5))
         vals_weibull = np.interp(
             np.log10(Tfreqs),
-            np.log10(np.flip(df_weibull.index)),
-            np.flip(df_weibull["values"].values),
+            np.log10(np.flip(ser_weibull.index)),
+            np.flip(ser_weibull.values),
         )
         vals_hydra = np.interp(
             np.log10(Tfreqs),
-            np.log10(np.flip(df_hydra.index)),
-            np.flip(df_hydra["values"].values),
+            np.log10(np.flip(ser_hydra.index)),
+            np.flip(ser_hydra.values),
         )
         indices = np.arange(len(Tfreqs))
         grads = np.flip(np.arange(len(indices))) / len(indices) * np.pi
@@ -491,48 +491,45 @@ def blend_distributions(
             + (1 - 0.5 * (np.cos(grads) + 1)) * vals_hydra[indices]
         )
 
-        df_blended2 = pd.DataFrame(
-            data={"values": vals_blend}, index=Tfreqs
-        ).sort_index(ascending=False)
+        ser_blended2 = pd.Series(vals_blend, 
+                                index=Tfreqs
+                                ).sort_index(ascending=False)
 
-        df_blended = pd.concat(
+        ser_blended = pd.concat(
             [
-                df_blended1,
-                df_weibull.loc[
-                    (df_weibull.index > df_blended2.index[0])
-                    & (df_weibull.index < df_blended1.index[-1])
+                ser_blended1,
+                ser_weibull.loc[
+                    (ser_weibull.index > ser_blended2.index[0])
+                    & (ser_weibull.index < ser_blended1.index[-1])
                 ],
-                df_blended2,
-                df_hydra.loc[df_hydra.index < df_blended2.index[-1]],
+                ser_blended2,
+                ser_hydra.loc[ser_hydra.index < ser_blended2.index[-1]],
             ],
             axis=0,
         )
     else:
-        df_blended = pd.concat(
-            [df_blended1, df_weibull.loc[(df_weibull.index < df_blended1.index[-1])]],
+        ser_blended = pd.concat(
+            [ser_blended1, ser_weibull.loc[(ser_weibull.index < ser_blended1.index[-1])]],
             axis=0,
         )
 
-    duplicated_freqs = df_blended.index.duplicated(keep="first")
-    df_blended = df_blended.loc[~duplicated_freqs].sort_index(ascending=False)
+    duplicated_freqs = ser_blended.index.duplicated(keep="first")
+    ser_blended = ser_blended.loc[~duplicated_freqs].sort_index(ascending=False)
 
-    # copy attrs
-    df_blended.attrs = df_trend.attrs
-    return df_blended
+    series_copy_properties(ser=ser_blended, ser_reference=ser_trend)
+    
+    return ser_blended
 
 
 def interpolate_interested_Tfreqs(
-    df: pd.DataFrame, Tfreqs: List[float]
+    ser: pd.Series, Tfreqs: List[float]
 ) -> pd.DataFrame:
 
-    interp_vals = np.interp(Tfreqs, np.flip(df.index), np.flip(df["values"].values))
-    df_interp = pd.DataFrame(data={"values": interp_vals}, index=Tfreqs).sort_index(
-        ascending=False
-    )
+    interp_vals = np.interp(Tfreqs, np.flip(ser.index), np.flip(ser.values))
+    ser_interp = pd.Series(interp_vals, index=Tfreqs).sort_index(ascending=False)
 
-    # copy attrs
-    df_interp.attrs = df.attrs
-    return df_interp
+    series_copy_properties(ser=ser_interp, ser_reference=ser)
+    return ser_interp
 
 
 def plot_overschrijding(dist: dict):
@@ -576,11 +573,11 @@ def plot_overschrijding(dist: dict):
         else:
             c = None
         if k == "Gecombineerd":
-            ax.plot(dist[k]["values"], "--", label=k, c=c)
+            ax.plot(dist[k], "--", label=k, c=c)
         elif k == "Geinterpoleerd":
-            ax.plot(dist[k]["values"], "o", label=k, c=c, markersize=5)
+            ax.plot(dist[k], "o", label=k, c=c, markersize=5)
         else:
-            ax.plot(dist[k]["values"], label=k, c=c)
+            ax.plot(dist[k], label=k, c=c)
 
     ax.set_title(f"Distribution for {station}")
     ax.set_xlabel("Frequency [1/yrs]")

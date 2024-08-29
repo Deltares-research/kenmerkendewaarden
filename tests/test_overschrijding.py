@@ -31,11 +31,11 @@ def test_calc_overschrijding_outputtype(df_ext_12_2010_2014):
 
     assert isinstance(dist, dict)
     for k, v in dist.items():
-        assert isinstance(v, pd.DataFrame)
-        assert v.columns == ["values"]
+        assert isinstance(v, pd.Series)
+        assert v.name == "values"
         assert isinstance(v.index, pd.Index)
         assert str(v.index.dtype) == "float64"
-        assert v.index.name is None  # TODO: rename to 'frequency'
+        assert v.index.name == "frequency"
 
 
 @pytest.mark.unittest
@@ -79,7 +79,7 @@ def test_calc_overschrijding(df_ext_12_2010_2014):
             4.00701551,
         ]
     )
-    assert np.allclose(dist["Geinterpoleerd"]["values"].values, expected_values)
+    assert np.allclose(dist["Geinterpoleerd"].values, expected_values)
 
 
 @pytest.mark.unittest
@@ -96,42 +96,14 @@ def test_calc_overschrijding_with_hydra(df_ext_12_2010_2014):
         1 / 100,
         1 / 200,
     ]
-    df_hydra = pd.DataFrame(
-        {
-            "values": np.array(
-                [
-                    2.473,
-                    3.18,
-                    4.043,
-                    4.164,
-                    4.358,
-                    4.696,
-                    5.056,
-                    5.468,
-                    5.865,
-                    6.328,
-                    7.207,
-                ]
-            )
-        },
-        index=np.array(
-            [
-                1.00000000e00,
-                1.00000000e-01,
-                2.00000000e-02,
-                1.00000000e-02,
-                3.33333333e-03,
-                1.00000000e-03,
-                3.33333333e-04,
-                1.00000000e-04,
-                3.33333333e-05,
-                1.00000000e-05,
-                1.00000000e-06,
-            ]
-        ),
-    )
-    df_hydra.attrs = df_ext_12_2010_2014.attrs
-    dist_hydra = {"Hydra-NL": df_hydra}
+    hydra_values = np.array([2.473, 3.18 , 4.043, 4.164, 4.358, 4.696, 5.056, 5.468, 5.865,
+           6.328, 7.207])
+    hydra_index = np.array([1.00000000e+00, 1.00000000e-01, 2.00000000e-02, 1.00000000e-02,
+           3.33333333e-03, 1.00000000e-03, 3.33333333e-04, 1.00000000e-04,
+           3.33333333e-05, 1.00000000e-05, 1.00000000e-06])
+    ser_hydra = pd.Series(hydra_values, index=hydra_index)
+    ser_hydra.attrs = df_ext_12_2010_2014.attrs
+    dist_hydra = {"Hydra-NL": ser_hydra}
     dist = kw.calc_overschrijding(
         df_ext=df_ext_12_2010_2014, interp_freqs=Tfreqs_interested, dist=dist_hydra
     )
@@ -160,7 +132,7 @@ def test_calc_overschrijding_with_hydra(df_ext_12_2010_2014):
             4.3095,
         ]
     )
-    assert np.allclose(dist["Geinterpoleerd"]["values"].values, expected_values)
+    assert np.allclose(dist["Geinterpoleerd"].values, expected_values)
 
 
 @pytest.mark.unittest
@@ -207,7 +179,7 @@ def test_calc_overschrijding_rule_type_break(df_ext_12_2010_2014):
             3.90661043,
         ]
     )
-    assert np.allclose(dist["Geinterpoleerd"]["values"].values, expected_values)
+    assert np.allclose(dist["Geinterpoleerd"].values, expected_values)
 
 
 @pytest.mark.unittest
@@ -267,7 +239,7 @@ def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
         ]
     )
     assert np.allclose(
-        dist_normal["Geinterpoleerd"]["values"].values, expected_values_normal
+        dist_normal["Geinterpoleerd"].values, expected_values_normal
     )
     expected_values_clip = np.array(
         [
@@ -284,7 +256,7 @@ def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
         ]
     )
     assert np.allclose(
-        dist_clip["Geinterpoleerd"]["values"].values, expected_values_clip
+        dist_clip["Geinterpoleerd"].values, expected_values_clip
     )
 
 
