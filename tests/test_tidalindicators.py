@@ -13,9 +13,11 @@ import pandas as pd
 @pytest.mark.unittest
 def test_calc_tidalindicators_outputtype(df_meas_2010_2014, df_ext_12_2010):
     wl_dict = kw.calc_wltidalindicators(df_meas_2010_2014)
+    wl_dict_min = kw.calc_wltidalindicators(df_meas_2010_2014, min_coverage=1)
     hwlw_dict = kw.calc_HWLWtidalindicators(df_ext_12_2010)
+    hwlw_dict_min = kw.calc_HWLWtidalindicators(df_ext_12_2010, min_coverage=1)
 
-    for indicators_dict in [wl_dict, hwlw_dict]:
+    for indicators_dict in [wl_dict, wl_dict_min, hwlw_dict, hwlw_dict_min]:
         assert isinstance(indicators_dict, dict)
         for k, v in indicators_dict.items():
             assert isinstance(v, (pd.Series, float))
@@ -23,7 +25,7 @@ def test_calc_tidalindicators_outputtype(df_meas_2010_2014, df_ext_12_2010):
                 continue
             assert v.name == "values"
             assert isinstance(v.index, pd.PeriodIndex)
-            assert v.index.name is None  # TODO: rename to `period`
+            assert v.index.name == "period"
 
 
 @pytest.mark.unittest

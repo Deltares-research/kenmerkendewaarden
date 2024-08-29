@@ -70,6 +70,13 @@ def calc_HWLWtidalindicators(df_ext: pd.DataFrame, min_coverage: float = None):
     # proxy for LW at neap tide
     LW_monthmax_permonth = data_pd_LW.groupby(pi_lw_m).max()
 
+    ser_list = [HW_mean_peryear, LW_mean_peryear,
+                HW_monthmax_permonth, LW_monthmin_permonth, 
+                HW_monthmin_permonth, LW_monthmax_permonth, 
+                ]
+    for ser_one in ser_list:
+        ser_one.index.name = "period"
+
     # replace invalids with nan (in case of too less values per month or year)
     if min_coverage is not None:
         assert 0 <= min_coverage <= 1
@@ -152,7 +159,9 @@ def calc_wltidalindicators(df_meas: pd.DataFrame, min_coverage: float = None):
     pi_wl_y = pd.PeriodIndex(ser_meas.index, freq="Y")
     pi_wl_m = pd.PeriodIndex(ser_meas.index, freq="M")
     wl_mean_peryear = ser_meas.groupby(pi_wl_y).mean()
+    wl_mean_peryear.index.name = "period"
     wl_mean_permonth = ser_meas.groupby(pi_wl_m).mean()
+    wl_mean_permonth.index.name = "period"
 
     # replace invalids with nan (in case of too less values per month or year)
     if min_coverage is not None:
@@ -228,6 +237,7 @@ def make_periodindex_contiguous(df):
 
     # add attrs from input dataframe
     df_full.attrs = df.attrs
+    df_full.index.name = df.index.name
     return df_full
 
 

@@ -17,7 +17,7 @@ def test_calc_slotgemiddelden_outputtype(df_meas_2010_2014, df_ext_12_2010_2014)
         assert isinstance(v, pd.Series)
         assert v.name == "values"
         assert isinstance(v.index, pd.PeriodIndex)
-        assert v.index.name is None  # TODO: rename to 'period'
+        assert v.index.name == "period"
 
 
 @pytest.mark.unittest
