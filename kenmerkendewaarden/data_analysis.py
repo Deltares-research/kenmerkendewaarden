@@ -66,13 +66,13 @@ def plot_measurements_amount(df: pd.DataFrame, relative: bool = False):
     return fig, ax
 
 
-def plot_measurements(df: pd.DataFrame, df_ext: pd.DataFrame = None):
+def plot_measurements(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None):
     """
     Generate a timeseries figure for the measurement timeseries (and extremes) of this station.
 
     Parameters
     ----------
-    df : pd.DataFrame
+    df_meas : pd.DataFrame
         Dataframe with the measurement timeseries for a particular station.
     df_ext : pd.DataFrame, optional
         Dataframe with the measurement extremes for a particular station.
@@ -85,17 +85,17 @@ def plot_measurements(df: pd.DataFrame, df_ext: pd.DataFrame = None):
         Figure axis handle.
 
     """
-    station_df = df.attrs["station"]
+    station_df = df_meas.attrs["station"]
     if df_ext is not None:
         station_df_ext = df_ext.attrs["station"]
         assert station_df == station_df_ext
-        fig, (ax1, ax2) = hatyan.plot_timeseries(ts=df, ts_ext=df_ext)
+        fig, (ax1, ax2) = hatyan.plot_timeseries(ts=df_meas, ts_ext=df_ext)
     else:
-        fig, (ax1, ax2) = hatyan.plot_timeseries(ts=df)
+        fig, (ax1, ax2) = hatyan.plot_timeseries(ts=df_meas)
     ax1.set_title(f"timeseries for {station_df}")
 
     # calculate monthly/yearly mean for meas wl data
-    df_meas_values = df["values"]
+    df_meas_values = df_meas["values"]
     mean_peryearmonth_long = df_meas_values.groupby(
         pd.PeriodIndex(df_meas_values.index, freq="M")
     ).mean()
