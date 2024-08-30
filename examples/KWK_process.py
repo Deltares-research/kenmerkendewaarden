@@ -13,8 +13,8 @@ import logging
 logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-# TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT'], overview in https://github.com/Deltares-research/kenmerkendewaarden/issues/101 and the linked wm-ws-dl issue.
-# TODO: if persists with updated ddl data, consider catching this ValueError: https://github.com/Deltares/hatyan/issues/311 and https://github.com/Deltares/hatyan/issues/327
+# TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
+# overview in https://github.com/Deltares-research/kenmerkendewaarden/issues/101 and the linked wm-ws-dl issue
 
 tstart_dt = pd.Timestamp(2011,1,1, tz="UTC+01:00")
 tstop_dt = pd.Timestamp(2021,1,1, tz="UTC+01:00")
@@ -27,8 +27,6 @@ print(f'year_slotgem: {year_slotgem}')
 # dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
 dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
-# TODO: move to full data folder (otherwise overschrijding and slotgemiddelde is completely wrong)
-# dir_meas = os.path.join(dir_base,'measurements_wl_20101201_20220201')
 
 dir_indicators = os.path.join(dir_base,f'out_tidalindicators_{year_slotgem}')
 dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
