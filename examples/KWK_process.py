@@ -56,6 +56,9 @@ station_list = ["HOEKVHLD"]
 
 # skip STELLDBTN since it has only extremes from 1984 to 1996: https://github.com/Deltares-research/kenmerkendewaarden/issues/125
 stations_skip = ["STELLDBTN"]
+# skip stations that raise "HW numbers not always increasing" because of almost-duplicated extremes
+# TODO: https://github.com/Deltares-research/kenmerkendewaarden/issues/101
+stations_skip += ["BROUWHVSGT08", "DENOVBTN", "HANSWT", "IJMDBTHVN"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
