@@ -97,7 +97,7 @@ def test_plot_measurements_amount(dir_meas_amount, extremes):
 
 @pytest.mark.unittest
 def test_plot_measurements(df_meas_2010, df_ext_2010):
-    kw.plot_measurements(df=df_meas_2010, df_ext=df_ext_2010)
+    kw.plot_measurements(df_meas=df_meas_2010, df_ext=df_ext_2010)
 
 
 @pytest.mark.unittest
