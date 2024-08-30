@@ -81,37 +81,37 @@ for current_station in station_list:
     plt.close('all')
     
     # timeseries are used for slotgemiddelden, gemgetijkrommen (needs slotgem+havget)
-    data_pd_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False, 
-                                            nap_correction=nap_correction, drop_duplicates=drop_duplicates)
-    if data_pd_meas_all is not None:
+    df_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False, 
+                                       nap_correction=nap_correction, drop_duplicates=drop_duplicates)
+    if df_meas_all is not None:
         #crop measurement data
-        data_pd_meas_10y = hatyan.crop_timeseries(data_pd_meas_all, times=slice(tstart_dt,tstop_dt-dt.timedelta(minutes=10)))#,onlyfull=False)
+        df_meas_10y = hatyan.crop_timeseries(df_meas_all, times=slice(tstart_dt,tstop_dt-dt.timedelta(minutes=10)))#,onlyfull=False)
     
     # extremes are used for slotgemiddelden, havengetallen, overschrijding
-    data_pd_HWLW_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True,
-                                            nap_correction=nap_correction, drop_duplicates=drop_duplicates)
-    if data_pd_HWLW_all is not None:
+    df_ext_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True,
+                                      nap_correction=nap_correction, drop_duplicates=drop_duplicates)
+    if df_ext_all is not None:
         # TODO: make calc_HWLW12345to12() faster: https://github.com/Deltares/hatyan/issues/311
-        data_pd_HWLW_all_12 = hatyan.calc_HWLW12345to12(data_pd_HWLW_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
+        df_ext_all_12 = hatyan.calc_HWLW12345to12(df_ext_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
         #crop timeseries to 10y
-        data_pd_HWLW_10y_12 = hatyan.crop_timeseries(data_pd_HWLW_all_12, times=slice(tstart_dt,tstop_dt),onlyfull=False)
+        df_ext_10y_12 = hatyan.crop_timeseries(df_ext_all_12, times=slice(tstart_dt,tstop_dt),onlyfull=False)
     
     
     
     
     #### TIDAL INDICATORS
-    if compute_indicators and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
+    if compute_indicators and df_meas_all is not None and df_ext_all is not None:
         print(f'tidal indicators for {current_station}')
         # compute and plot tidal indicators
-        dict_wltidalindicators = kw.calc_wltidalindicators(data_pd_meas_all, min_coverage=min_coverage)
-        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(data_pd_HWLW_all_12, min_coverage=min_coverage)
+        dict_wltidalindicators = kw.calc_wltidalindicators(df_meas=df_meas_all, min_coverage=min_coverage)
+        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(df_ext=df_ext_all_12, min_coverage=min_coverage)
         
         # add hat/lat
-        df_meas_19y = data_pd_meas_all.loc["2001":"2019"]
+        df_meas_19y = df_meas_all.loc["2001":"2019"]
         hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_19y)
         dict_HWLWtidalindicators["hat"] = hat
         dict_HWLWtidalindicators["lat"] = lat
-                
+        
         # merge dictionaries
         dict_wltidalindicators.update(dict_HWLWtidalindicators)
         
@@ -128,17 +128,17 @@ for current_station in station_list:
     #### SLOTGEMIDDELDEN
     # TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
     # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
-    if compute_slotgem and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
+    if compute_slotgem and df_meas_all is not None and df_ext_all is not None:
         print(f'slotgemiddelden for {current_station}')
                 
         # compute slotgemiddelden, exclude all values after tstop_dt (is year_slotgem)
         # including years with too little values and years before physical break
-        slotgemiddelden_all = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
-                                                      df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
+        slotgemiddelden_all = kw.calc_slotgemiddelden(df_meas=df_meas_all.loc[:tstop_dt], 
+                                                      df_ext=df_ext_all_12.loc[:tstop_dt], 
                                                       min_coverage=0, clip_physical_break=True)
         # only years with enough values and after potential physical break
-        slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=data_pd_meas_all.loc[:tstop_dt], 
-                                                        df_ext=data_pd_HWLW_all_12.loc[:tstop_dt], 
+        slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=df_meas_all.loc[:tstop_dt], 
+                                                        df_ext=df_ext_all_12.loc[:tstop_dt], 
                                                         min_coverage=min_coverage, clip_physical_break=True)
         
         # plot slotgemiddelden
@@ -173,16 +173,16 @@ for current_station in station_list:
     
     
     ### HAVENGETALLEN 
-    if compute_havengetallen and data_pd_HWLW_all is not None:
+    if compute_havengetallen and df_ext_all is not None:
         print(f'havengetallen for {current_station}')
-        df_havengetallen, data_pd_HWLW = kw.calc_havengetallen(df_ext=data_pd_HWLW_10y_12, return_df_ext=True)
+        df_havengetallen, df_HWLW = kw.calc_havengetallen(df_ext=df_ext_10y_12, return_df_ext=True)
         
         # plot hwlw per timeclass including median
-        fig, axs = kw.plot_HWLW_pertimeclass(data_pd_HWLW, df_havengetallen)
+        fig, axs = kw.plot_HWLW_pertimeclass(df_ext=df_HWLW, df_havengetallen=df_havengetallen)
         fig.savefig(os.path.join(dir_havget,f'HWLW_pertijdsklasse_inclmedianline_{current_station}'))
         
         # plot aardappelgrafiek
-        fig, (ax1,ax2) = kw.plot_aardappelgrafiek(df_havengetallen)
+        fig, (ax1,ax2) = kw.plot_aardappelgrafiek(df_havengetallen=df_havengetallen)
         fig.savefig(os.path.join(dir_havget, f'aardappelgrafiek_{year_slotgem}_{current_station}'))
         
         #write to csv
@@ -192,18 +192,18 @@ for current_station in station_list:
     
     
     ##### GEMIDDELDE GETIJKROMMEN
-    if compute_gemgetij and data_pd_meas_all is not None and data_pd_HWLW_all is not None:
+    if compute_gemgetij and df_meas_all is not None and df_ext_all is not None:
         print(f'gemiddelde getijkrommen for {current_station}')
         pred_freq = "10s" # frequency influences the accuracy of havengetallen-scaling and is writing frequency of BOI timeseries
         
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
-        gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=None,
+        gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=df_meas_10y, df_ext=None,
                                               freq=pred_freq, nb=0, nf=0, 
                                               scale_extremes=False, scale_period=False)
-        gemgetij_corr = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
+        gemgetij_corr = kw.calc_gemiddeldgetij(df_meas=df_meas_10y, df_ext=df_ext_10y_12,
                                                freq=pred_freq, nb=1, nf=1, 
                                                scale_extremes=True, scale_period=False)
-        gemgetij_corr_boi = kw.calc_gemiddeldgetij(df_meas=data_pd_meas_10y, df_ext=data_pd_HWLW_10y_12,
+        gemgetij_corr_boi = kw.calc_gemiddeldgetij(df_meas=df_meas_10y, df_ext=df_ext_10y_12,
                                                    freq=pred_freq, nb=0, nf=4, 
                                                    scale_extremes=True, scale_period=True)
 
@@ -241,10 +241,11 @@ for current_station in station_list:
     
     
     
-    ###OVERSCHRIJDINGSFREQUENTIES
+    #### OVERSCHRIJDINGSFREQUENTIES
     # TODO: SLR trend correctie voor overschrijdingsfrequenties en evt ook voor andere KW?
     # TODO: resulting freqs seem to be shifted w.r.t. getijtafelboekje (mail PH 9-3-2022)
-    # plots beoordelen: rode lijn moet ongeveer verlengde zijn van groene, als die ineens omhoog piekt komt dat door hele extreme waardes die je dan vermoedelijk ook al ziet in je groene lijn
+    # plots beoordelen: rode lijn moet ongeveer verlengde zijn van groene, als die ineens 
+    # omhoog piekt komt dat door hele extreme waardes die je dan vermoedelijk ook al ziet in je groene lijn
     
     def initiate_dist_with_hydra_nl(station):
         """
@@ -283,32 +284,30 @@ for current_station in station_list:
     freqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200,
                          1/500, 1/1000, 1/2000, 1/4000, 1/5000, 1/10000]
     
-    if compute_overschrijding and data_pd_HWLW_all is not None:
+    if compute_overschrijding and df_ext_all is not None:
         print(f'overschrijdingsfrequenties for {current_station}')
         
         # only include data up to year_slotgem
-        data_pd_measext = data_pd_HWLW_all_12.loc[:tstop_dt]
+        df_measext = df_ext_all_12.loc[:tstop_dt]
         
         # 1. Exceedance
         dist_exc_hydra = initiate_dist_with_hydra_nl(station=current_station)
-        dist_exc = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
+        dist_exc = kw.calc_overschrijding(df_ext=df_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, dist=dist_exc_hydra,
                                           interp_freqs=freqs_interested)
         add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
         dist_exc['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}.csv'))
-        # dist_exc['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Exceedance_{current_station}_gecombineerd.csv'))
         
         fig, ax = kw.plot_overschrijding(dist_exc)
         ax.set_ylim(0,5.5)
         fig.savefig(os.path.join(dir_overschrijding, f'Exceedance_lines_{current_station}.png'))
         
         # 2. Deceedance
-        dist_dec = kw.calc_overschrijding(df_ext=data_pd_measext, rule_type=None, rule_value=None, 
+        dist_dec = kw.calc_overschrijding(df_ext=df_measext, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, inverse=True,
                                           interp_freqs=freqs_interested)
         add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)
         dist_dec['Geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}.csv'))
-        # dist_dec['Gecombineerd'].to_csv(os.path.join(dir_overschrijding, f'Deceedance_{current_station}_gecombineerd.csv'))
         
         fig, ax = kw.plot_overschrijding(dist_dec)
         fig.savefig(os.path.join(dir_overschrijding, f'Deceedance_lines_{current_station}.png'))
