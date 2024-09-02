@@ -1,6 +1,6 @@
 # What's new
 
-## UNRELEASED
+## 0.2.0 (2024-09-02)
 
 ### Feat
 - moved from pickle to netcdf and improved statistics in [#14](https://github.com/Deltares-research/kenmerkendewaarden/pull/14)
