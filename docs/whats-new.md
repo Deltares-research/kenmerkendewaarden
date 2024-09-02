@@ -1,6 +1,7 @@
 # What's new
 
 ## 0.2.0 (2024-09-02)
+This version has a reduced complexity for the user by making the public functions straightforward to use. There will be no changes that significantly affect the results, so we can still (approximately) reproduce the kenmerkendewaarden 2011/2021 derived in 2020-2022. The resulting methods are still not production-ready, since there are still improvements needed that will be inplemented in kenmerkendewaarden 0.3.0.
 
 ### Feat
 - moved from pickle to netcdf and improved statistics in [#14](https://github.com/Deltares-research/kenmerkendewaarden/pull/14)
