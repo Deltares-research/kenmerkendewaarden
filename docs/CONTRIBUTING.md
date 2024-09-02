@@ -12,8 +12,8 @@
 
 ## Setup local developer environment
 
-- download and install Anaconda 64 bit from [anaconda.com](https://www.anaconda.com/download/success)
-- open anaconda prompt and navigate to the local checkout folder of the repository
+- download Miniforge3 from [the miniforge github](https://github.com/conda-forge/miniforge?tab=readme-ov-file#download) and install it with the recommended settings.
+- open Miniforge Prompt and navigate to the local checkout folder of the repository
 - ``conda create --name kw_env python=3.11 git spyder -y`` (``git`` and ``spyder`` are optional)
 - ``conda activate kw_env``
 - ``python -m pip install -e .[dev,docs,examples]`` (pip developer mode, any updates to the local folder are immediately available in your python. It also installs all requirements via pip, square brackets are to install optional dependency groups)
@@ -40,13 +40,13 @@
 
 ## Running the testbank
 
-- open anaconda prompt and navigate to the local checkout folder of the repository
+- open Miniforge Prompt and navigate to the local checkout folder of the repository
 - ``conda activate kw_env``
 - ``pytest`` (runs all tests)
 - the pytest testbank also runs automatically on Github for every PR (for different python versions and package versions)
 
 ## Generate html documentation
-- open anaconda prompt and navigate to the local checkout folder of the repository
+- open Miniforge Prompt and navigate to the local checkout folder of the repository
 - ``conda activate kw_env``
 - ``sphinx-build docs docs/_build``
 - the documentation is also automatically updated upon every push/merge to the main branch
@@ -54,7 +54,7 @@
 ## Increase the version number
 
 - commit all changes via git
-- open anaconda prompt and navigate to the local checkout folder of the repository
+- open Miniforge Prompt and navigate to the local checkout folder of the repository
 - ``conda activate kw_env``
 - ``bumpversion major`` or ``bumpversion minor`` or ``bumpversion patch``
 - the version number of all relevant files will be updated, as stated in setup.cfg
