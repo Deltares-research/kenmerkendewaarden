@@ -107,23 +107,17 @@ def calc_havengetallen(
 
 
 def get_moonculm_idxHWLWno(tstart, tstop):
-    data_pd_moonculm = astrog_culminations(
-        tFirst=tstart, tLast=tstop
-    )  # in UTC, which is important since data_pd_HWLW['culm_hr']=range(12) hourvalues should be in UTC since that relates to the relation dateline/sun
-    data_pd_moonculm["datetime"] = data_pd_moonculm["datetime"].dt.tz_convert(
-        "UTC"
-    )  # convert to UTC (is already)
-    data_pd_moonculm["datetime"] = data_pd_moonculm["datetime"].dt.tz_localize(
-        None
-    )  # remove timezone
-    data_pd_moonculm = data_pd_moonculm.set_index("datetime", drop=False)
-    data_pd_moonculm["values"] = data_pd_moonculm[
-        "type"
-    ]  # dummy values for TA in hatyan.calc_HWLWnumbering()
+    # in UTC, which is important since data_pd_HWLW['culm_hr']=range(12) hourvalues 
+    # should be in UTC since that relates to the relation dateline/sun
+    data_pd_moonculm = astrog_culminations(tFirst=tstart, tLast=tstop)
+    data_pd_moonculm = data_pd_moonculm.tz_convert("UTC")  # convert to UTC (is already)
+    data_pd_moonculm = data_pd_moonculm.tz_localize(None)  # remove timezone
+    data_pd_moonculm["datetime"] = data_pd_moonculm.index
+    # dummy values for TA in hatyan.calc_HWLWnumbering()
+    data_pd_moonculm["values"] = data_pd_moonculm["type"]
     data_pd_moonculm["HWLWcode"] = 1  # all HW values since one every ~12h25m
-    data_pd_moonculm = calc_HWLWnumbering(
-        data_pd_moonculm, doHWLWcheck=False
-    )  # TODO: currently w.r.t. cadzd, is that an issue? With DELFZL the matched culmination is incorrect (since far away), but that might not be a big issue
+    # TODO: currently w.r.t. cadzd, is that an issue? With DELFZL the matched culmination is incorrect (since far away), but that might not be a big issue
+    data_pd_moonculm = calc_HWLWnumbering(data_pd_moonculm, doHWLWcheck=False)
     moonculm_idxHWLWno = data_pd_moonculm.set_index("HWLWno")
     return moonculm_idxHWLWno
 
