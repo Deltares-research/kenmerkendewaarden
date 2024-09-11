@@ -147,4 +147,4 @@ if write_stations_table:
     locs_meas_ts_all, _, _ = retrieve_catalog(crs=4326)
     locs_ts = locs_meas_ts_all.loc[locs_meas_ts_all.index.isin(station_list)]
     file_csv = os.path.join(dir_base, "station_locations.csv")
-    locs_ts[["Locatie_MessageID","X","Y","Naam"]].to_csv(file_csv)
+    locs_ts[["Locatie_MessageID","X","Y","Coordinatenstelsel","Naam"]].to_csv(file_csv)
