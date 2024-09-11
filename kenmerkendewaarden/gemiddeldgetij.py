@@ -345,7 +345,8 @@ def plot_gemiddeldgetij(
     ax.legend(loc=4)
     ax.grid()
     ax.set_xlabel("time since high water")
-
+    ax.set_ylabel("water level [cm]")
+    
     # fix timedelta ticks
     ax.xaxis.set_major_formatter(TimeSeries_TimedeltaFormatter_improved())
     # put ticks at intervals of multiples of 3 and 6, resulting in whole seconds

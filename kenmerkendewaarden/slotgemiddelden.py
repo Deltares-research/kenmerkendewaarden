@@ -63,9 +63,6 @@ def calc_slotgemiddelden(
     # calculate yearly means
     dict_wltidalindicators = calc_wltidalindicators(df_meas, min_coverage=min_coverage)
     wl_mean_peryear = dict_wltidalindicators["wl_mean_peryear"]
-    # convert periodindex to datetimeindex
-    # TODO: alternatively let fit_models support periodindex
-    # wl_mean_peryear.index = wl_mean_peryear.index.to_timestamp()
     slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
 
     # clip part of mean timeseries before physical break to supply to model
@@ -93,8 +90,6 @@ def calc_slotgemiddelden(
         )
         HW_mean_peryear = dict_HWLWtidalindicators["HW_mean_peryear"]
         LW_mean_peryear = dict_HWLWtidalindicators["LW_mean_peryear"]
-        # HW_mean_peryear.index = HW_mean_peryear.index.to_timestamp()
-        # LW_mean_peryear.index = LW_mean_peryear.index.to_timestamp()
         slotgemiddelden_dict["HW_mean_peryear"] = HW_mean_peryear
         slotgemiddelden_dict["LW_mean_peryear"] = LW_mean_peryear
 
@@ -199,7 +194,7 @@ def plot_slotgemiddelden(
         ax.plot(HW_model_fit, ".-", color=cmap(0), label=None)
         ax.plot(LW_model_fit, ".-", color=cmap(0), label=None)
 
-    ax.set_ylabel("waterstand [m]")
+    ax.set_ylabel("water level [cm]")
     ax.set_title(f"yearly mean HW/wl/LW for {station}")
     ax.grid()
     ax.legend(loc=2)

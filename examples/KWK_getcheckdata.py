@@ -22,6 +22,7 @@ retrieve_meas = False
 derive_stats = False
 plot_meas = False
 plot_stations = False
+write_stations_table = True
 
 start_date = pd.Timestamp(1870, 1, 1, tz="UTC+01:00")
 end_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
@@ -137,3 +138,8 @@ if plot_stations:
     fig, ax = kw.plot_stations(station_list=station_list_map, crs=28992, add_labels=False)
     fig.savefig(os.path.join(dir_base,'stations_map.png'), dpi=200)
 
+
+
+### WRITE CSV WITH STATION CODE/X/Y/EPSG
+if write_stations_table:
+    pass

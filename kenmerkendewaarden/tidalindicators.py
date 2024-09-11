@@ -291,7 +291,7 @@ def plot_tidalindicators(dict_indicators: dict):
     plot_pd_series(dict_indicators, ax)
     ax.grid()
     ax.legend(loc=1)
-    ax.set_ylabel("water level [m]")
+    ax.set_ylabel("water level [cm]")
     ax.set_title(f"tidal indicators for {station}")
     fig.tight_layout()
     return fig, ax

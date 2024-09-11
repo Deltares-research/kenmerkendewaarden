@@ -64,7 +64,7 @@ def calc_overschrijding(
         in case of rule_type='break', float in case of rule_type='linear'. The default is None.
     interp_freqs : list, optional
         The frequencies to interpolate to, providing this will result in a
-        "Geinterpoleerd" key in the returned dictionary. The default is None.
+        "geinterpoleerd" key in the returned dictionary. The default is None.
 
     Returns
     -------
@@ -90,7 +90,7 @@ def calc_overschrijding(
         dist = {}
 
     logger.info(f"Calculate unfiltered distribution (inverse={inverse})")
-    dist["Ongefilterd"] = distribution(ser_extrema, inverse=inverse)
+    dist["ongefilterd"] = distribution(ser_extrema, inverse=inverse)
 
     # TODO: re-enable filter for river discharge peaks
     #TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem. Er is dan een treshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
@@ -102,21 +102,21 @@ def calc_overschrijding(
         ser_extrema_filt = filter_with_threshold(ser_extrema, ser_peaks, threshold)
     else:
         ser_extrema_filt = ser_extrema.copy()
-    dist['Gefilterd'] = distribution(ser_extrema_filt.copy())
+    dist['gefilterd'] = distribution(ser_extrema_filt.copy())
     """
 
     logger.info("Calculate filtered distribution with trendanalysis")
     ser_trend = apply_trendanalysis(
         ser_extrema, rule_type=rule_type, rule_value=rule_value
     )
-    dist["Trendanalyse"] = distribution(ser_trend.copy(), inverse=inverse)
+    dist["trendanalyse"] = distribution(ser_trend.copy(), inverse=inverse)
 
-    logger.info("Fit Weibull to filtered distribution with trendanalysis")
-    idx_maxfreq_trend = get_threshold_rowidx(dist["Trendanalyse"])
-    treshold_value = dist["Trendanalyse"].iloc[idx_maxfreq_trend]
-    treshold_Tfreq = dist["Trendanalyse"].index[idx_maxfreq_trend]
-    dist["Weibull"] = get_weibull(
-        dist["Trendanalyse"].copy(),
+    logger.info("Fit weibull to filtered distribution with trendanalysis")
+    idx_maxfreq_trend = get_threshold_rowidx(dist["trendanalyse"])
+    treshold_value = dist["trendanalyse"].iloc[idx_maxfreq_trend]
+    treshold_Tfreq = dist["trendanalyse"].index[idx_maxfreq_trend]
+    dist["weibull"] = get_weibull(
+        dist["trendanalyse"].copy(),
         threshold=treshold_value,
         Tfreqs=np.logspace(-5, np.log10(treshold_Tfreq), 5000),
         inverse=inverse,
@@ -129,15 +129,15 @@ def calc_overschrijding(
     else:
         logger.info("Blend trend and weibull")
         ser_hydra = None
-    dist["Gecombineerd"] = blend_distributions(
-        ser_trend=dist["Trendanalyse"].copy(),
-        ser_weibull=dist["Weibull"].copy(),
+    dist["gecombineerd"] = blend_distributions(
+        ser_trend=dist["trendanalyse"].copy(),
+        ser_weibull=dist["weibull"].copy(),
         ser_hydra=ser_hydra,
     )
 
     if interp_freqs is not None:
-        dist["Geinterpoleerd"] = interpolate_interested_Tfreqs(
-            dist["Gecombineerd"], Tfreqs=interp_freqs
+        dist["geinterpoleerd"] = interpolate_interested_Tfreqs(
+            dist["gecombineerd"], Tfreqs=interp_freqs
         )
 
     return dist
@@ -457,7 +457,7 @@ def blend_distributions(
     ser_blended1 = ser_trend.iloc[:idx_maxfreq_trend].copy()
     ser_weibull = ser_weibull.loc[ser_weibull.index < ser_blended1.index[-1]].copy()
 
-    # Weibull to Hydra
+    # weibull to Hydra
     if ser_hydra is not None:
         ser_hydra = ser_hydra.sort_index(ascending=False)
 
@@ -555,14 +555,14 @@ def plot_overschrijding(dist: dict):
     station = station_attrs[0]
 
     color_map = {
-        "Ongefilterd": "b",
-        "Gefilterd": "orange",
-        "Trendanalyse": "g",
-        "Weibull": "r",
+        "ongefilterd": "b",
+        "gefilterd": "orange",
+        "trendanalyse": "g",
+        "weibull": "r",
         "Hydra-NL": "m",
         "Hydra-NL met modelonzekerheid": "cyan",
-        "Gecombineerd": "k",
-        "Geinterpoleerd": "lime",
+        "gecombineerd": "k",
+        "geinterpoleerd": "lime",
     }
 
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -572,9 +572,9 @@ def plot_overschrijding(dist: dict):
             c = color_map[k]
         else:
             c = None
-        if k == "Gecombineerd":
+        if k == "gecombineerd":
             ax.plot(dist[k], "--", label=k, c=c)
-        elif k == "Geinterpoleerd":
+        elif k == "geinterpoleerd":
             ax.plot(dist[k], "o", label=k, c=c, markersize=5)
         else:
             ax.plot(dist[k], label=k, c=c)
@@ -584,7 +584,7 @@ def plot_overschrijding(dist: dict):
     ax.set_xscale("log")
     ax.set_xlim([1e-5, 1e3])
     ax.invert_xaxis()
-    ax.set_ylabel("Waterlevel [m]")
+    ax.set_ylabel("water level [cm]")
     ax.legend(fontsize="medium", loc="lower right")
     ax.xaxis.set_minor_locator(
         ticker.LogLocator(
@@ -592,13 +592,9 @@ def plot_overschrijding(dist: dict):
         )
     )
     ax.xaxis.set_minor_formatter(ticker.NullFormatter()),
-    ax.yaxis.set_minor_locator(
-        ticker.MultipleLocator(0.1)
-    )  # this was 10, but now meters instead of cm
+    ax.yaxis.set_minor_locator(ticker.MultipleLocator(10))  # centimeters
     ax.yaxis.set_minor_formatter(ticker.NullFormatter()),
-    ax.yaxis.set_major_formatter(
-        ticker.FormatStrFormatter("%.2f")
-    )  # to force 2 decimal places
+    ax.yaxis.set_major_formatter(ticker.FormatStrFormatter("%.2f"))  # 2 decimal places
     ax.grid(visible=True, which="major"), ax.grid(visible=True, which="minor", ls=":")
     ax.set_axisbelow(True)
     fig.tight_layout()
