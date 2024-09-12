@@ -171,7 +171,7 @@ def plot_slotgemiddelden(
         ".k",
         label=f"slotgemiddelde for {slotgem_time_value.index.year[0]}",
     )
-
+    
     # plot timeseries of average extremes
     if slotgemiddelden_dict_all is not None:
         # compare station attributes
@@ -199,6 +199,8 @@ def plot_slotgemiddelden(
         LW_model_fit = slotgemiddelden_dict["LW_model_fit"]
         ax.plot(HW_model_fit, ".-", color=cmap(0), label=None)
         ax.plot(LW_model_fit, ".-", color=cmap(0), label=None)
+        ax.plot(slotgemiddelden_dict["HW_model_fit"].iloc[[-1]],".k")
+        ax.plot(slotgemiddelden_dict["LW_model_fit"].iloc[[-1]],".k")
 
     ax.set_ylabel("water level [cm]")
     ax.set_title(f"yearly mean HW/wl/LW for {station}")
