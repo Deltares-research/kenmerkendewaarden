@@ -314,6 +314,13 @@ def plot_HWLW_pertimeclass(df_ext: pd.DataFrame, df_havengetallen: pd.DataFrame)
     )
     ax4.plot(HWLW_culmhr_summary["LW_delay_median"].dt.total_seconds() / 3600, ".-")
     ax4.set_xlim([0 - 0.5, 12 - 0.5])
+    
+    ax1.set_ylabel("water level [cm]")
+    ax2.set_ylabel("water level [cm]")
+    ax3.set_ylabel("time delay [hours]")
+    ax4.set_ylabel("time delay [hours]")
+    ax3.set_xlabel("culmination time class [hours]")
+    ax4.set_xlabel("culmination time class [hours]")
     fig.tight_layout()
     axs = np.array(((ax1, ax2), (ax3, ax4)))
 
@@ -342,8 +349,8 @@ def plot_aardappelgrafiek(df_havengetallen: pd.DataFrame):
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.5, 4), sharex=False)
     ax1.set_title("HW")
-    ax1.set_xlabel("maansverloop in uu:mm:ss")
-    ax1.set_ylabel("waterstand in m t.o.v. NAP")
+    ax1.set_xlabel("maansverloop [uu:mm:ss]")
+    ax1.set_ylabel("waterstand [cm]")
     ax1.plot(
         HWLW_culmhr_summary["HW_delay_median"],
         HWLW_culmhr_summary["HW_values_median"],
@@ -352,8 +359,8 @@ def plot_aardappelgrafiek(df_havengetallen: pd.DataFrame):
     ax1.xaxis.set_major_formatter(TimeSeries_TimedeltaFormatter_improved())
     ax1.grid()
     ax2.set_title("LW")
-    ax2.set_xlabel("maansverloop in uu:mm:ss")
-    ax2.set_ylabel("waterstand in m t.o.v. NAP")
+    ax2.set_xlabel("maansverloop [uu:mm:ss]")
+    ax2.set_ylabel("waterstand [cm]")
     ax2.plot(
         HWLW_culmhr_summary["LW_delay_median"],
         HWLW_culmhr_summary["LW_values_median"],
@@ -379,7 +386,7 @@ def plot_aardappelgrafiek(df_havengetallen: pd.DataFrame):
     ax1_ylimmean = np.mean(ax1.get_ylim())
     ax2_ylimmean = np.mean(ax2.get_ylim())
     xlimrange = 2 * 3600e9  # in nanoseconds
-    ylimrange = 1
+    ylimrange = 100  # in centimeters
     ax1.set_xlim([ax1_xlimmean - xlimrange / 2, ax1_xlimmean + xlimrange / 2])
     ax2.set_xlim([ax2_xlimmean - xlimrange / 2, ax2_xlimmean + xlimrange / 2])
     ax1.set_ylim([ax1_ylimmean - ylimrange / 2, ax1_ylimmean + ylimrange / 2])

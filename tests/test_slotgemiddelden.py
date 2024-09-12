@@ -61,21 +61,22 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
         "LW_mean_peryear",
         "HW_model_fit",
         "LW_model_fit",
+        "tidalrange_mean_peryear",
+        "tidalrange_model_fit",
     ]
     expected_keys_noext = ["wl_mean_peryear", "wl_model_fit"]
     assert set(slotgemiddelden_dict_inclext.keys()) == set(expected_keys_inclext)
     assert set(slotgemiddelden_dict_noext.keys()) == set(expected_keys_noext)
 
     # assertion of values
-    wl_mean_peryear_expected = np.array(
-        [0.07960731, 0.08612119, 0.0853051, 0.07010864, 0.10051922]
-    )
-    hw_mean_peryear_expected = np.array(
-        [1.13968839, 1.12875177, 1.13988685, 1.1415461, 1.18998584]
-    )
-    lw_mean_peryear_expected = np.array(
-        [-0.60561702, -0.59089362, -0.59342291, -0.61334278, -0.58024113]
-    )
+    wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051,
+                                         0.07010864, 0.10051922])
+    hw_mean_peryear_expected = np.array([1.13968839, 1.12875177, 1.13988685,
+                                         1.1415461, 1.18998584])
+    lw_mean_peryear_expected = np.array([-0.60561702, -0.59089362, -0.59342291,
+                                         -0.61334278, -0.58024113])
+    range_mean_peryear_expected = np.array([1.74530541, 1.71964539, 1.73330976,
+                                            1.75488888, 1.77022697])
     assert np.allclose(
         slotgemiddelden_dict_inclext["wl_mean_peryear"].values, wl_mean_peryear_expected
     )
@@ -85,16 +86,19 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     assert np.allclose(
         slotgemiddelden_dict_inclext["LW_mean_peryear"].values, lw_mean_peryear_expected
     )
+    assert np.allclose(
+        slotgemiddelden_dict_inclext["tidalrange_mean_peryear"].values,
+        range_mean_peryear_expected
+    )
 
-    wl_model_fit_expected = np.array(
-        [0.0141927, 0.08612119, 0.0853051, 0.07010864, 0.10051922, 0.23137634]
-    )
-    hw_model_fit_expected = np.array(
-        [1.05295416, 1.12875177, 1.13988685, 1.1415461, 1.18998584, 1.336182]
-    )
-    lw_model_fit_expected = np.array(
-        [-0.67420399, -0.59089362, -0.59342291, -0.61334278, -0.58024113, -0.42969074]
-    )
+    wl_model_fit_expected = np.array([0.0141927, 0.08612119, 0.0853051,
+                                      0.07010864, 0.10051922, 0.23137634])
+    hw_model_fit_expected = np.array([1.05295416, 1.12875177, 1.13988685,
+                                      1.1415461, 1.18998584, 1.336182])
+    lw_model_fit_expected = np.array([-0.67420399, -0.59089362, -0.59342291,
+                                      -0.61334278, -0.58024113, -0.42969074])
+    range_model_fit_expected = np.array([1.72715816, 1.71964539, 1.73330976,
+                                         1.75488888, 1.77022697, 1.76587273])
     assert np.allclose(
         slotgemiddelden_dict_inclext["wl_model_fit"].values, wl_model_fit_expected
     )
@@ -103,6 +107,10 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     )
     assert np.allclose(
         slotgemiddelden_dict_inclext["LW_model_fit"].values, lw_model_fit_expected
+    )
+    assert np.allclose(
+        slotgemiddelden_dict_inclext["tidalrange_model_fit"].values, 
+        range_model_fit_expected
     )
 
 

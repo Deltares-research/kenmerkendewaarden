@@ -57,14 +57,14 @@ def test_calc_overschrijding(df_ext_12_2010_2014):
     )
 
     expected_keys = [
-        "Ongefilterd",
-        "Trendanalyse",
-        "Weibull",
-        "Gecombineerd",
-        "Geinterpoleerd",
+        "ongefilterd",
+        "trendanalyse",
+        "weibull",
+        "gecombineerd",
+        "geinterpoleerd",
     ]
     assert set(dist.keys()) == set(expected_keys)
-    assert np.allclose(dist["Geinterpoleerd"].index, Tfreqs_interested)
+    assert np.allclose(dist["geinterpoleerd"].index, Tfreqs_interested)
     expected_values = np.array(
         [
             1.93,
@@ -79,7 +79,7 @@ def test_calc_overschrijding(df_ext_12_2010_2014):
             4.00701551,
         ]
     )
-    assert np.allclose(dist["Geinterpoleerd"].values, expected_values)
+    assert np.allclose(dist["geinterpoleerd"].values, expected_values)
 
 
 @pytest.mark.unittest
@@ -110,14 +110,14 @@ def test_calc_overschrijding_with_hydra(df_ext_12_2010_2014):
 
     expected_keys = [
         "Hydra-NL",
-        "Ongefilterd",
-        "Trendanalyse",
-        "Weibull",
-        "Gecombineerd",
-        "Geinterpoleerd",
+        "ongefilterd",
+        "trendanalyse",
+        "weibull",
+        "gecombineerd",
+        "geinterpoleerd",
     ]
     assert set(dist.keys()) == set(expected_keys)
-    assert np.allclose(dist["Geinterpoleerd"].index, Tfreqs_interested)
+    assert np.allclose(dist["geinterpoleerd"].index, Tfreqs_interested)
     expected_values = np.array(
         [
             1.93,
@@ -132,7 +132,7 @@ def test_calc_overschrijding_with_hydra(df_ext_12_2010_2014):
             4.3095,
         ]
     )
-    assert np.allclose(dist["Geinterpoleerd"].values, expected_values)
+    assert np.allclose(dist["geinterpoleerd"].values, expected_values)
 
 
 @pytest.mark.unittest
@@ -157,14 +157,14 @@ def test_calc_overschrijding_rule_type_break(df_ext_12_2010_2014):
     )
 
     expected_keys = [
-        "Ongefilterd",
-        "Trendanalyse",
-        "Weibull",
-        "Gecombineerd",
-        "Geinterpoleerd",
+        "ongefilterd",
+        "trendanalyse",
+        "weibull",
+        "gecombineerd",
+        "geinterpoleerd",
     ]
     assert set(dist.keys()) == set(expected_keys)
-    assert np.allclose(dist["Geinterpoleerd"].index, Tfreqs_interested)
+    assert np.allclose(dist["geinterpoleerd"].index, Tfreqs_interested)
     expected_values = np.array(
         [
             1.93,
@@ -179,7 +179,7 @@ def test_calc_overschrijding_rule_type_break(df_ext_12_2010_2014):
             3.90661043,
         ]
     )
-    assert np.allclose(dist["Geinterpoleerd"].values, expected_values)
+    assert np.allclose(dist["geinterpoleerd"].values, expected_values)
 
 
 @pytest.mark.unittest
@@ -239,7 +239,7 @@ def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
         ]
     )
     assert np.allclose(
-        dist_normal["Geinterpoleerd"].values, expected_values_normal
+        dist_normal["geinterpoleerd"].values, expected_values_normal
     )
     expected_values_clip = np.array(
         [
@@ -256,7 +256,7 @@ def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
         ]
     )
     assert np.allclose(
-        dist_clip["Geinterpoleerd"].values, expected_values_clip
+        dist_clip["geinterpoleerd"].values, expected_values_clip
     )
 
 

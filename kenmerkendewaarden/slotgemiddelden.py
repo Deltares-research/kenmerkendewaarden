@@ -48,7 +48,8 @@ def calc_slotgemiddelden(
     Returns
     -------
     slotgemiddelden_dict : dict
-        dictionary with yearly means and model fits, optionally also for extremes.
+        dictionary with yearly means and model fits, optionally also for extremes
+        and corresponding tidal range.
 
     """
     # initialize dict
@@ -63,9 +64,6 @@ def calc_slotgemiddelden(
     # calculate yearly means
     dict_wltidalindicators = calc_wltidalindicators(df_meas, min_coverage=min_coverage)
     wl_mean_peryear = dict_wltidalindicators["wl_mean_peryear"]
-    # convert periodindex to datetimeindex
-    # TODO: alternatively let fit_models support periodindex
-    # wl_mean_peryear.index = wl_mean_peryear.index.to_timestamp()
     slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
 
     # clip part of mean timeseries before physical break to supply to model
@@ -93,21 +91,24 @@ def calc_slotgemiddelden(
         )
         HW_mean_peryear = dict_HWLWtidalindicators["HW_mean_peryear"]
         LW_mean_peryear = dict_HWLWtidalindicators["LW_mean_peryear"]
-        # HW_mean_peryear.index = HW_mean_peryear.index.to_timestamp()
-        # LW_mean_peryear.index = LW_mean_peryear.index.to_timestamp()
+        tidalrange_mean_peryear = HW_mean_peryear - LW_mean_peryear
         slotgemiddelden_dict["HW_mean_peryear"] = HW_mean_peryear
         slotgemiddelden_dict["LW_mean_peryear"] = LW_mean_peryear
+        slotgemiddelden_dict["tidalrange_mean_peryear"] = tidalrange_mean_peryear
 
         # clip part of mean timeseries before physical break to supply to model
         if clip_physical_break:
             HW_mean_peryear = clip_timeseries_physical_break(HW_mean_peryear)
             LW_mean_peryear = clip_timeseries_physical_break(LW_mean_peryear)
+            tidalrange_mean_peryear = clip_timeseries_physical_break(tidalrange_mean_peryear)
 
         # fit linear models over yearly mean values
         pred_pd_HW = fit_models(HW_mean_peryear, with_nodal=with_nodal)
         pred_pd_LW = fit_models(LW_mean_peryear, with_nodal=with_nodal)
+        pred_pd_tidalrange = fit_models(tidalrange_mean_peryear, with_nodal=with_nodal)
         slotgemiddelden_dict["HW_model_fit"] = pred_pd_HW
         slotgemiddelden_dict["LW_model_fit"] = pred_pd_LW
+        slotgemiddelden_dict["tidalrange_model_fit"] = pred_pd_tidalrange
 
     return slotgemiddelden_dict
 
@@ -170,7 +171,7 @@ def plot_slotgemiddelden(
         ".k",
         label=f"slotgemiddelde for {slotgem_time_value.index.year[0]}",
     )
-
+    
     # plot timeseries of average extremes
     if slotgemiddelden_dict_all is not None:
         # compare station attributes
@@ -198,8 +199,10 @@ def plot_slotgemiddelden(
         LW_model_fit = slotgemiddelden_dict["LW_model_fit"]
         ax.plot(HW_model_fit, ".-", color=cmap(0), label=None)
         ax.plot(LW_model_fit, ".-", color=cmap(0), label=None)
+        ax.plot(slotgemiddelden_dict["HW_model_fit"].iloc[[-1]],".k")
+        ax.plot(slotgemiddelden_dict["LW_model_fit"].iloc[[-1]],".k")
 
-    ax.set_ylabel("waterstand [m]")
+    ax.set_ylabel("water level [cm]")
     ax.set_title(f"yearly mean HW/wl/LW for {station}")
     ax.grid()
     ax.legend(loc=2)
