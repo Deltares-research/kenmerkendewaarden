@@ -29,9 +29,9 @@ dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
 dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
 
 dir_indicators = os.path.join(dir_base,f'out_tidalindicators_{year_slotgem}')
-dir_slotgem = os.path.join(dir_base,f'out_slotgem_{year_slotgem}')
+dir_slotgem = os.path.join(dir_base,f'out_slotgemiddelden_{year_slotgem}')
 dir_havget = os.path.join(dir_base,f'out_havengetallen_{year_slotgem}')
-dir_gemgetij = os.path.join(dir_base,f'out_gemgetij_{year_slotgem}')
+dir_gemgetij = os.path.join(dir_base,f'out_gemiddeldgetij_{year_slotgem}')
 dir_overschrijding = os.path.join(dir_base,f'out_overschrijding_{year_slotgem}')
 os.makedirs(dir_indicators, exist_ok=True)
 os.makedirs(dir_slotgem, exist_ok=True)
@@ -149,8 +149,11 @@ for current_station in station_list:
         ax1.set_xlim(fig_alltimes_ext)
 
         # write slotgemiddelden to csv, the slotgemiddelde is the last value of the model fit
-        key_list = ["wl_mean_peryear", "HW_mean_peryear", "LW_mean_peryear",
-                    "wl_model_fit", "HW_model_fit", "LW_model_fit"]
+        key_list = ["wl_mean_peryear", "wl_model_fit",
+                    "HW_mean_peryear", "HW_model_fit",
+                    "LW_mean_peryear", "LW_model_fit",
+                    "tidalrange_mean_peryear", "tidalrange_model_fit",
+                    ]
         for key in key_list:
             file_csv = os.path.join(dir_slotgem, f'kw{year_slotgem}-{key}-{current_station}.csv')
             slotgemiddelden_valid[key].to_csv(file_csv, float_format='%.3f')

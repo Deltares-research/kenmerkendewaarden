@@ -92,17 +92,22 @@ def calc_slotgemiddelden(
         LW_mean_peryear = dict_HWLWtidalindicators["LW_mean_peryear"]
         slotgemiddelden_dict["HW_mean_peryear"] = HW_mean_peryear
         slotgemiddelden_dict["LW_mean_peryear"] = LW_mean_peryear
+        tidalrange_mean_peryear = HW_mean_peryear - LW_mean_peryear
+        slotgemiddelden_dict["tidalrange_mean_peryear"] = tidalrange_mean_peryear
 
         # clip part of mean timeseries before physical break to supply to model
         if clip_physical_break:
             HW_mean_peryear = clip_timeseries_physical_break(HW_mean_peryear)
             LW_mean_peryear = clip_timeseries_physical_break(LW_mean_peryear)
+            tidalrange_mean_peryear = clip_timeseries_physical_break(tidalrange_mean_peryear)
 
         # fit linear models over yearly mean values
         pred_pd_HW = fit_models(HW_mean_peryear, with_nodal=with_nodal)
         pred_pd_LW = fit_models(LW_mean_peryear, with_nodal=with_nodal)
+        pred_pd_range = fit_models(tidalrange_mean_peryear, with_nodal=with_nodal)
         slotgemiddelden_dict["HW_model_fit"] = pred_pd_HW
         slotgemiddelden_dict["LW_model_fit"] = pred_pd_LW
+        slotgemiddelden_dict["tidalrange_model_fit"] = pred_pd_range
 
     return slotgemiddelden_dict
 
