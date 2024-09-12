@@ -12,8 +12,4 @@ Voor het afleiden van kengetallen als slotgemiddelden, gemiddelde getijkrommen, 
 De methodieken in deze repository hebben nog geen definitieve status en zijn daarom nog niet geschikt voor productie.
 
 ## installation
-- download Miniforge3 from [the miniforge github](https://github.com/conda-forge/miniforge?tab=readme-ov-file#download) and install it with the recommended settings.
-- open Miniforge Prompt
-- `conda create --name kw_env python -y`
-- `conda activate kw_env`
-- `pip install kenmerkendewaarden`
+- install with `pip install kenmerkendewaarden`
