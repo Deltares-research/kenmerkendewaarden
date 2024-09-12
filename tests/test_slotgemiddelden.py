@@ -69,7 +69,7 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     assert set(slotgemiddelden_dict_noext.keys()) == set(expected_keys_noext)
 
     # assertion of values
-    wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051, 
+    wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051,
                                          0.07010864, 0.10051922])
     hw_mean_peryear_expected = np.array([1.13968839, 1.12875177, 1.13988685,
                                          1.1415461, 1.18998584])
@@ -91,7 +91,7 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
         range_mean_peryear_expected
     )
 
-    wl_model_fit_expected = np.array([0.0141927, 0.08612119, 0.0853051, 
+    wl_model_fit_expected = np.array([0.0141927, 0.08612119, 0.0853051,
                                       0.07010864, 0.10051922, 0.23137634])
     hw_model_fit_expected = np.array([1.05295416, 1.12875177, 1.13988685,
                                       1.1415461, 1.18998584, 1.336182])
