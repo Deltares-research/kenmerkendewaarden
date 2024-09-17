@@ -111,6 +111,7 @@ def calc_gemiddeldgetij(
         start=pd.Timestamp(tstop_dt.year, 1, 1, 0, 0) - pd.Timedelta(hours=12),
         end=pd.Timestamp(tstop_dt.year, 2, 1, 0, 0),
         freq=freq,
+        tz=data_pd_meas_10y.index.tz,
     )  # start 12 hours in advance, to assure also corrected values on desired tstart
     comp_av.attrs["nodalfactors"] = (
         False  # nodalfactors=False to guarantee repetative signal
