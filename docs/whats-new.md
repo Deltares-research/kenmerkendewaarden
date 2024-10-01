@@ -1,10 +1,10 @@
 # What's new
 
-## UNRELEASED
+## 0.3.0 (2024-10-01)
 
 ### Feat
 - from meters to centimeters and other updates for dashboard in [#142](https://github.com/Deltares-research/kenmerkendewaarden/pull/142)
-- added tidalrange to slotgemiddelden in [#142](https://github.com/Deltares-research/kenmerkendewaarden/pull/142)
+- added tidalrange to slotgemiddelden and outputformats to accomodate SAS dashboard in [#142](https://github.com/Deltares-research/kenmerkendewaarden/pull/142)
 
 ### Fix
 - accomodate updated astrog datetime handling in hatyan 2.9.0 in [#141](https://github.com/Deltares-research/kenmerkendewaarden/pull/141)
