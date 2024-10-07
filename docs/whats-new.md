@@ -8,6 +8,7 @@
 
 ### Fix
 - accomodate updated astrog datetime handling in hatyan 2.9.0 in [#141](https://github.com/Deltares-research/kenmerkendewaarden/pull/141)
+- more stable coverage computation in `calc_HWLWtidalindicators()` and `calc_havengetallen()` in [#146](https://github.com/Deltares-research/kenmerkendewaarden/pull/146)
 
 
 ## 0.2.0 (2024-09-02)
