@@ -33,7 +33,9 @@ def calc_HWLWtidalindicators(df_ext: pd.DataFrame, min_coverage: float = None):
     df_ext : pd.DataFrame
         Dataframe with extremes timeseries.
     min_coverage : float, optional
-        The minimum percentage (from 0 to 1) of timeseries coverage to consider the statistics to be valid. The default is None.
+        The minimal required coverage (between 0 to 1) of the df_ext timeseries to
+        consider the statistics to be valid. It is the factor between the actual amount
+        and the expected amount of high waters in the series. The default is None.
 
     Returns
     -------

@@ -50,7 +50,9 @@ def calc_havengetallen(
     return_df : bool
         Whether to return the enriched input dataframe. Default is False.
     min_coverage : float, optional
-        The minimal required coverage of the df_ext timeseries
+        The minimal required coverage (between 0 to 1) of the df_ext timeseries to
+        consider the statistics to be valid. It is the factor between the actual amount
+        and the expected amount of high waters in the series. The default is None.
     moonculm_offset : int, optional
         Offset between moonculmination and extremes. Passed on to `calc_HWLW_moonculm_combi`.
         The default is 4, which corresponds to a 2-day offset, which is applicable to the Dutch coast.
