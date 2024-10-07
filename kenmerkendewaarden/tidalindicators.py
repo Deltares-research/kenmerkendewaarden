@@ -35,7 +35,9 @@ def calc_HWLWtidalindicators(df_ext: pd.DataFrame, min_coverage: float = None):
     min_coverage : float, optional
         The minimal required coverage (between 0 to 1) of the df_ext timeseries to
         consider the statistics to be valid. It is the factor between the actual amount
-        and the expected amount of high waters in the series. The default is None.
+        and the expected amount of high waters in the series. Note that the expected
+        amount is not an exact extimate, so min_coverage=1 will probably result in nans
+        even though all extremes are present. The default is None.
 
     Returns
     -------
@@ -86,8 +88,11 @@ def calc_HWLWtidalindicators(df_ext: pd.DataFrame, min_coverage: float = None):
         ext_count_permonth = compute_actual_counts(data_pd_hw, freq="M")
 
         # compute expected counts and multiply with min_coverage to get minimal counts
-        min_count_peryear = compute_expected_counts(data_pd_hw, freq="Y") * min_coverage
-        min_count_permonth = compute_expected_counts(data_pd_hw, freq="M") * min_coverage
+        min_count_peryear = compute_expected_counts(data_pd_hw, freq="Y")
+        min_count_permonth = compute_expected_counts(data_pd_hw, freq="M")
+        # floor expected counts to avoid rounding issues
+        min_count_peryear = min_count_peryear.apply(np.floor) * min_coverage
+        min_count_permonth = min_count_permonth.apply(np.floor) * min_coverage
 
         # set all statistics that were based on too little values to nan
         HW_mean_peryear.loc[ext_count_peryear < min_count_peryear] = np.nan

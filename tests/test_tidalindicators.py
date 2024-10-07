@@ -44,8 +44,10 @@ def test_calc_HWLWtidalrange(df_ext_12_2010):
 def test_calc_HWLWtidalindicators(df_ext_12_2010_2014):
     ext_stats_notimezone = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014.tz_localize(None))
     ext_stats = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014)
-    ext_stats_min = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014, min_coverage=1)
-    
+    ext_stats_min100 = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014, min_coverage=1)
+    ext_stats_min099 = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014, min_coverage=0.99)
+    ext_stats_min098 = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014, min_coverage=0.98)
+
     expected_keys = ['HW_mean', 'LW_mean', 
                      'HW_mean_peryear', 'LW_mean_peryear', 
                      'HW_monthmax_permonth', 'LW_monthmin_permonth', 
@@ -54,11 +56,12 @@ def test_calc_HWLWtidalindicators(df_ext_12_2010_2014):
     for key in expected_keys:
         assert key in ext_stats.keys()
         assert (ext_stats[key] == ext_stats_notimezone[key]).all()
-        
-        
+
     assert ext_stats_notimezone['HW_monthmax_permonth'].isnull().sum() == 0
     assert ext_stats['HW_monthmax_permonth'].isnull().sum() == 0
-    assert ext_stats_min['HW_monthmax_permonth'].isnull().sum() == 13
+    assert ext_stats_min100['HW_monthmax_permonth'].isnull().sum() == 1
+    assert ext_stats_min099['HW_monthmax_permonth'].isnull().sum() == 1
+    assert ext_stats_min098['HW_monthmax_permonth'].isnull().sum() == 0
 
 
 @pytest.mark.unittest

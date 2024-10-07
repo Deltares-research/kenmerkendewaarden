@@ -52,7 +52,9 @@ def calc_havengetallen(
     min_coverage : float, optional
         The minimal required coverage (between 0 to 1) of the df_ext timeseries to
         consider the statistics to be valid. It is the factor between the actual amount
-        and the expected amount of high waters in the series. The default is None.
+        and the expected amount of high waters in the series. Note that the expected
+        amount is not an exact extimate, so min_coverage=1 will probably result in nans
+        even though all extremes are present. The default is None.
     moonculm_offset : int, optional
         Offset between moonculmination and extremes. Passed on to `calc_HWLW_moonculm_combi`.
         The default is 4, which corresponds to a 2-day offset, which is applicable to the Dutch coast.
@@ -75,6 +77,8 @@ def calc_havengetallen(
         data_pd_hw = df_ext.loc[df_ext["HWLWcode"] == 1]["values"]
         df_actual_counts_peryear = compute_actual_counts(data_pd_hw, freq="Y")
         df_expected_counts_peryear = compute_expected_counts(data_pd_hw, freq="Y")
+        # floor expected counts to avoid rounding issues
+        df_expected_counts_peryear = df_expected_counts_peryear.apply(np.floor)
         df_min_counts_peryear = df_expected_counts_peryear * min_coverage
         bool_coverage_toolow = df_actual_counts_peryear < df_min_counts_peryear
         df_debug = pd.DataFrame(
