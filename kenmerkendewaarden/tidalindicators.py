@@ -211,6 +211,12 @@ def compute_expected_counts(ser_meas, freq):
     """
     Compute the expected number of values for all years/months in a timeseries index,
     by taking the number of days for each year/month and dividing it by the median frequency in that period.
+    This functionhas will result in incorrect values for months/years with only a value
+    on the first and last timestep, since the derived frequency will be 15/183 days days
+    and this will result in 2 expected counts.
+    Furthermore, if applied to extremes, it is advisable to compute the expected counts
+    on high waters only since these have a more stable period than alternating high/low
+    waters. Even then, the expected counts are an indication for extremes.
     """
     # TODO: beware of series with e.g. only first and last value of month/year, this will result in freq=30days and then expected count of 2, it will pass even if there is almost no data
     df_meas = pd.DataFrame(ser_meas)
