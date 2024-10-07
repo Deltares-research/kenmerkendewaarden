@@ -185,7 +185,7 @@ def test_compute_expected_counts_twotimesteps(df_meas_2010_2014):
 
 
 @pytest.mark.unittest
-def test_calc_wltidalindicators(df_ext_12_2010_2014):
+def test_calc_wltidalindicators_ext(df_ext_12_2010_2014):
     ext_stats_notimezone = kw.calc_HWLWtidalindicators(
         df_ext_12_2010_2014.tz_localize(None)
     )
