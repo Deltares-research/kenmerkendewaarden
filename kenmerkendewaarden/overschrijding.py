@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 def get_threshold_rowidx(ser):
     # TODO: base on frequency or value?
     thresholfreq = 3  # take a frequency that is at least higher than the max HYDRA frequency (which is 1)
-    rowidx_tresholdfreq = np.abs(ser.index - thresholfreq).argmin()
-    return rowidx_tresholdfreq
+    rowidx_thresholdfreq = np.abs(ser.index - thresholfreq).argmin()
+    return rowidx_thresholdfreq
 
 
 def series_copy_properties(ser, ser_reference):
@@ -94,11 +94,12 @@ def calc_overschrijding(
     dist["ongefilterd"] = distribution(ser_extrema, inverse=inverse)
 
     # TODO: re-enable filter for river discharge peaks
-    #TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem. Er is dan een treshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
+    # TODO: ext is geschikt voor getij, maar bij hoge afvoergolf wil je alleen het echte extreem.
+    # Er is dan een threshold per station nodig, is nodig om de rivierafvoerpiek te kunnen duiden.
     """# filtering is only applicable for stations with high river discharge influence, so disabled
     logger.info('Calculate filtered distribution')
     ser_peaks, threshold, _ = detect_peaks(ser_extrema)
-    if metadata_station['apply_treshold']:
+    if metadata_station['apply_threshold']:
         temp[metadata_station['id']] = threshold
         ser_extrema_filt = filter_with_threshold(ser_extrema, ser_peaks, threshold)
     else:
@@ -114,12 +115,12 @@ def calc_overschrijding(
 
     logger.info("Fit weibull to filtered distribution with trendanalysis")
     idx_maxfreq_trend = get_threshold_rowidx(dist["trendanalyse"])
-    treshold_value = dist["trendanalyse"].iloc[idx_maxfreq_trend]
-    treshold_Tfreq = dist["trendanalyse"].index[idx_maxfreq_trend]
+    threshold_value = dist["trendanalyse"].iloc[idx_maxfreq_trend]
+    threshold_Tfreq = dist["trendanalyse"].index[idx_maxfreq_trend]
     dist["weibull"] = get_weibull(
         dist["trendanalyse"].copy(),
-        threshold=treshold_value,
-        Tfreqs=np.logspace(-5, np.log10(treshold_Tfreq), 5000),
+        threshold=threshold_value,
+        Tfreqs=np.logspace(-5, np.log10(threshold_Tfreq), 5000),
         inverse=inverse,
     )
 
