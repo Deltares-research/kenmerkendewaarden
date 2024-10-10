@@ -69,6 +69,7 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     assert set(slotgemiddelden_dict_noext.keys()) == set(expected_keys_noext)
 
     # assertion of values
+    # fmt: off
     wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051,
                                          0.07010864, 0.10051922])
     hw_mean_peryear_expected = np.array([1.13968839, 1.12875177, 1.13988685,
@@ -77,6 +78,7 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
                                          -0.61334278, -0.58024113])
     range_mean_peryear_expected = np.array([1.74530541, 1.71964539, 1.73330976,
                                             1.75488888, 1.77022697])
+    # fmt: on
     assert np.allclose(
         slotgemiddelden_dict_inclext["wl_mean_peryear"].values, wl_mean_peryear_expected
     )
@@ -88,9 +90,10 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     )
     assert np.allclose(
         slotgemiddelden_dict_inclext["tidalrange_mean_peryear"].values,
-        range_mean_peryear_expected
+        range_mean_peryear_expected,
     )
 
+    # fmt: off
     wl_model_fit_expected = np.array([0.0141927, 0.08612119, 0.0853051,
                                       0.07010864, 0.10051922, 0.23137634])
     hw_model_fit_expected = np.array([1.05295416, 1.12875177, 1.13988685,
@@ -99,6 +102,7 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
                                       -0.61334278, -0.58024113, -0.42969074])
     range_model_fit_expected = np.array([1.72715816, 1.71964539, 1.73330976,
                                          1.75488888, 1.77022697, 1.76587273])
+    # fmt: on
     assert np.allclose(
         slotgemiddelden_dict_inclext["wl_model_fit"].values, wl_model_fit_expected
     )
@@ -109,8 +113,8 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
         slotgemiddelden_dict_inclext["LW_model_fit"].values, lw_model_fit_expected
     )
     assert np.allclose(
-        slotgemiddelden_dict_inclext["tidalrange_model_fit"].values, 
-        range_model_fit_expected
+        slotgemiddelden_dict_inclext["tidalrange_model_fit"].values,
+        range_model_fit_expected,
     )
 
 

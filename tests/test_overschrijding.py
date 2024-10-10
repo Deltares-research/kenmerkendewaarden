@@ -68,15 +68,15 @@ def test_calc_overschrijding(df_ext_12_2010_2014):
     expected_values = np.array(
         [
             1.93,
-            2.09327434,
-            2.26311592,
-            2.44480348,
-            2.70434509,
-            2.91627091,
-            3.14247786,
-            3.46480369,
-            3.72735283,
-            4.00701551,
+            2.09356726,
+            2.2637632,
+            2.44533302,
+            2.70383299,
+            2.91416492,
+            3.13795447,
+            3.45560027,
+            3.71330277,
+            3.98682045,
         ]
     )
     assert np.allclose(dist["geinterpoleerd"].values, expected_values)
@@ -96,11 +96,24 @@ def test_calc_overschrijding_with_hydra(df_ext_12_2010_2014):
         1 / 100,
         1 / 200,
     ]
-    hydra_values = np.array([2.473, 3.18 , 4.043, 4.164, 4.358, 4.696, 5.056, 5.468, 5.865,
-           6.328, 7.207])
-    hydra_index = np.array([1.00000000e+00, 1.00000000e-01, 2.00000000e-02, 1.00000000e-02,
-           3.33333333e-03, 1.00000000e-03, 3.33333333e-04, 1.00000000e-04,
-           3.33333333e-05, 1.00000000e-05, 1.00000000e-06])
+    hydra_values = np.array(
+        [2.473, 3.18, 4.043, 4.164, 4.358, 4.696, 5.056, 5.468, 5.865, 6.328, 7.207]
+    )
+    hydra_index = np.array(
+        [
+            1.00000000e00,
+            1.00000000e-01,
+            2.00000000e-02,
+            1.00000000e-02,
+            3.33333333e-03,
+            1.00000000e-03,
+            3.33333333e-04,
+            1.00000000e-04,
+            3.33333333e-05,
+            1.00000000e-05,
+            1.00000000e-06,
+        ]
+    )
     ser_hydra = pd.Series(hydra_values, index=hydra_index)
     ser_hydra.attrs = df_ext_12_2010_2014.attrs
     dist_hydra = {"Hydra-NL": ser_hydra}
@@ -121,12 +134,12 @@ def test_calc_overschrijding_with_hydra(df_ext_12_2010_2014):
     expected_values = np.array(
         [
             1.93,
-            2.09327434,
-            2.26311587,
-            2.46299612,
-            2.79965222,
-            3.08436295,
-            3.4987347,
+            2.09356726,
+            2.26376316,
+            2.46348569,
+            2.79932582,
+            3.08359924,
+            3.49814949,
             4.043,
             4.164,
             4.3095,
@@ -227,20 +240,18 @@ def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
     expected_values_normal = np.array(
         [
             1.93,
-            2.09327434,
-            2.26311592,
-            2.44480348,
-            2.70434509,
-            2.91627091,
-            3.14247786,
-            3.46480369,
-            3.72735283,
-            4.00701551,
+            2.09356726,
+            2.2637632,
+            2.44533302,
+            2.70383299,
+            2.91416492,
+            3.13795447,
+            3.45560027,
+            3.71330277,
+            3.98682045,
         ]
     )
-    assert np.allclose(
-        dist_normal["geinterpoleerd"].values, expected_values_normal
-    )
+    assert np.allclose(dist_normal["geinterpoleerd"].values, expected_values_normal)
     expected_values_clip = np.array(
         [
             1.93,
@@ -255,9 +266,7 @@ def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
             3.90683996,
         ]
     )
-    assert np.allclose(
-        dist_clip["geinterpoleerd"].values, expected_values_clip
-    )
+    assert np.allclose(dist_clip["geinterpoleerd"].values, expected_values_clip)
 
 
 @pytest.mark.unittest

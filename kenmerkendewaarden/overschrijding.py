@@ -5,6 +5,7 @@ Computation of probabilities (overschrijdingsfrequenties) of extreme waterlevels
 
 import pandas as pd
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 from scipy import optimize, signal
@@ -318,17 +319,18 @@ def get_weibull(
         ) ** (1 / alpha)
 
     def der_pfunc(x, p_val_gt_threshold, threshold, alpha, sigma):
-        return (
+        longexpra = (
             -p_val_gt_threshold
             * (alpha * x ** (alpha - 1))
             * (sigma ** (-alpha))
-            * np.exp(-((x / sigma) ** alpha) + ((threshold / sigma) ** alpha))
         )
+        longexprb = -((x / sigma) ** alpha) + ((threshold / sigma) ** alpha)
+        return np.log(-longexpra) + longexprb
 
     def cost_func(params, *args):
         return -np.sum(
             [
-                np.log(-der_pfunc(x, args[0], args[1], params[0], params[1]))
+                der_pfunc(x, args[0], args[1], params[0], params[1])
                 for x in args[2]
             ]
         )
@@ -339,6 +341,7 @@ def get_weibull(
         x0=initial_guess,
         args=(p_val_gt_threshold, threshold, values[values > threshold]),
         method="Nelder-Mead",
+        bounds = [[-math.inf, math.inf], [1e-10, math.inf]],
         options={"maxiter": 1e4},
     )
     if result.success:

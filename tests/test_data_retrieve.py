@@ -33,10 +33,10 @@ def test_drop_duplicate_times(df_meas_2010, caplog):
 
     assert len(meas_duplicated) == 105120
     assert len(meas_clean) == 52560
-    
+
     # assert logging messages
-    assert '52530 rows with duplicated time-value-combinations dropped' in caplog.text
-    assert '30 rows with duplicated times dropped' in caplog.text
+    assert "52530 rows with duplicated time-value-combinations dropped" in caplog.text
+    assert "30 rows with duplicated times dropped" in caplog.text
 
 
 @pytest.mark.unittest
@@ -45,7 +45,7 @@ def test_drop_duplicate_times_noaction(df_meas_2010, caplog):
 
     assert len(df_meas_2010) == 52560
     assert len(meas_clean) == 52560
-    
+
     # assert that there is no logging messages
     assert caplog.text == ""
 

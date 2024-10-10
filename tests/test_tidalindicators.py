@@ -42,26 +42,39 @@ def test_calc_HWLWtidalrange(df_ext_12_2010):
 
 @pytest.mark.unittest
 def test_calc_HWLWtidalindicators(df_ext_12_2010_2014):
-    ext_stats_notimezone = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014.tz_localize(None))
+    ext_stats_notimezone = kw.calc_HWLWtidalindicators(
+        df_ext_12_2010_2014.tz_localize(None)
+    )
     ext_stats = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014)
     ext_stats_min100 = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014, min_coverage=1)
-    ext_stats_min099 = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014, min_coverage=0.99)
-    ext_stats_min098 = kw.calc_HWLWtidalindicators(df_ext_12_2010_2014, min_coverage=0.98)
+    ext_stats_min099 = kw.calc_HWLWtidalindicators(
+        df_ext_12_2010_2014, min_coverage=0.99
+    )
+    ext_stats_min098 = kw.calc_HWLWtidalindicators(
+        df_ext_12_2010_2014, min_coverage=0.98
+    )
 
-    expected_keys = ['HW_mean', 'LW_mean', 
-                     'HW_mean_peryear', 'LW_mean_peryear', 
-                     'HW_monthmax_permonth', 'LW_monthmin_permonth', 
-                     'HW_monthmax_mean_peryear', 'LW_monthmax_mean_peryear', 
-                     'HW_monthmin_mean_peryear', 'LW_monthmin_mean_peryear']
+    expected_keys = [
+        "HW_mean",
+        "LW_mean",
+        "HW_mean_peryear",
+        "LW_mean_peryear",
+        "HW_monthmax_permonth",
+        "LW_monthmin_permonth",
+        "HW_monthmax_mean_peryear",
+        "LW_monthmax_mean_peryear",
+        "HW_monthmin_mean_peryear",
+        "LW_monthmin_mean_peryear",
+    ]
     for key in expected_keys:
         assert key in ext_stats.keys()
         assert (ext_stats[key] == ext_stats_notimezone[key]).all()
 
-    assert ext_stats_notimezone['HW_monthmax_permonth'].isnull().sum() == 0
-    assert ext_stats['HW_monthmax_permonth'].isnull().sum() == 0
-    assert ext_stats_min100['HW_monthmax_permonth'].isnull().sum() == 1
-    assert ext_stats_min099['HW_monthmax_permonth'].isnull().sum() == 1
-    assert ext_stats_min098['HW_monthmax_permonth'].isnull().sum() == 0
+    assert ext_stats_notimezone["HW_monthmax_permonth"].isnull().sum() == 0
+    assert ext_stats["HW_monthmax_permonth"].isnull().sum() == 0
+    assert ext_stats_min100["HW_monthmax_permonth"].isnull().sum() == 1
+    assert ext_stats_min099["HW_monthmax_permonth"].isnull().sum() == 1
+    assert ext_stats_min098["HW_monthmax_permonth"].isnull().sum() == 0
 
 
 @pytest.mark.unittest
@@ -77,6 +90,7 @@ def test_calc_wltidalindicators(df_meas_2010_2014):
     wl_mean_peryear_expected = np.array(
         [0.07960731, 0.08612119, 0.0853051, 0.07010864, 0.10051922]
     )
+    # fmt: off
     wl_mean_permonth_expected = np.array([
         -0.00227151,  0.089313  ,  0.04443996, -0.03440509, -0.00206317,
          0.04431481,  0.03877688,  0.18267697,  0.13494907,  0.18367832,
@@ -90,6 +104,7 @@ def test_calc_wltidalindicators(df_meas_2010_2014):
          0.17321909,  0.23108102,  0.19502688,  0.06281138,  0.08588046,
         -0.00553763,  0.03490278,  0.03113575,  0.03134954,  0.10553763,
          0.16540771,  0.12535648,  0.20802195,  0.10014352,  0.25624552])
+    # fmt: on
     assert np.allclose(wl_stats["wl_mean_peryear"].values, wl_mean_peryear_expected)
     assert np.allclose(wl_stats["wl_mean_permonth"].values, wl_mean_permonth_expected)
 
@@ -221,6 +236,7 @@ def test_calc_wltidalindicators_ext(df_ext_12_2010_2014):
     assert np.allclose(ext_stats["HW_mean_peryear"].values, hw_mean_peryear_expected)
     assert np.allclose(ext_stats["LW_mean_peryear"].values, lw_mean_peryear_expected)
 
+    # fmt: off
     hw_monthmax_permonth_expected = np.array([
         1.94, 1.89, 1.86, 1.55, 1.74, 1.58, 1.54, 2.07, 2.11, 2.06, 1.9 ,
         1.75, 1.69, 1.82, 1.49, 1.39, 1.4 , 1.71, 1.72, 1.66, 1.69, 1.59,
@@ -236,6 +252,7 @@ def test_calc_wltidalindicators_ext(df_ext_12_2010_2014):
         -1.11, -1.65, -1.37, -1.11, -1.11, -1.05, -0.98, -1.07, -0.88,
         -1.05, -1.15, -1.07, -1.32, -1.31, -1.21, -1.08, -1.  , -1.03,
         -1.07, -0.83, -0.98, -0.97, -0.99, -1.3 ])
+    # fmt: on
     assert np.allclose(
         ext_stats["HW_monthmax_permonth"].values, hw_monthmax_permonth_expected
     )
