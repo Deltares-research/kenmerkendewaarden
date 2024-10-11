@@ -443,13 +443,25 @@ def read_measurements(
 
 def clip_timeseries_physical_break(df_meas):
     # TODO: move to csv file and add as package data
-    # physical_break_dict for slotgemiddelden and overschrijdingsfrequenties TODO: maybe use everywhere to crop data?
+    # physical_break_dict for slotgemiddelden and overschrijdingsfrequenties
+    # values from chapter 6.4 from "Kenmerkende waarden kustwateren en grote rivieren" (Dillingh, 2013)
+    # https://open.rijkswaterstaat.nl/open-overheid/onderzoeksrapporten/@44612/kenmerkende-waarden-kustwateren-grote
+    # TODO: consider adding nearby stations like CADZD02, CADZBSD and others
+    # TODO: add physical_break for KATSBTN? (Oosterscheldekering)
+    # TODO: maybe use physical_break_dict everywhere to crop data?
     physical_break_dict = {
-        "DENOVBTN": "1933",  # laatste sluitgat afsluitdijk in 1932
-        "HARLGN": "1933",  # laatste sluitgat afsluitdijk in 1932
-        "VLIELHVN": "1933",  # laatste sluitgat afsluitdijk in 1932
-    }  # TODO: add physical_break for STAVNSE and KATSBTN? (Oosterscheldekering)
-
+        "CADZD": "1966",
+        "STAVNSE": "1988",
+        "SCHEVNGN": "1962",
+        "PETTZD": "1977",
+        "DENHDR": "1933",
+        "OUDSD": "1933",
+        "WESTTSLG": "1933",
+        "DENOVBTN": "1933",
+        "HARLGN": "1933",
+        "VLIELHVN": "1941",
+        } 
+    
     station = df_meas.attrs["station"]
     if station not in physical_break_dict.keys():
         logger.info(
@@ -473,7 +485,11 @@ def nap2005_correction(df_meas):
     # herdefinitie van NAP (~20mm voor HvH in fig2, relevant?): https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_113484_31&versienummer=1
     # Dit is de rapportage waar het gebruik voor PSMSL data voor het eerst beschreven is: https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_137204_31&versienummer=1
     # TODO: maybe move dict to csv file and add as package data
-    dict_correct_nap2005 = {"HOEKVHLD": -0.0277, "HARVT10": -0.0210, "VLISSGN": -0.0297}
+    dict_correct_nap2005 = {
+        "HOEKVHLD": -0.0277,
+        "HARVT10": -0.0210,
+        "VLISSGN": -0.0297,
+        }
 
     station = df_meas.attrs["station"]
     if station not in dict_correct_nap2005.keys():
