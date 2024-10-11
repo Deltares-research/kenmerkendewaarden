@@ -1,5 +1,11 @@
 # What's new
 
+## UNRELEASED
+
+### Feat
+- expanded physical_break_dict in [#151](https://github.com/Deltares-research/kenmerkendewaarden/pull/151)
+
+
 ## 0.3.0 (2024-10-01)
 
 ### Feat
