@@ -163,18 +163,18 @@ def test_calc_slotgemiddelden_correct_tstop(df_meas_2010_2014):
 
 @pytest.mark.unittest
 def test_calc_slotgemiddelden_physical_break(df_meas_2010_2014, df_ext_12_2010_2014):
-    # construct fake timeseries for VLIELHVN around physical break
+    # construct fake timeseries for VLIELHVN around physical break 1933
     tstart_2010 = df_meas_2010_2014.index[0]
     tstart_1931 = pd.Timestamp(1931, 1, 1, tz=tstart_2010.tz)
     tdiff = tstart_2010 - tstart_1931
 
     df_meas_1931_1935 = df_meas_2010_2014.copy()
     df_meas_1931_1935.index = df_meas_1931_1935.index - tdiff
-    df_meas_1931_1935.attrs["station"] = "VLIELHVN"
+    df_meas_1931_1935.attrs["station"] = "HARLGN"
 
     df_ext_12_1931_1935 = df_ext_12_2010_2014.copy()
     df_ext_12_1931_1935.index = df_ext_12_1931_1935.index - tdiff
-    df_ext_12_1931_1935.attrs["station"] = "VLIELHVN"
+    df_ext_12_1931_1935.attrs["station"] = "HARLGN"
 
     # check if the timeseries do not extend over the expected slotgemiddelden value
     assert df_meas_1931_1935.index[-1] <= pd.Timestamp("1936-01-01 00:00:00 +01:00")

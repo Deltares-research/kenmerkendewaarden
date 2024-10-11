@@ -197,7 +197,7 @@ def test_calc_overschrijding_rule_type_break(df_ext_12_2010_2014):
 
 @pytest.mark.unittest
 def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
-    # construct fake timeseries for VLIELHVN around physical break
+    # construct fake timeseries for HARLGN around physical break 1933
     tstart_2010 = df_ext_12_2010_2014.index[0]
     tstart_1931 = pd.Timestamp(
         1931,
@@ -212,7 +212,7 @@ def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
 
     df_ext_12_1931_1935 = df_ext_12_2010_2014.copy()
     df_ext_12_1931_1935.index = df_ext_12_1931_1935.index - tdiff
-    df_ext_12_1931_1935.attrs["station"] = "VLIELHVN"
+    df_ext_12_1931_1935.attrs["station"] = "HARLGN"
 
     Tfreqs_interested = [
         5,
