@@ -460,7 +460,7 @@ def clip_timeseries_physical_break(df_meas):
         "DENOVBTN": "1933",
         "HARLGN": "1933",
         "VLIELHVN": "1941",
-        } 
+        }
     
     station = df_meas.attrs["station"]
     if station not in physical_break_dict.keys():
