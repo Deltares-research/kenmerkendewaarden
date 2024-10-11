@@ -443,15 +443,25 @@ def read_measurements(
 
 def clip_timeseries_physical_break(df_meas):
     # TODO: move to csv file and add as package data
-    # physical_break_dict for slotgemiddelden and overschrijdingsfrequenties TODO: maybe use everywhere to crop data?
+    # physical_break_dict for slotgemiddelden and overschrijdingsfrequenties
     # values from chapter 6.4 from "Kenmerkende waarden kustwateren en grote rivieren" (Dillingh, 2013)
     # https://open.rijkswaterstaat.nl/open-overheid/onderzoeksrapporten/@44612/kenmerkende-waarden-kustwateren-grote
+    # TODO: consider adding nearby stations like CADZD02, CADZBSD and others
+    # TODO: add physical_break for KATSBTN? (Oosterscheldekering)
+    # TODO: maybe use physical_break_dict everywhere to crop data?
     physical_break_dict = {
-        "DENOVBTN": "1933",  # laatste sluitgat afsluitdijk in 1932
-        "HARLGN": "1933",  # laatste sluitgat afsluitdijk in 1932
-        "VLIELHVN": "1933",  # laatste sluitgat afsluitdijk in 1932
-        }  # TODO: add physical_break for STAVNSE and KATSBTN? (Oosterscheldekering)
-
+        "CADZD": "1966",
+        "STAVNSE": "1988",
+        "SCHEVNGN": "1962",
+        "PETTZD": "1977",
+        "DENHDR": "1933",
+        "OUDSD": "1933",
+        "WESTTSLG": "1933",
+        "DENOVBTN": "1933",
+        "HARLGN": "1933",
+        "VLIELHVN": "1941",
+        } 
+    
     station = df_meas.attrs["station"]
     if station not in physical_break_dict.keys():
         logger.info(
