@@ -21,27 +21,28 @@ def test_calc_slotgemiddelden_outputtype(df_meas_2010_2014, df_ext_12_2010_2014)
 
 
 @pytest.mark.unittest
-def test_fit_models(df_meas_2010_2014):
+def test_predict_linear_model(df_meas_2010_2014):
     dict_wltidalindicators_valid = kw.calc_wltidalindicators(
         df_meas_2010_2014
     )  # 24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
     wl_mean_peryear_valid = dict_wltidalindicators_valid["wl_mean_peryear"]
 
-    wl_model_fit_nodal = kw.slotgemiddelden.fit_models(
+    wl_model_fit_nodal = kw.slotgemiddelden.predict_linear_model(
         wl_mean_peryear_valid, with_nodal=True
     )
     nodal_expected = np.array(
-        [0.0141927, 0.08612119, 0.0853051, 0.07010864, 0.10051922, 0.23137634]
+        [0.07860955, 0.08999961, 0.07954378, 0.07398706, 0.09952146, 0.17882958]
     )
     assert np.allclose(wl_model_fit_nodal.values, nodal_expected)
-
-    wl_model_fit_linear = kw.slotgemiddelden.fit_models(
+    
+    wl_model_fit_linear = kw.slotgemiddelden.predict_linear_model(
         wl_mean_peryear_valid, with_nodal=False
     )
     linear_expected = np.array(
-        [0.07851414, 0.0813139, 0.08411366, 0.08691342, 0.08971318, 0.09251294]
+        [0.07917004, 0.08175116, 0.08433229, 0.08691342, 0.08949454, 0.09207567]
     )
     assert np.allclose(wl_model_fit_linear.values, linear_expected)
+
 
 
 @pytest.mark.unittest
@@ -94,14 +95,14 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     )
 
     # fmt: off
-    wl_model_fit_expected = np.array([0.0141927, 0.08612119, 0.0853051,
-                                      0.07010864, 0.10051922, 0.23137634])
-    hw_model_fit_expected = np.array([1.05295416, 1.12875177, 1.13988685,
-                                      1.1415461, 1.18998584, 1.336182])
-    lw_model_fit_expected = np.array([-0.67420399, -0.59089362, -0.59342291,
-                                      -0.61334278, -0.58024113, -0.42969074])
-    range_model_fit_expected = np.array([1.72715816, 1.71964539, 1.73330976,
-                                         1.75488888, 1.77022697, 1.76587273])
+    wl_model_fit_expected = np.array([0.07917004, 0.08175116, 0.08433229,
+                                      0.08691342, 0.08949454, 0.09207567])
+    hw_model_fit_expected = np.array([1.12529394, 1.13663287, 1.14797179,
+                                      1.15931071, 1.17064963, 1.18198856])
+    lw_model_fit_expected = np.array([-0.60236402, -0.59953375, -0.59670349,
+                                      -0.59387323, -0.59104297, -0.58821271])
+    range_model_fit_expected = np.array([1.72765796, 1.73616662, 1.74467528,
+                                         1.75318394, 1.7616926, 1.77020126])
     # fmt: on
     assert np.allclose(
         slotgemiddelden_dict_inclext["wl_model_fit"].values, wl_model_fit_expected

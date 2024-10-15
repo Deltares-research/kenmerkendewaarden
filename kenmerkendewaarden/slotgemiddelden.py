@@ -27,10 +27,13 @@ def calc_slotgemiddelden(
     df_ext: pd.DataFrame = None,
     min_coverage: float = None,
     clip_physical_break: bool = False,
-    with_nodal: bool = True,
 ):
     """
     Compute slotgemiddelden from measurement timeseries and optionally also from extremes timeseries.
+    A simple linear trend is used to avoid all pretend-accuracy. However, when fitting a
+    linear trend on a limited amount of data, the nodal cycle and wind effects will cause
+    the model fit to be inaccurate. It is wise to use at least 30 years of data for 
+    a valid fit, this is >1.5 times the nodal cycle.
 
     Parameters
     ----------
@@ -42,8 +45,6 @@ def calc_slotgemiddelden(
         Set yearly means to nans for years that do not have sufficient data coverage. The default is None.
     clip_physical_break : bool, optional
         Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
-    with_nodal : bool, optional
-        Whether to include a nodal cycle in the linear trend model. The default is True.
 
     Returns
     -------
@@ -71,7 +72,7 @@ def calc_slotgemiddelden(
         wl_mean_peryear = clip_timeseries_physical_break(wl_mean_peryear)
 
     # fit linear models over yearly mean values
-    pred_pd_wl = fit_models(wl_mean_peryear, with_nodal=with_nodal)
+    pred_pd_wl = predict_linear_model(wl_mean_peryear)
     slotgemiddelden_dict["wl_model_fit"] = pred_pd_wl
 
     if df_ext is not None:
@@ -103,9 +104,9 @@ def calc_slotgemiddelden(
             tidalrange_mean_peryear = clip_timeseries_physical_break(tidalrange_mean_peryear)
 
         # fit linear models over yearly mean values
-        pred_pd_HW = fit_models(HW_mean_peryear, with_nodal=with_nodal)
-        pred_pd_LW = fit_models(LW_mean_peryear, with_nodal=with_nodal)
-        pred_pd_tidalrange = fit_models(tidalrange_mean_peryear, with_nodal=with_nodal)
+        pred_pd_HW = predict_linear_model(HW_mean_peryear)
+        pred_pd_LW = predict_linear_model(LW_mean_peryear)
+        pred_pd_tidalrange = predict_linear_model(tidalrange_mean_peryear)
         slotgemiddelden_dict["HW_model_fit"] = pred_pd_HW
         slotgemiddelden_dict["LW_model_fit"] = pred_pd_LW
         slotgemiddelden_dict["tidalrange_model_fit"] = pred_pd_tidalrange
@@ -210,13 +211,13 @@ def plot_slotgemiddelden(
     return fig, ax
 
 
-def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
+def predict_linear_model(ser: pd.Series, with_nodal=False) -> pd.DataFrame:
     """
     Fit linear model over yearly means in mean_array_todate, including five years in the future.
 
     Parameters
     ----------
-    mean_array_todate : pd.Series
+    ser : pd.Series
         DESCRIPTION.
 
     Returns
@@ -226,61 +227,52 @@ def fit_models(mean_array_todate: pd.Series, with_nodal=True) -> pd.DataFrame:
 
     """
 
-    start = mean_array_todate.index.min()
-    end = mean_array_todate.index.max() + 1
+    start = ser.index.min()
+    end = ser.index.max() + 1
 
-    logger.info(f"fit linear model (with_nodal={with_nodal}) for {start} to {end}")
+    logger.info(f"fit linear model for {start} to {end}")
 
-    # We'll just use the years. This assumes that annual waterlevels are used that are stored left-padded, the mean waterlevel for 2020 is stored as 2020-1-1. This is not logical, but common practice.
+    # generate contiguous timeseries including gaps and including slotgemiddelde year
     allyears_dt = pd.period_range(start=start, end=end)
-    mean_array_allyears = pd.Series(mean_array_todate, index=allyears_dt)
+    ser_allyears = pd.Series(ser, index=allyears_dt)
     
-    mean_array_allyears_nonans = mean_array_allyears.loc[~mean_array_allyears.isnull()]
-    if len(mean_array_allyears_nonans) < 2:
+    ser_nonans = ser_allyears.loc[~ser_allyears.isnull()]
+    if len(ser_nonans) < 2:
         raise ValueError(
-            f"nan-filtered timeseries has only one timestep, cannot perform model fit:\n{mean_array_allyears_nonans}"
+            f"nan-filtered timeseries has only one timestep, cannot perform model fit:\n{ser_nonans}"
         )
 
-    # convert to dataframe of expected format
-    # TODO: make functions accept mean_array instead of df as argument?
-    df = pd.DataFrame(
-        {"year": mean_array_allyears.index.year, "height": mean_array_allyears.values}
-    )
+    # get model fit
+    fit, _, X = fit_linear_model(ser_allyears, with_nodal=with_nodal)
 
-    # below methods are copied from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py
-    # TODO: install slr package as dependency or keep separate?
-    fit, _, X = linear_model(df, with_wind=False, with_nodal=with_nodal)
-    pred_linear = fit.predict(X)
-
-    linear_fit = pd.Series(pred_linear, index=allyears_dt, name="values")
-    linear_fit.index.name = mean_array_todate.index.name
-    return linear_fit
+    # predict
+    pred_arr = fit.predict(X)
+    pred_pd = pd.Series(pred_arr, index=allyears_dt, name="values")
+    pred_pd.index.name = ser.index.name
+    return pred_pd
 
 
-# copied from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py
-def linear_model(df, with_wind=True, with_ar=True, with_nodal=True, quantity="height"):
-    """Define the linear model with optional wind and autoregression.
-    See the latest report for a detailed description.
+def fit_linear_model(df, with_nodal=False):
+    """
+    Define the linear model with constant and trend, optionally with nodal.
+    simplified from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py
     """
 
-    y = df[quantity]
-    X = np.c_[df["year"] - 1970,]
-    # month = np.mod(df['year'], 1) * 12.0
+    # just use the years. This assumes that annual waterlevels are used that are 
+    # stored left-padded, the mean waterlevel for 2020 is stored as 2020-1-1
+    # This is not logical, but common practice.
+    years = df.index.year
+    y = df.values
+    X = np.c_[years - 1970,]
     names = ["Constant", "Trend"]
     if with_nodal:
         X = np.c_[
             X,
-            np.cos(2 * np.pi * (df["year"] - 1970) / 18.613),
-            np.sin(2 * np.pi * (df["year"] - 1970) / 18.613),
+            np.cos(2 * np.pi * (years - 1970) / 18.613),
+            np.sin(2 * np.pi * (years - 1970) / 18.613),
         ]
         names.extend(["Nodal U", "Nodal V"])
-    if with_wind:
-        X = np.c_[X, df["u2"], df["v2"]]
-        names.extend(["Wind $u^2$", "Wind $v^2$"])
     X = sm.add_constant(X)
-    if with_ar:
-        model = sm.GLSAR(y, X, missing="drop", rho=1)
-    else:
-        model = sm.OLS(y, X, missing="drop")
+    model = sm.OLS(y, X, missing="drop")
     fit = model.fit(cov_type="HC0")
     return fit, names, X
