@@ -70,11 +70,11 @@ nap_correction = False
 min_coverage = 0.9 # for tidalindicators and slotgemiddelde #TODO: can also be used for havengetallen and gemgetij
 drop_duplicates = True
 
-compute_indicators = True
+compute_indicators = False
 compute_slotgem = True
-compute_havengetallen = True
-compute_gemgetij = True
-compute_overschrijding = True
+compute_havengetallen = False
+compute_gemgetij = False
+compute_overschrijding = False
 
 
 for current_station in station_list:

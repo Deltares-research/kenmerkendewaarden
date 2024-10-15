@@ -21,27 +21,28 @@ def test_calc_slotgemiddelden_outputtype(df_meas_2010_2014, df_ext_12_2010_2014)
 
 
 @pytest.mark.unittest
-def test_fit_models(df_meas_2010_2014):
+def test_predict_linear_model(df_meas_2010_2014):
     dict_wltidalindicators_valid = kw.calc_wltidalindicators(
         df_meas_2010_2014
     )  # 24*365=8760 (hourly interval), 24/3*365=2920 (3-hourly interval)
     wl_mean_peryear_valid = dict_wltidalindicators_valid["wl_mean_peryear"]
 
-    wl_model_fit_nodal = kw.slotgemiddelden.fit_models(
+    wl_model_fit_nodal = kw.slotgemiddelden.predict_linear_model(
         wl_mean_peryear_valid, with_nodal=True
     )
     nodal_expected = np.array(
-        [0.0141927, 0.08612119, 0.0853051, 0.07010864, 0.10051922, 0.23137634]
+        [0.07860955, 0.08999961, 0.07954378, 0.07398706, 0.09952146, 0.17882958]
     )
     assert np.allclose(wl_model_fit_nodal.values, nodal_expected)
-
-    wl_model_fit_linear = kw.slotgemiddelden.fit_models(
+    
+    wl_model_fit_linear = kw.slotgemiddelden.predict_linear_model(
         wl_mean_peryear_valid, with_nodal=False
     )
     linear_expected = np.array(
-        [0.07851414, 0.0813139, 0.08411366, 0.08691342, 0.08971318, 0.09251294]
+        [0.07917004, 0.08175116, 0.08433229, 0.08691342, 0.08949454, 0.09207567]
     )
     assert np.allclose(wl_model_fit_linear.values, linear_expected)
+
 
 
 @pytest.mark.unittest
