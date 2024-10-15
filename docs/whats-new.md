@@ -4,6 +4,7 @@
 
 ### Feat
 - expanded physical_break_dict in [#151](https://github.com/Deltares-research/kenmerkendewaarden/pull/151)
+- linear fit for slotgemiddelden (no nodal) in [#157](https://github.com/Deltares-research/kenmerkendewaarden/pull/157)
 
 
 ## 0.3.0 (2024-10-01)

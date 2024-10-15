@@ -30,6 +30,10 @@ def calc_slotgemiddelden(
 ):
     """
     Compute slotgemiddelden from measurement timeseries and optionally also from extremes timeseries.
+    A simple linear trend is used to avoid all pretend-accuracy. However, when fitting a
+    linear trend on a limited amount of data, the nodal cycle and wind effects will cause
+    the model fit to be inaccurate. It is wise to use at least 30 years of data for 
+    a valid fit, this is >1.5 times the nodal cycle.
 
     Parameters
     ----------
