@@ -68,7 +68,7 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     expected_keys_noext = ["wl_mean_peryear", "wl_model_fit"]
     assert set(slotgemiddelden_dict_inclext.keys()) == set(expected_keys_inclext)
     assert set(slotgemiddelden_dict_noext.keys()) == set(expected_keys_noext)
-    
+
     # assertion of values
     # fmt: off
     wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051,
@@ -79,7 +79,6 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
                                          -0.61334278, -0.58024113])
     range_mean_peryear_expected = np.array([1.74530541, 1.71964539, 1.73330976,
                                             1.75488888, 1.77022697])
-    
     # fmt: on
     assert np.allclose(
         slotgemiddelden_dict_inclext["wl_mean_peryear"].values, wl_mean_peryear_expected
@@ -94,7 +93,7 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
         slotgemiddelden_dict_inclext["tidalrange_mean_peryear"].values,
         range_mean_peryear_expected,
     )
-    
+
     # fmt: off
     wl_model_fit_expected = np.array([0.07917004, 0.08175116, 0.08433229,
                                       0.08691342, 0.08949454, 0.09207567])
@@ -118,7 +117,6 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
         slotgemiddelden_dict_inclext["tidalrange_model_fit"].values,
         range_model_fit_expected,
     )
-
 
 
 @pytest.mark.unittest
