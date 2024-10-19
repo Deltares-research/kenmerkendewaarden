@@ -19,6 +19,7 @@ __all__ = [
     "calc_HWLWtidalrange",
     "calc_hat_lat_fromcomponents",
     "calc_hat_lat_frommeasurements",
+    "calc_getijcomponenten",
 ]
 
 logger = logging.getLogger(__name__)
@@ -410,18 +411,32 @@ def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> tuple:
         )
 
     # TODO: fu_alltimes=False makes the process significantly faster (default is True)
-    # TODO: xfac actually varies between stations (default is False), but different xfac has only very limited impact on the resulting hat/lat values
-    _, comp_all = hatyan.analysis(
-        df_meas_19y,
-        const_list="year",
-        analysis_perperiod="Y",
-        return_allperiods=True,
-        fu_alltimes=False,
-    )
+    # TODO: xfac actually varies between stations (default is False),
+    # but different xfac has only very limited impact on the resulting hat/lat values
+    _, comp_all = calc_getijcomponenten(df_meas=df_meas_19y, const_list=None)
 
-    # TODO: a frequency of 1min is better in theory, but 10min is faster and hat/lat values differ only 2mm for HOEKVHLD
+    # TODO: a frequency of 1min is better in theory, but 10min is faster and hat/lat 
+    # values differ only 2mm for HOEKVHLD
     df_pred = hatyan.prediction(comp_all, timestep="10min")
 
     lat = df_pred["values"].min()
     hat = df_pred["values"].max()
     return hat, lat
+
+
+def calc_getijcomponenten(df_meas, const_list=None):
+    if const_list is None:
+        const_list = hatyan.get_const_list_hatyan("year")  
+    # RWS-default settings
+    hatyan_settings_ana = dict(
+        nodalfactors=True,
+        fu_alltimes=False,
+        xfac=True,
+        analysis_perperiod="Y",
+        return_allperiods=True,
+    )
+    # analysis
+    comp_avg, comp_all = hatyan.analysis(
+        df_meas, const_list=const_list, **hatyan_settings_ana
+    )
+    return comp_avg, comp_all

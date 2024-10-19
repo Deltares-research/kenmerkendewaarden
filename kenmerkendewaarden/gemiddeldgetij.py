@@ -8,7 +8,8 @@ import pandas as pd
 import hatyan
 import logging
 import matplotlib.pyplot as plt
-from kenmerkendewaarden.tidalindicators import calc_HWLWtidalrange
+from kenmerkendewaarden.tidalindicators import (calc_HWLWtidalrange,
+                                                calc_getijcomponenten)
 from kenmerkendewaarden.havengetallen import calc_havengetallen
 from kenmerkendewaarden.utils import TimeSeries_TimedeltaFormatter_improved
 from matplotlib.ticker import MaxNLocator, MultipleLocator
@@ -370,18 +371,8 @@ def get_gemgetij_components(data_pd_meas):
     # =============================================================================
     
     # components should not be reduced, since higher harmonics are necessary
-    const_list = hatyan.get_const_list_hatyan("year")  
-    hatyan_settings_ana = dict(
-        nodalfactors=True,
-        fu_alltimes=False,
-        xfac=True,
-        analysis_perperiod="Y",
-        return_allperiods=True,
-    )  # RWS-default settings
-    comp_frommeasurements_avg, comp_frommeasurements_allyears = hatyan.analysis(
-        data_pd_meas, const_list=const_list, **hatyan_settings_ana
-    )
-
+    comp_frommeasurements_avg, _ = calc_getijcomponenten(df_meas=data_pd_meas)
+    
     # #check if all years are available
     # comp_years = comp_frommeasurements_allyears['A'].columns
     # expected_years = tstop_dt.year-tstart_dt.year

@@ -320,6 +320,21 @@ def test_calc_hat_lat_frommeasurements_tooshortperiod(df_meas_2010_2014):
 
 
 @pytest.mark.unittest
+def test_calc_getijcomponenten(df_meas_2010_2014):
+    comp_av, comp_all = kw.calc_getijcomponenten(df_meas_2010_2014)
+    assert comp_av.shape == (95, 2)
+    assert comp_all.shape == (95, 10)
+    m2_av = comp_av.loc["M2"].values
+    m2_av_expected = np.array([ 0.7842112 , 86.07279444])
+    m2_all = comp_all.loc["M2"].values
+    m2_all_expected = np.array([0.79855603,  0.78044153,  0.78365574, 0.77764858,
+                                0.78078641, 85.91979015, 86.36060506, 85.71167985,
+                                86.24874909, 86.12879046])
+    assert np.allclose(m2_av, m2_av_expected)
+    assert np.allclose(m2_all, m2_all_expected)
+
+
+@pytest.mark.unittest
 def test_calc_HWLWtidalrange_aggers_input(df_ext_2010):
     with pytest.raises(ValueError) as e:
         kw.calc_HWLWtidalrange(df_ext=df_ext_2010)
