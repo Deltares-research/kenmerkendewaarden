@@ -99,6 +99,8 @@ def calc_havengetallen(
     # TODO: we added tz_localize on 29-5-2024 (https://github.com/Deltares-research/kenmerkendewaarden/issues/30)
     # this means we pass a UTC+1 timeseries as if it were a UTC timeseries
     # TODO: consider supporting timezones in hatyan.astrog.dT
+    if df_ext.index.tz is not None:
+        df_ext = df_ext.tz_localize(None)
     df_ext = calc_HWLW_moonculm_combi(
         data_pd_HWLW_12=df_ext, moonculm_offset=moonculm_offset
     )
@@ -148,8 +150,6 @@ def calc_HWLW_moonculm_combi(data_pd_HWLW_12: pd.DataFrame, moonculm_offset: int
         Copy of the input dataframe enriched with several columns related to the moonculminations.
 
     """
-    if data_pd_HWLW_12.index.tz is not None:
-        data_pd_HWLW_12 = data_pd_HWLW_12.tz_localize(None)
     moonculm_idxHWLWno = get_moonculm_idxHWLWno(
         tstart=data_pd_HWLW_12.index.min() - dt.timedelta(days=3),
         tstop=data_pd_HWLW_12.index.max(),
