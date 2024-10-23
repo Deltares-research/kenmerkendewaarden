@@ -221,9 +221,7 @@ def get_flat_meta_from_dataset(ds):
 def get_stats_from_dataframe(df):
     df_times = df.index
     ts_dupltimes = df_times.duplicated()
-    ts_timediff = (
-        df_times[1:] - df_times[:-1]
-    )  # TODO: from pandas 2.1.4 the following also works: df_times.diff()[1:]
+    ts_timediff = df_times.diff()[1:]
 
     ds_stats = {}
     ds_stats["tstart"] = df_times.min()
