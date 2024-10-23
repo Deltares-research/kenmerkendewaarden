@@ -221,9 +221,7 @@ def compute_expected_counts(ser_meas, freq):
     """
     # TODO: beware of series with e.g. only first and last value of month/year, this will result in freq=30days and then expected count of 2, it will pass even if there is almost no data
     df_meas = pd.DataFrame(ser_meas)
-    df_meas["timediff"] = pd.TimedeltaIndex([pd.NaT]).append(
-        df_meas.index[1:] - df_meas.index[:-1]
-    )  # TODO: from pandas>=2.1.4 the following also works: df_times.diff() (which results in a timedeltaindex of the correct length)
+    df_meas["timediff"] = df_meas.index.diff()
     period_index = pd.PeriodIndex(df_meas.index, freq=freq)
     # compute median freq, the mean could be skewed in case of large gaps
     median_freq = df_meas.groupby(period_index)["timediff"].median()
