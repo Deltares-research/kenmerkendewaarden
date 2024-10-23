@@ -7,6 +7,8 @@
 - linear fit for slotgemiddelden (no nodal) in #157
 - exposed yearly tidal components with `kw.calc_getijcomponenten()` in #159
 - support for timedelta `diff()` because of update to `pandas>=2.1.4` in #161
+- neater handling of time in `kw.calc_havengetallen()` in #163
+
 
 ## 0.3.0 (2024-10-01)
 
