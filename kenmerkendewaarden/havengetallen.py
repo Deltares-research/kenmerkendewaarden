@@ -96,7 +96,7 @@ def calc_havengetallen(
 
     current_station = df_ext.attrs["station"]
     logger.info(f"computing havengetallen for {current_station}")
-    df_ext = calc_HWLW_moonculm_combi(df_ext=df_ext, moonculm_offset=moonculm_offset)
+    df_ext = calc_hwlw_moonculm_combi(df_ext=df_ext, moonculm_offset=moonculm_offset)
     df_havengetallen = calc_HWLW_culmhr_summary(df_ext)  # TODO: maybe add tijverschil
     logger.info("computing havengetallen done")
     if return_df_ext:
@@ -120,7 +120,7 @@ def get_moonculm_idxHWLWno(tstart, tstop):
     return moonculm_idxHWLWno
 
 
-def calc_HWLW_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
+def calc_hwlw_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
     """
     Links moonculminations to each extreme. All low waters correspond to the same
     moonculmination as the preceding high water. Computes the time differences between
@@ -154,14 +154,14 @@ def calc_HWLW_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
     df_ext_idxHWLWno["times"] = df_ext_idxHWLWno.index
     df_ext_idxHWLWno = df_ext_idxHWLWno.set_index("HWLWno", drop=False)
 
-    HW_bool = df_ext_idxHWLWno["HWLWcode"] == 1
+    hw_bool = df_ext_idxHWLWno["HWLWcode"] == 1
     # computing getijperiod like this works properly since index is HWLW
-    getijperiod = df_ext_idxHWLWno.loc[HW_bool, "times"].diff()
-    df_ext_idxHWLWno.loc[HW_bool, "getijperiod"] = getijperiod
+    getijperiod = df_ext_idxHWLWno.loc[hw_bool, "times"].diff()
+    df_ext_idxHWLWno.loc[hw_bool, "getijperiod"] = getijperiod
     # compute duurdaling
-    df_ext_idxHWLWno.loc[HW_bool, "duurdaling"] = (
-        df_ext_idxHWLWno.loc[~HW_bool, "times"]
-        - df_ext_idxHWLWno.loc[HW_bool, "times"]
+    df_ext_idxHWLWno.loc[hw_bool, "duurdaling"] = (
+        df_ext_idxHWLWno.loc[~hw_bool, "times"]
+        - df_ext_idxHWLWno.loc[hw_bool, "times"]
     )
     # couple HWLW to moonculminations two days earlier (this works since index is HWLWno)
     tz_hwlw = df_ext.index.tz
