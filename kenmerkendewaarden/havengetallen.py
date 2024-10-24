@@ -112,7 +112,6 @@ def get_moonculm_idxHWLWno(tstart, tstop):
     # should be in UTC since that relates to the relation dateline/sun
     data_pd_moonculm = astrog_culminations(tFirst=tstart, tLast=tstop)
     data_pd_moonculm = data_pd_moonculm.tz_convert("UTC")  # convert to UTC (is already)
-    # data_pd_moonculm = data_pd_moonculm.tz_localize(None)  # remove timezone
     data_pd_moonculm["datetime"] = data_pd_moonculm.index
     # dummy values for TA in hatyan.calc_HWLWnumbering()
     data_pd_moonculm["values"] = data_pd_moonculm["type"]
