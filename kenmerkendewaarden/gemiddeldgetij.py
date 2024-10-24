@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 from kenmerkendewaarden.tidalindicators import (calc_HWLWtidalrange,
                                                 calc_getijcomponenten)
 from kenmerkendewaarden.havengetallen import calc_havengetallen
-from kenmerkendewaarden.utils import TimeSeries_TimedeltaFormatter_improved
+from kenmerkendewaarden.utils import (crop_timeseries_last_nyears,
+                                      TimeSeries_TimedeltaFormatter_improved,
+                                      )
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 
 
@@ -69,7 +71,7 @@ def calc_gemiddeldgetij(
         dictionary with Dataframes with gemiddeld getij for mean, spring and neap tide.
 
     """
-    data_pd_meas_10y = df_meas
+    data_pd_meas_10y = crop_timeseries_last_nyears(df_meas)
     tstop_dt = df_meas.index.max()
 
     current_station = data_pd_meas_10y.attrs["station"]
@@ -90,7 +92,8 @@ def calc_gemiddeldgetij(
         station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
         assert all(x == station_attrs[0] for x in station_attrs)
 
-        df_havengetallen = calc_havengetallen(df_ext=df_ext, min_coverage=min_coverage)
+        df_ext_10y = crop_timeseries_last_nyears(df_ext)
+        df_havengetallen = calc_havengetallen(df_ext=df_ext_10y, min_coverage=min_coverage)
         HW_sp, LW_sp = df_havengetallen.loc[
             0, ["HW_values_median", "LW_values_median"]
         ]  # spring

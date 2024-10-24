@@ -17,6 +17,7 @@ from kenmerkendewaarden.tidalindicators import (
 )
 from kenmerkendewaarden.utils import (
     raise_extremes_with_aggers,
+    crop_timeseries_last_nyears,
     TimeSeries_TimedeltaFormatter_improved,
 )
 from matplotlib.ticker import MultipleLocator
@@ -69,6 +70,7 @@ def calc_havengetallen(
 
     """
     raise_extremes_with_aggers(df_ext)
+    df_ext = crop_timeseries_last_nyears(df_ext)
 
     # check if coverage is high enough for havengetallen
     if min_coverage is not None:
