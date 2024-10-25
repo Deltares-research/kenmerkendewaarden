@@ -48,6 +48,12 @@ def test_crop_timeseries_last_nyears(df_meas):
 
 
 @pytest.mark.unittest
+def test_crop_timeseries_last_nyears_warning_tooshort(df_meas_2010_2014, caplog):
+    crop_timeseries_last_nyears(df_meas_2010_2014, nyears=10)
+    assert "requested 10 years but resulted in 5" in caplog.text
+
+
+@pytest.mark.unittest
 def test_raise_extremes_with_aggers_emptydf():
     import pandas as pd
 
