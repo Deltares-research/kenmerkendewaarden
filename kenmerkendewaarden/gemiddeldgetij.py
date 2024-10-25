@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 from kenmerkendewaarden.tidalindicators import (calc_HWLWtidalrange,
                                                 calc_getijcomponenten)
 from kenmerkendewaarden.havengetallen import calc_havengetallen
-from kenmerkendewaarden.slotgemiddelden import calc_slotgemiddelden
 from kenmerkendewaarden.utils import (crop_timeseries_last_nyears,
                                       TimeSeries_TimedeltaFormatter_improved,
                                       )
@@ -48,14 +47,13 @@ def calc_gemiddeldgetij(
     ----------
     df_meas : pd.DataFrame
         Timeseries of waterlevel measurements. The last 10 years of this 
-        timeseries are used to compute the getijkrommes. The entire series is used to 
-        compute the slotgemiddelden to correct with.
+        timeseries are used to compute the getijkrommes.
     df_ext : pd.DataFrame, optional
         Timeseries of waterlevel extremes (1/2 only). The last 10 years of this 
         timeseries are used to compute the getijkrommes. The default is None.
     min_coverage : float, optional
         The minimal required coverage of the df_ext timeseries. Passed on to 
-        `calc_havengetallen()` and `calc_slotgemiddelden()`. The default is None.
+        `calc_havengetallen()`. The default is None.
     freq : str, optional
         Frequency of the prediction, a value of 60 seconds or lower is adivisable for decent results. The default is "60sec".
     nb : int, optional
@@ -73,7 +71,6 @@ def calc_gemiddeldgetij(
         dictionary with Dataframes with gemiddeld getij for mean, spring and neap tide.
 
     """
-    
     df_meas_10y = crop_timeseries_last_nyears(df=df_meas, nyears=10)
     tstop_dt = df_meas.index.max()
 
