@@ -2,7 +2,6 @@
 
 import numpy as np
 from matplotlib.ticker import Formatter
-import pandas as pd
 
 
 def raise_extremes_with_aggers(df_ext):
@@ -17,7 +16,7 @@ def raise_extremes_with_aggers(df_ext):
         )
 
 
-def crop_timeseries_last_nyears(df, nyears=10):
+def crop_timeseries_last_nyears(df, nyears):
     # remove last timestep if equal to "yyyy-01-01 00:00:00"
     if '-01-01 00:00:00' in str(df.index[-1]):
         df = df.iloc[:-1]
