@@ -130,11 +130,11 @@ for current_station in station_list:
         # including years with too little values and years before physical break
         slotgemiddelden_all = kw.calc_slotgemiddelden(df_meas=df_meas_todate, 
                                                       df_ext=df_ext_todate, 
-                                                      min_coverage=0, clip_physical_break=True)
+                                                      min_coverage=0)
         # only years with enough values and after potential physical break
         slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=df_meas_todate, 
                                                         df_ext=df_ext_todate, 
-                                                        min_coverage=min_coverage, clip_physical_break=True)
+                                                        min_coverage=min_coverage)
         
         # plot slotgemiddelden
         fig1, ax1 = kw.plot_slotgemiddelden(slotgemiddelden_valid, slotgemiddelden_all)
