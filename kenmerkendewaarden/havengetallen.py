@@ -48,8 +48,7 @@ def calc_havengetallen(
     ----------
     df_ext : pd.DataFrame
         DataFrame with extremes (highs and lows, no aggers). The last 10 years of this 
-        timeseries are used to compute the havengetallen. The entire series is used to 
-        compute the slotgemiddelden to correct with.
+        timeseries are used to compute the havengetallen.
     return_df : bool
         Whether to return the enriched input dataframe. Default is False.
     min_coverage : float, optional
