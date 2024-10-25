@@ -55,7 +55,8 @@ def calc_gemiddeldgetij(
         The minimal required coverage of the df_ext timeseries. Passed on to 
         `calc_havengetallen()`. The default is None.
     freq : str, optional
-        Frequency of the prediction, a value of 60 seconds or lower is adivisable for decent results. The default is "60sec".
+        Frequency of the prediction, a value of 60 seconds or lower is adivisable for 
+        decent results. The default is "60sec".
     nb : int, optional
         Amount of periods to repeat backward. The default is 0.
     nf : int, optional

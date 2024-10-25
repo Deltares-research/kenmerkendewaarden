@@ -57,7 +57,6 @@ def calc_havengetallen(
         and the expected amount of high waters in the series. Note that the expected
         amount is not an exact extimate, so min_coverage=1 will probably result in nans
         even though all extremes are present. The default is None.
-        This keyword is also passed to calc_slotgemiddelden().
     moonculm_offset : int, optional
         Offset between moonculmination and extremes. Passed on to `calc_HWLW_moonculm_combi`.
         The default is 4, which corresponds to a 2-day offset, which is applicable to the Dutch coast.
