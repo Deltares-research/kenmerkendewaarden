@@ -2,6 +2,9 @@
 
 import numpy as np
 from matplotlib.ticker import Formatter
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def raise_extremes_with_aggers(df_ext):
@@ -28,14 +31,15 @@ def crop_timeseries_last_nyears(df, nyears):
 
     df_10y = df.loc[str(first_year):str(last_year)]
     
-    # TODO: check if all years are included
-    # TODO: see `calc_hat_lat_frommeasurements` for how to check this properly
-    # TODO: add `allow_less_years` flag, or never allow less years?
-    # assert df_10y.index[0].year == first_year
-    # assert df_10y.index[-1].year == last_year
-    # expected_years = df_10y.index.year.drop_duplicates().to_numpy()
-    # actual_years = np.arange(first_year, last_year+1)
-    # assert expected_years is actual_years
+    # TODO: consider enforcing nyears instead of warning if it is not the case
+    # just like in `kw.calc_hat_lat_frommeasurements()`, but requires updates to tests
+    actual_years = df_10y.index.year.drop_duplicates().to_numpy()
+    is_exp_first = actual_years[0] == first_year
+    is_exp_last = actual_years[-1] == last_year
+    is_exp_amount = len(actual_years) == nyears
+    if not (is_exp_first & is_exp_last & is_exp_amount):
+        logger.warning(f"requested {nyears} years but resulted in "
+                       f"{len(actual_years)}: {actual_years}")
     
     return df_10y
 

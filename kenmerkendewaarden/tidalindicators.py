@@ -394,7 +394,8 @@ def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame) -> tuple:
     Parameters
     ----------
     df_meas : pd.DataFrame
-        Measurements timeseries.
+        Measurements timeseries. The last 19 years of this 
+        timeseries are used to compute hat and lat.
 
     Returns
     -------
