@@ -140,13 +140,8 @@ def calc_gemiddeldgetij(
     In het aldus gemodelleerde getij is de vorm van iedere getijslag, gegeven de getijfase, identiek.
     Vervolgens is aan de hand van de havengetallen een springtij- en een doodtijkromme geselecteerd.
 
-    #NOTE: background on choice of components
-    #below is different than provided list, these shallow ones are extra: ['S4','2SM6','M7','4MS4','2(MS)8','3M2S10','4M2S12']
-    #shallow relations, derive 'zuivere harmonischen van M2 en S2' (this means averaging over eenmaaldaagse componenten, but why is that chosen?)
-    #adding above extra components or oneday freqs, gives a modulation and therefore there is no repetative signal anymore. Apperantly all components in this list have an integer number of periods in one springneap cycle?
-    dummy,shallowrel,dummy = hatyan.foreman.get_foreman_shallowrelations()
-    bool_M2S2only = shallowrel[1].isin([1,2]) & shallowrel[3].isin(['M2','S2']) & shallowrel[5].isin(['M2','S2',np.nan]) & shallowrel.index.isin(const_list_year)
-    shallowdeps_M2S2 = shallowrel.loc[bool_M2S2only,:5]
+    Based on the information above one could consider adding more components, more information
+    is available in https://github.com/Deltares-research/kenmerkendewaarden/issues/173
     """
     components_sn = [
         "A0",
