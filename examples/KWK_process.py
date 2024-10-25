@@ -16,15 +16,9 @@ logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 # TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
 # overview in https://github.com/Deltares-research/kenmerkendewaarden/issues/101 and the linked wm-ws-dl issue
 
-tstart_dt = pd.Timestamp(2011,1,1, tz="UTC+01:00")
-tstop_dt = pd.Timestamp(2021,1,1, tz="UTC+01:00")
-if ((tstop_dt.year-tstart_dt.year)==10) & (tstop_dt.month==tstop_dt.day==tstart_dt.month==tstart_dt.day==1):
-    year_slotgem = tstop_dt.year
-else:
-    year_slotgem = 'invalid'
+year_slotgem = 2021
 print(f'year_slotgem: {year_slotgem}')
 
-# dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
 dir_meas = os.path.join(dir_base,'measurements_wl_18700101_20240101')
 
@@ -84,32 +78,31 @@ for current_station in station_list:
     # timeseries are used for slotgemiddelden, gemgetijkrommen (needs slotgem+havget)
     df_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False, 
                                        nap_correction=nap_correction, drop_duplicates=drop_duplicates)
-    if df_meas_all is not None:
-        #crop measurement data
-        df_meas_10y = hatyan.crop_timeseries(df_meas_all, times=slice(tstart_dt,tstop_dt-dt.timedelta(minutes=10)))
-    
     # extremes are used for slotgemiddelden, havengetallen, overschrijding
-    df_ext_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True,
+    df_ext_12345_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True,
                                       nap_correction=nap_correction, drop_duplicates=drop_duplicates)
-    if df_ext_all is not None:
-        # TODO: make calc_HWLW12345to12() faster: https://github.com/Deltares/hatyan/issues/311
-        df_ext_all_12 = hatyan.calc_HWLW12345to12(df_ext_all) #convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
-        #crop timeseries to 10y
-        df_ext_10y_12 = hatyan.crop_timeseries(df_ext_all_12, times=slice(tstart_dt,tstop_dt),onlyfull=False)
+    if df_meas_all is None or df_ext_12345_all is None:
+        raise ValueError(f"missing data for {current_station}")
     
+    # convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
+    # TODO: make calc_HWLW12345to12() faster: https://github.com/Deltares/hatyan/issues/311
+    df_ext_all = hatyan.calc_HWLW12345to12(df_ext_12345_all)
+    
+    # crop measurement data to (excluding) year_slotgem
+    df_meas_todate = df_meas_all.loc[:str(year_slotgem-1)]
+    df_ext_todate = df_ext_all.loc[:str(year_slotgem-1)]
     
     
     
     #### TIDAL INDICATORS
-    if compute_indicators and df_meas_all is not None and df_ext_all is not None:
+    if compute_indicators:
         print(f'tidal indicators for {current_station}')
         # compute and plot tidal indicators
-        dict_wltidalindicators = kw.calc_wltidalindicators(df_meas=df_meas_all, min_coverage=min_coverage)
-        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(df_ext=df_ext_all_12, min_coverage=min_coverage)
+        dict_wltidalindicators = kw.calc_wltidalindicators(df_meas=df_meas_todate, min_coverage=min_coverage)
+        dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(df_ext=df_ext_todate, min_coverage=min_coverage)
         
         # add hat/lat
-        df_meas_19y = df_meas_all.loc["2001":"2019"]
-        hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_19y)
+        hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_todate)
         dict_HWLWtidalindicators["hat"] = hat
         dict_HWLWtidalindicators["lat"] = lat
         
@@ -131,17 +124,17 @@ for current_station in station_list:
     #### SLOTGEMIDDELDEN
     # TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
     # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
-    if compute_slotgem and df_meas_all is not None and df_ext_all is not None:
+    if compute_slotgem:
         print(f'slotgemiddelden for {current_station}')
                 
         # compute slotgemiddelden, exclude all values after tstop_dt (is year_slotgem)
         # including years with too little values and years before physical break
-        slotgemiddelden_all = kw.calc_slotgemiddelden(df_meas=df_meas_all.loc[:tstop_dt], 
-                                                      df_ext=df_ext_all_12.loc[:tstop_dt], 
+        slotgemiddelden_all = kw.calc_slotgemiddelden(df_meas=df_meas_todate, 
+                                                      df_ext=df_ext_todate, 
                                                       min_coverage=0, clip_physical_break=True)
         # only years with enough values and after potential physical break
-        slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=df_meas_all.loc[:tstop_dt], 
-                                                        df_ext=df_ext_all_12.loc[:tstop_dt], 
+        slotgemiddelden_valid = kw.calc_slotgemiddelden(df_meas=df_meas_todate, 
+                                                        df_ext=df_ext_todate, 
                                                         min_coverage=min_coverage, clip_physical_break=True)
         
         # plot slotgemiddelden
@@ -180,9 +173,9 @@ for current_station in station_list:
     
     
     ### HAVENGETALLEN 
-    if compute_havengetallen and df_ext_all is not None:
+    if compute_havengetallen:
         print(f'havengetallen for {current_station}')
-        df_havengetallen, df_HWLW = kw.calc_havengetallen(df_ext=df_ext_10y_12, return_df_ext=True)
+        df_havengetallen, df_HWLW = kw.calc_havengetallen(df_ext=df_ext_todate, return_df_ext=True)
         
         # plot hwlw per timeclass including median
         fig, axs = kw.plot_HWLW_pertimeclass(df_ext=df_HWLW, df_havengetallen=df_havengetallen)
@@ -200,18 +193,18 @@ for current_station in station_list:
     
     
     ##### GEMIDDELDE GETIJKROMMEN
-    if compute_gemgetij and df_meas_all is not None and df_ext_all is not None:
+    if compute_gemgetij:
         print(f'gemiddelde getijkrommen for {current_station}')
         pred_freq = "10s" # frequency influences the accuracy of havengetallen-scaling and is writing frequency of BOI timeseries
         
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
-        gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=df_meas_10y, df_ext=None,
+        gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=None,
                                               freq=pred_freq, nb=0, nf=0, 
                                               scale_extremes=False, scale_period=False)
-        gemgetij_corr = kw.calc_gemiddeldgetij(df_meas=df_meas_10y, df_ext=df_ext_10y_12,
+        gemgetij_corr = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=df_ext_todate,
                                                freq=pred_freq, nb=1, nf=1, 
                                                scale_extremes=True, scale_period=False)
-        gemgetij_corr_boi = kw.calc_gemiddeldgetij(df_meas=df_meas_10y, df_ext=df_ext_10y_12,
+        gemgetij_corr_boi = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=df_ext_todate,
                                                    freq=pred_freq, nb=0, nf=4, 
                                                    scale_extremes=True, scale_period=True)
 
@@ -280,15 +273,12 @@ for current_station in station_list:
     freqs_interested = [5, 2, 1, 1/2, 1/5, 1/10, 1/20, 1/50, 1/100, 1/200,
                          1/500, 1/1000, 1/2000, 1/4000, 1/5000, 1/10000]
     
-    if compute_overschrijding and df_ext_all is not None:
+    if compute_overschrijding:
         print(f'overschrijdingsfrequenties for {current_station}')
-        
-        # only include data up to year_slotgem
-        df_measext = df_ext_all_12.loc[:tstop_dt]
         
         # 1. Exceedance
         dist_exc_hydra = initiate_dist_with_hydra_nl(station=current_station)
-        dist_exc = kw.calc_overschrijding(df_ext=df_measext, rule_type=None, rule_value=None, 
+        dist_exc = kw.calc_overschrijding(df_ext=df_ext_todate, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, dist=dist_exc_hydra,
                                           interp_freqs=freqs_interested)
         add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
@@ -299,7 +289,7 @@ for current_station in station_list:
         fig.savefig(os.path.join(dir_overschrijding, f'kw{year_slotgem}-exceedance-{current_station}.png'))
         
         # 2. Deceedance
-        dist_dec = kw.calc_overschrijding(df_ext=df_measext, rule_type=None, rule_value=None, 
+        dist_dec = kw.calc_overschrijding(df_ext=df_ext_todate, rule_type=None, rule_value=None, 
                                           clip_physical_break=True, inverse=True,
                                           interp_freqs=freqs_interested)
         add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)

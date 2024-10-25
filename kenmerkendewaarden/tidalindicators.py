@@ -9,7 +9,8 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import hatyan
 import logging
-from kenmerkendewaarden.utils import raise_extremes_with_aggers
+from kenmerkendewaarden.utils import (raise_extremes_with_aggers,
+                                      crop_timeseries_last_nyears)
 
 
 __all__ = [
@@ -380,7 +381,7 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     return hat, lat
 
 
-def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> tuple:
+def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame) -> tuple:
     """
     Derive highest and lowest astronomical tide (HAT/LAT) from a measurement timeseries of 19 years.
     Tidal components are derived for each year of the measurement timeseries.
@@ -392,8 +393,9 @@ def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> tuple:
 
     Parameters
     ----------
-    df_meas_19y : pd.DataFrame
-        Measurements timeseries of 19 years.
+    df_meas : pd.DataFrame
+        Measurements timeseries. The last 19 years of this 
+        timeseries are used to compute hat and lat.
 
     Returns
     -------
@@ -402,6 +404,7 @@ def calc_hat_lat_frommeasurements(df_meas_19y: pd.DataFrame) -> tuple:
 
     """
 
+    df_meas_19y = crop_timeseries_last_nyears(df=df_meas, nyears=19)
     num_years = len(df_meas_19y.index.year.unique())
     if num_years != 19:
         raise ValueError(

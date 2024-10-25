@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 from kenmerkendewaarden.tidalindicators import (calc_HWLWtidalrange,
                                                 calc_getijcomponenten)
 from kenmerkendewaarden.havengetallen import calc_havengetallen
-from kenmerkendewaarden.utils import TimeSeries_TimedeltaFormatter_improved
+from kenmerkendewaarden.utils import (crop_timeseries_last_nyears,
+                                      TimeSeries_TimedeltaFormatter_improved,
+                                      )
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 
 
@@ -45,9 +47,11 @@ def calc_gemiddeldgetij(
     Parameters
     ----------
     df_meas : pd.DataFrame
-        Timeseries of 10 years of waterlevel measurements.
+        Timeseries of waterlevel measurements. The last 10 years of this 
+        timeseries are used to compute the getijkrommes.
     df_ext : pd.DataFrame, optional
-        Timeseries of 10 years of waterlevel extremes (1/2 only). The default is None.
+        Timeseries of waterlevel extremes (1/2 only). The last 10 years of this 
+        timeseries are used to compute the getijkrommes. The default is None.
     min_coverage : float, optional
         The minimal required coverage of the df_ext timeseries. Passed on to `calc_havengetallen()`. The default is None.
     freq : str, optional
@@ -69,10 +73,10 @@ def calc_gemiddeldgetij(
         dictionary with Dataframes with gemiddeld getij for mean, spring and neap tide.
 
     """
-    data_pd_meas_10y = df_meas
+    df_meas_10y = crop_timeseries_last_nyears(df=df_meas, nyears=10)
     tstop_dt = df_meas.index.max()
 
-    current_station = data_pd_meas_10y.attrs["station"]
+    current_station = df_meas_10y.attrs["station"]
 
     # TODO: deprecate debug argument+plot (maybe use max HW instead of max tidalrange?)
     # TODO: add correctie havengetallen HW/LW av/sp/np met slotgemiddelde uit PLSS/modelfit (HW/LW av)
@@ -90,7 +94,8 @@ def calc_gemiddeldgetij(
         station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
         assert all(x == station_attrs[0] for x in station_attrs)
 
-        df_havengetallen = calc_havengetallen(df_ext=df_ext, min_coverage=min_coverage)
+        df_ext_10y = crop_timeseries_last_nyears(df_ext, nyears=10)
+        df_havengetallen = calc_havengetallen(df_ext=df_ext_10y, min_coverage=min_coverage)
         HW_sp, LW_sp = df_havengetallen.loc[
             0, ["HW_values_median", "LW_values_median"]
         ]  # spring
@@ -106,13 +111,13 @@ def calc_gemiddeldgetij(
         HW_np = LW_np = None
 
     # derive components via TA on measured waterlevels
-    comp_frommeasurements_avg, comp_av = get_gemgetij_components(data_pd_meas_10y)
+    comp_frommeasurements_avg, comp_av = get_gemgetij_components(df_meas_10y)
 
     times_pred_1mnth = pd.date_range(
         start=pd.Timestamp(tstop_dt.year, 1, 1, 0, 0) - pd.Timedelta(hours=12),
         end=pd.Timestamp(tstop_dt.year, 2, 1, 0, 0),
         freq=freq,
-        tz=data_pd_meas_10y.index.tz,
+        tz=df_meas_10y.index.tz,
     )  # start 12 hours in advance, to assure also corrected values on desired tstart
     comp_av.attrs["nodalfactors"] = (
         False  # nodalfactors=False to guarantee repetative signal

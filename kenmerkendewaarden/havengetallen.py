@@ -17,6 +17,7 @@ from kenmerkendewaarden.tidalindicators import (
 )
 from kenmerkendewaarden.utils import (
     raise_extremes_with_aggers,
+    crop_timeseries_last_nyears,
     TimeSeries_TimedeltaFormatter_improved,
 )
 from matplotlib.ticker import MultipleLocator
@@ -46,7 +47,8 @@ def calc_havengetallen(
     Parameters
     ----------
     df_ext : pd.DataFrame
-        DataFrame with extremes (highs and lows, no aggers).
+        DataFrame with extremes (highs and lows, no aggers). The last 10 years of this 
+        timeseries are used to compute the havengetallen.
     return_df : bool
         Whether to return the enriched input dataframe. Default is False.
     min_coverage : float, optional
@@ -64,17 +66,18 @@ def calc_havengetallen(
     df_havengetallen : pd.DataFrame
         DataFrame with havengetallen for all hour-classes.
         0 corresponds to spring, 6 corresponds to neap, mean is mean.
-    df_ext : pd.DataFrame
+    df_ext_culm : pd.DataFrame
         An enriched copy of the input DataFrame including a 'culm_hr' column.
 
     """
     raise_extremes_with_aggers(df_ext)
+    df_ext_10y = crop_timeseries_last_nyears(df=df_ext, nyears=10)
 
     # check if coverage is high enough for havengetallen
     if min_coverage is not None:
         # TODO: compute_actual_counts only returns years for which there are no nans, so will have different length than expected counts if there is an all-nan year
         # TODO: if we supply 4 years of complete data instead of 10 years, no error is raised
-        data_pd_hw = df_ext.loc[df_ext["HWLWcode"] == 1]["values"]
+        data_pd_hw = df_ext_10y.loc[df_ext_10y["HWLWcode"] == 1]["values"]
         df_actual_counts_peryear = compute_actual_counts(data_pd_hw, freq="Y")
         df_expected_counts_peryear = compute_expected_counts(data_pd_hw, freq="Y")
         # floor expected counts to avoid rounding issues
@@ -94,13 +97,13 @@ def calc_havengetallen(
                 f"min_coverage={min_coverage}:\n{df_debug}"
             )
 
-    current_station = df_ext.attrs["station"]
+    current_station = df_ext_10y.attrs["station"]
     logger.info(f"computing havengetallen for {current_station}")
-    df_ext = calc_hwlw_moonculm_combi(df_ext=df_ext, moonculm_offset=moonculm_offset)
-    df_havengetallen = calc_HWLW_culmhr_summary(df_ext)  # TODO: maybe add tijverschil
+    df_ext_culm = calc_hwlw_moonculm_combi(df_ext=df_ext_10y, moonculm_offset=moonculm_offset)
+    df_havengetallen = calc_HWLW_culmhr_summary(df_ext_culm)  # TODO: maybe add tijverschil
     logger.info("computing havengetallen done")
     if return_df_ext:
-        return df_havengetallen, df_ext
+        return df_havengetallen, df_ext_culm
     else:
         return df_havengetallen
 
