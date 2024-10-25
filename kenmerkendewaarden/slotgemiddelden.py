@@ -27,7 +27,6 @@ def calc_slotgemiddelden(
     df_meas: pd.DataFrame,
     df_ext: pd.DataFrame = None,
     min_coverage: float = None,
-    clip_physical_break: bool = False,
 ):
     """
     Compute slotgemiddelden from measurement timeseries and optionally also from extremes timeseries.
@@ -94,10 +93,9 @@ def calc_slotgemiddelden(
         slotgemiddelden_dict["tidalrange_mean_peryear"] = tidalrange_mean_peryear
 
         # clip part of mean timeseries before physical break to supply to model
-        if clip_physical_break:
-            HW_mean_peryear = clip_timeseries_physical_break(HW_mean_peryear)
-            LW_mean_peryear = clip_timeseries_physical_break(LW_mean_peryear)
-            tidalrange_mean_peryear = clip_timeseries_physical_break(tidalrange_mean_peryear)
+        HW_mean_peryear = clip_timeseries_physical_break(HW_mean_peryear)
+        LW_mean_peryear = clip_timeseries_physical_break(LW_mean_peryear)
+        tidalrange_mean_peryear = clip_timeseries_physical_break(tidalrange_mean_peryear)
 
         # fit linear models over yearly mean values
         pred_pd_HW = predict_linear_model(HW_mean_peryear)
