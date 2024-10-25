@@ -15,10 +15,11 @@ import numpy as np
 def test_raise_extremes_with_aggers_raise_12345df(df_ext):
     with pytest.raises(ValueError) as e:
         raise_extremes_with_aggers(df_ext)
-    assert (
+    expected_error = (
         "df_ext should only contain extremes (HWLWcode 1/2), "
         "but it also contains aggers (HWLWcode 3/4/5"
-    ) in str(e.value)
+    )
+    assert expected_error in str(e.value)
 
 
 @pytest.mark.unittest
