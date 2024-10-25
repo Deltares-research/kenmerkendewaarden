@@ -47,12 +47,14 @@ def calc_gemiddeldgetij(
     ----------
     df_meas : pd.DataFrame
         Timeseries of waterlevel measurements. The last 10 years of this 
-        timeseries are used to compute the getijkrommes.
+        timeseries are used to compute the getijkrommes. The entire series is used to 
+        compute the slotgemiddelden to correct with.
     df_ext : pd.DataFrame, optional
         Timeseries of waterlevel extremes (1/2 only). The last 10 years of this 
         timeseries are used to compute the getijkrommes. The default is None.
     min_coverage : float, optional
-        The minimal required coverage of the df_ext timeseries. Passed on to `calc_havengetallen()`. The default is None.
+        The minimal required coverage of the df_ext timeseries. Passed on to 
+        `calc_havengetallen()` and `calc_slotgemiddelden()`. The default is None.
     freq : str, optional
         Frequency of the prediction, a value of 60 seconds or lower is adivisable for decent results. The default is "60sec".
     nb : int, optional

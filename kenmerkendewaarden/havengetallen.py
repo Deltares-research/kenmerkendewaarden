@@ -48,7 +48,8 @@ def calc_havengetallen(
     ----------
     df_ext : pd.DataFrame
         DataFrame with extremes (highs and lows, no aggers). The last 10 years of this 
-        timeseries are used to compute the havengetallen.
+        timeseries are used to compute the havengetallen. The entire series is used to 
+        compute the slotgemiddelden to correct with.
     return_df : bool
         Whether to return the enriched input dataframe. Default is False.
     min_coverage : float, optional
@@ -57,6 +58,7 @@ def calc_havengetallen(
         and the expected amount of high waters in the series. Note that the expected
         amount is not an exact extimate, so min_coverage=1 will probably result in nans
         even though all extremes are present. The default is None.
+        This keyword is also passed to calc_slotgemiddelden()
     moonculm_offset : int, optional
         Offset between moonculmination and extremes. Passed on to `calc_HWLW_moonculm_combi`.
         The default is 4, which corresponds to a 2-day offset, which is applicable to the Dutch coast.
