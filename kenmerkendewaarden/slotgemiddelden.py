@@ -44,6 +44,8 @@ def calc_slotgemiddelden(
         the timeseries of extremes (high and low waters). The default is None.
     min_coverage : float, optional
         Set yearly means to nans for years that do not have sufficient data coverage. The default is None.
+    clip_physical_break : bool, optional
+        Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
 
     Returns
     -------
