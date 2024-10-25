@@ -41,7 +41,7 @@ def test_crop_timeseries_last_nyears(df_meas):
     assert df_meas_10y.index[0] == pd.Timestamp("2012-01-01 00:00:00+01:00 ")
     assert df_meas_10y.index[-1] == pd.Timestamp("2021-12-31 23:50:00+01:00")
     assert len(df_meas_10y) == 526032
-    # assert years
+    # assert on years
     actual_years = df_meas_10y.index.year.drop_duplicates().to_numpy()
     expected_years = np.arange(2012, 2021+1)
     assert (actual_years == expected_years).all()
