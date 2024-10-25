@@ -12,6 +12,7 @@ from kenmerkendewaarden.tidalindicators import (
     calc_wltidalindicators,
     calc_HWLWtidalindicators,
 )
+from kenmerkendewaarden.utils import clip_timeseries_last_newyearsday
 import logging
 
 __all__ = [
@@ -57,10 +58,7 @@ def calc_slotgemiddelden(
     slotgemiddelden_dict = {}
 
     # clip last value of the timeseries if this is exactly newyearsday
-    if df_meas.index[-1] == pd.Timestamp(
-        df_meas.index[-1].year, 1, 1, tz=df_meas.index.tz
-    ):
-        df_meas = df_meas.iloc[:-1]
+    df_meas = clip_timeseries_last_newyearsday(df_meas)
 
     # calculate yearly means
     dict_wltidalindicators = calc_wltidalindicators(df_meas, min_coverage=min_coverage)

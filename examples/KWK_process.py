@@ -61,7 +61,7 @@ for stat_remove in stations_skip:
 
 
 nap_correction = False
-min_coverage = 0.9 # for tidalindicators and slotgemiddelde #TODO: can also be used for havengetallen and gemgetij
+min_coverage = 0.9
 drop_duplicates = True
 
 compute_indicators = True
@@ -122,8 +122,7 @@ for current_station in station_list:
     
     
     #### SLOTGEMIDDELDEN
-    # TODO: nodal cycle is not in same phase for all stations, this is not physically correct.
-    # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND)
+    # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND) >> still after linear?
     if compute_slotgem:
         print(f'slotgemiddelden for {current_station}')
                 
@@ -176,7 +175,7 @@ for current_station in station_list:
     ### HAVENGETALLEN 
     if compute_havengetallen:
         print(f'havengetallen for {current_station}')
-        df_havengetallen, df_HWLW = kw.calc_havengetallen(df_ext=df_ext_todate, return_df_ext=True)
+        df_havengetallen, df_HWLW = kw.calc_havengetallen(df_ext=df_ext_todate, return_df_ext=True, min_coverage=min_coverage)
         
         # plot hwlw per timeclass including median
         fig, axs = kw.plot_HWLW_pertimeclass(df_ext=df_HWLW, df_havengetallen=df_havengetallen)
@@ -201,13 +200,16 @@ for current_station in station_list:
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
         gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=None,
                                               freq=pred_freq, nb=0, nf=0, 
-                                              scale_extremes=False, scale_period=False)
+                                              scale_extremes=False, scale_period=False,
+                                              min_coverage=min_coverage)
         gemgetij_corr = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=df_ext_todate,
                                                freq=pred_freq, nb=1, nf=1, 
-                                               scale_extremes=True, scale_period=False)
+                                               scale_extremes=True, scale_period=False,
+                                               min_coverage=min_coverage)
         gemgetij_corr_boi = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=df_ext_todate,
                                                    freq=pred_freq, nb=0, nf=4, 
-                                                   scale_extremes=True, scale_period=True)
+                                                   scale_extremes=True, scale_period=True,
+                                                   min_coverage=min_coverage)
 
         # TODO: the shape of the validation lines are different, so compare krommes to gele boekje instead
         # p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211

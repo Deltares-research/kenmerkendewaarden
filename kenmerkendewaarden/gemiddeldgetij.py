@@ -52,9 +52,11 @@ def calc_gemiddeldgetij(
         Timeseries of waterlevel extremes (1/2 only). The last 10 years of this 
         timeseries are used to compute the getijkrommes. The default is None.
     min_coverage : float, optional
-        The minimal required coverage of the df_ext timeseries. Passed on to `calc_havengetallen()`. The default is None.
+        The minimal required coverage of the df_ext timeseries. Passed on to 
+        `calc_havengetallen()`. The default is None.
     freq : str, optional
-        Frequency of the prediction, a value of 60 seconds or lower is adivisable for decent results. The default is "60sec".
+        Frequency of the prediction, a value of 60 seconds or lower is adivisable for 
+        decent results. The default is "60sec".
     nb : int, optional
         Amount of periods to repeat backward. The default is 0.
     nf : int, optional
@@ -351,12 +353,6 @@ def get_gemgetij_components(data_pd_meas):
     # components should not be reduced, since higher harmonics are necessary
     comp_frommeasurements_avg, _ = calc_getijcomponenten(df_meas=data_pd_meas)
     
-    # #check if all years are available
-    # comp_years = comp_frommeasurements_allyears['A'].columns
-    # expected_years = tstop_dt.year-tstart_dt.year
-    # if len(comp_years) < expected_years:
-    #     raise Exception('ERROR: analysis result contains not all years')
-
     # check if nans in analysis
     if comp_frommeasurements_avg.isnull()["A"].any():
         raise ValueError("analysis result contains nan values")
