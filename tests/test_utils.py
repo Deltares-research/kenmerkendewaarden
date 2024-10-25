@@ -6,6 +6,7 @@ Created on Fri Aug 23 11:33:11 2024
 """
 import pytest
 from kenmerkendewaarden.utils import (raise_extremes_with_aggers,
+                                      clip_timeseries_last_newyearsday,
                                       crop_timeseries_last_nyears)
 import pandas as pd
 import numpy as np
@@ -27,6 +28,14 @@ def test_raise_extremes_with_aggers_pass_12df(df_ext_12_2010):
     raise_extremes_with_aggers(df_ext_12_2010)
 
 
+@pytest.mark.unittest
+def test_clip_timeseries_last_newyearsday(df_meas, df_meas_2010):
+    df_meas_clipped = clip_timeseries_last_newyearsday(df_meas)
+    df_meas_2010_clipped = clip_timeseries_last_newyearsday(df_meas_2010)
+    assert len(df_meas_clipped) == len(df_meas)-1
+    assert len(df_meas_2010_clipped) == len(df_meas_2010)
+
+    
 @pytest.mark.unittest
 def test_crop_timeseries_last_nyears(df_meas):
     assert df_meas.index[0] == pd.Timestamp("1987-01-01 00:00:00+01:00 ")

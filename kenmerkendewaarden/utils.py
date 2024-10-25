@@ -19,10 +19,16 @@ def raise_extremes_with_aggers(df_ext):
         )
 
 
-def crop_timeseries_last_nyears(df, nyears):
-    # remove last timestep if equal to "yyyy-01-01 00:00:00"
+def clip_timeseries_last_newyearsday(df):
+    # clip last value of the timeseries if this is exactly newyearsday
+    # so remove last timestep if equal to "yyyy-01-01 00:00:00"
     if '-01-01 00:00:00' in str(df.index[-1]):
         df = df.iloc[:-1]
+    return df
+
+
+def crop_timeseries_last_nyears(df, nyears):
+    df = clip_timeseries_last_newyearsday(df)
     
     # last_year, for instance 2020
     last_year = df.index[-1].year

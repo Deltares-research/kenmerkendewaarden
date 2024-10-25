@@ -12,6 +12,7 @@ from kenmerkendewaarden.tidalindicators import (
     calc_wltidalindicators,
     calc_HWLWtidalindicators,
 )
+from kenmerkendewaarden.utils import clip_timeseries_last_newyearsday
 import logging
 
 __all__ = [
@@ -38,13 +39,12 @@ def calc_slotgemiddelden(
     Parameters
     ----------
     df_meas : pd.DataFrame
-        the timeseries of measured waterlevels.
+        the timeseries of measured waterlevels. Only the part after a physical break is included.
     df_ext : pd.DataFrame, optional
-        the timeseries of extremes (high and low waters). The default is None.
+        the timeseries of extremes (high and low waters). Only the part after a physical
+        break is included. The default is None.
     min_coverage : float, optional
         Set yearly means to nans for years that do not have sufficient data coverage. The default is None.
-    clip_physical_break : bool, optional
-        Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
 
     Returns
     -------
@@ -57,10 +57,7 @@ def calc_slotgemiddelden(
     slotgemiddelden_dict = {}
 
     # clip last value of the timeseries if this is exactly newyearsday
-    if df_meas.index[-1] == pd.Timestamp(
-        df_meas.index[-1].year, 1, 1, tz=df_meas.index.tz
-    ):
-        df_meas = df_meas.iloc[:-1]
+    df_meas = clip_timeseries_last_newyearsday(df_meas)
 
     # calculate yearly means
     dict_wltidalindicators = calc_wltidalindicators(df_meas, min_coverage=min_coverage)
@@ -68,8 +65,7 @@ def calc_slotgemiddelden(
     slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
 
     # clip part of mean timeseries before physical break to supply to model
-    if clip_physical_break:
-        wl_mean_peryear = clip_timeseries_physical_break(wl_mean_peryear)
+    wl_mean_peryear = clip_timeseries_physical_break(wl_mean_peryear)
 
     # fit linear models over yearly mean values
     pred_pd_wl = predict_linear_model(wl_mean_peryear)
