@@ -74,10 +74,6 @@ def calc_gemiddeldgetij(
 
     """
     
-    slotgem_wl = calc_slotgemiddelden(df_meas, min_coverage=min_coverage, clip_physical_break=True)
-    if df_ext is not None:
-        slotgem_ext = calc_slotgemiddelden(df_ext, min_coverage=min_coverage, clip_physical_break=True)
-    
     df_meas_10y = crop_timeseries_last_nyears(df=df_meas, nyears=10)
     tstop_dt = df_meas.index.max()
 
