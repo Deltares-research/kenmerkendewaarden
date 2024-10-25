@@ -34,7 +34,6 @@ def calc_gemiddeldgetij(
     nf: int = 0,
     scale_extremes: bool = False,
     scale_period: bool = False,
-    debug: bool = False,
 ):
     """
     Generate an average tidal signal for average/spring/neap tide by doing a tidal
@@ -64,8 +63,6 @@ def calc_gemiddeldgetij(
         Whether to scale extremes with havengetallen. The default is False.
     scale_period : bool, optional
         Whether to scale to 12h25min (for boi). The default is False.
-    debug : bool, optional
-        Whether to generate a debug figure with selected spring/neap tidalperiods. The default is False.
 
     Returns
     -------
@@ -78,7 +75,6 @@ def calc_gemiddeldgetij(
 
     current_station = df_meas_10y.attrs["station"]
 
-    # TODO: deprecate debug argument+plot (maybe use max HW instead of max tidalrange?)
     # TODO: add correctie havengetallen HW/LW av/sp/np met slotgemiddelde uit PLSS/modelfit (HW/LW av)
 
     if scale_period:
@@ -96,15 +92,10 @@ def calc_gemiddeldgetij(
 
         df_ext_10y = crop_timeseries_last_nyears(df_ext, nyears=10)
         df_havengetallen = calc_havengetallen(df_ext=df_ext_10y, min_coverage=min_coverage)
-        HW_sp, LW_sp = df_havengetallen.loc[
-            0, ["HW_values_median", "LW_values_median"]
-        ]  # spring
-        HW_np, LW_np = df_havengetallen.loc[
-            6, ["HW_values_median", "LW_values_median"]
-        ]  # neap
-        HW_av, LW_av = df_havengetallen.loc[
-            "mean", ["HW_values_median", "LW_values_median"]
-        ]  # mean
+        list_cols = ["HW_values_median", "LW_values_median"]
+        HW_sp, LW_sp = df_havengetallen.loc[0, list_cols]  # spring
+        HW_np, LW_np = df_havengetallen.loc[6, list_cols]  # neap
+        HW_av, LW_av = df_havengetallen.loc["mean", list_cols]  # mean
     else:
         HW_av = LW_av = None
         HW_sp = LW_sp = None
@@ -113,21 +104,20 @@ def calc_gemiddeldgetij(
     # derive components via TA on measured waterlevels
     comp_frommeasurements_avg, comp_av = get_gemgetij_components(df_meas_10y)
 
+    # start 12 hours in advance, to assure also corrected values on desired tstart
     times_pred_1mnth = pd.date_range(
         start=pd.Timestamp(tstop_dt.year, 1, 1, 0, 0) - pd.Timedelta(hours=12),
         end=pd.Timestamp(tstop_dt.year, 2, 1, 0, 0),
         freq=freq,
         tz=df_meas_10y.index.tz,
-    )  # start 12 hours in advance, to assure also corrected values on desired tstart
-    comp_av.attrs["nodalfactors"] = (
-        False  # nodalfactors=False to guarantee repetative signal
     )
+    # nodalfactors=False to guarantee repetative signal
+    comp_av.attrs["nodalfactors"] = False
     prediction_avg = hatyan.prediction(comp_av, times=times_pred_1mnth)
     prediction_avg_ext = hatyan.calc_HWLW(ts=prediction_avg, calc_HWLW345=False)
 
-    time_firstHW = prediction_avg_ext.loc[prediction_avg_ext["HWLWcode"] == 1].index[
-        0
-    ]  # time of first HW
+    bool_hw_avg = prediction_avg_ext["HWLWcode"] == 1
+    time_firstHW = prediction_avg_ext.loc[bool_hw_avg].index[0]  # time of first HW
     ia1 = prediction_avg_ext.loc[time_firstHW:].index[0]  # time of first HW
     ia2 = prediction_avg_ext.loc[time_firstHW:].index[2]  # time of second HW
     prediction_avg_one = prediction_avg.loc[ia1:ia2]
@@ -180,9 +170,8 @@ def calc_gemiddeldgetij(
 
     # make prediction with springneap components with nodalfactors=False (alternative for choosing a year with a neutral nodal factor). Using 1yr instead of 1month does not make a difference in min/max tidal range and shape, also because of nodalfactors=False. (when using more components, there is a slight difference)
     comp_frommeasurements_avg_sncomp = comp_frommeasurements_avg.loc[components_sn]
-    comp_frommeasurements_avg_sncomp.attrs["nodalfactors"] = (
-        False  # nodalfactors=False to make independent on chosen year
-    )
+    # nodalfactors=False to make independent on chosen year
+    comp_frommeasurements_avg_sncomp.attrs["nodalfactors"] = False
     prediction_sn = hatyan.prediction(
         comp_frommeasurements_avg_sncomp, times=times_pred_1mnth
     )
@@ -192,15 +181,12 @@ def calc_gemiddeldgetij(
     # selecteer getijslag met minimale tidalrange en maximale tidalrange (werd geselecteerd adhv havengetallen in 1991.0 doc)
     prediction_sn_ext = calc_HWLWtidalrange(prediction_sn_ext)
 
-    time_TRmax = prediction_sn_ext.loc[
-        prediction_sn_ext["HWLWcode"] == 1, "tidalrange"
-    ].idxmax()
+    bool_hw_sn = prediction_sn_ext["HWLWcode"] == 1
+    time_TRmax = prediction_sn_ext.loc[bool_hw_sn, "tidalrange"].idxmax()
     is1 = prediction_sn_ext.loc[time_TRmax:].index[0]
     is2 = prediction_sn_ext.loc[time_TRmax:].index[2]
 
-    time_TRmin = prediction_sn_ext.loc[
-        prediction_sn_ext["HWLWcode"] == 1, "tidalrange"
-    ].idxmin()
+    time_TRmin = prediction_sn_ext.loc[bool_hw_sn, "tidalrange"].idxmin()
     in1 = prediction_sn_ext.loc[time_TRmin:].index[0]
     in2 = prediction_sn_ext.loc[time_TRmin:].index[2]
 
@@ -209,23 +195,7 @@ def calc_gemiddeldgetij(
     prediction_sp_ext_one = prediction_sn_ext.loc[is1:is2]
     prediction_np_one = prediction_sn.loc[in1:in2]
     prediction_np_ext_one = prediction_sn_ext.loc[in1:in2]
-
-    # plot selection of neap/spring
-    if debug:
-        fig, (ax1, ax2) = hatyan.plot_timeseries(
-            ts=prediction_sn, ts_ext=prediction_sn_ext
-        )
-        ax1.plot(prediction_sp_one["values"], "r")
-        ax1.plot(prediction_np_one["values"], "r")
-        ax1.legend(
-            labels=ax1.get_legend_handles_labels()[1]
-            + ["kromme spring", "kromme neap"],
-            loc=4,
-        )
-        ax1.set_ylabel("waterstand [m]")
-        ax1.set_title(f"spring- en doodtijkromme {current_station}")
-        # fig.savefig(os.path.join(dir_gemgetij,f'springdoodtijkromme_{current_station}_slotgem{year_slotgem}.png'))
-
+    
     # timeseries for gele boekje (av/sp/np have different lengths, time is relative to HW of av and HW of sp/np are shifted there)
     logger.info(f"reshape_signal GEMGETIJ: {current_station}")
     prediction_av_corr_one = reshape_signal(
@@ -235,9 +205,10 @@ def calc_gemiddeldgetij(
         LW_goal=LW_av,
         tP_goal=tP_goal,
     )
+    # make relative to first timestamp (=HW)
     prediction_av_corr_one.index = (
         prediction_av_corr_one.index - prediction_av_corr_one.index[0]
-    )  # make relative to first timestamp (=HW)
+    )
     if scale_period:  # resampling required because of scaling
         prediction_av_corr_one = prediction_av_corr_one.resample(freq).nearest()
     prediction_av = repeat_signal(prediction_av_corr_one, nb=nb, nf=nf)
@@ -250,9 +221,10 @@ def calc_gemiddeldgetij(
         LW_goal=LW_sp,
         tP_goal=tP_goal,
     )
+    # make relative to first timestamp (=HW)
     prediction_sp_corr_one.index = (
         prediction_sp_corr_one.index - prediction_sp_corr_one.index[0]
-    )  # make relative to first timestamp (=HW)
+    )
     if scale_period:  # resampling required because of scaling
         prediction_sp_corr_one = prediction_sp_corr_one.resample(freq).nearest()
     prediction_sp = repeat_signal(prediction_sp_corr_one, nb=nb, nf=nf)
@@ -265,9 +237,10 @@ def calc_gemiddeldgetij(
         LW_goal=LW_np,
         tP_goal=tP_goal,
     )
+    # make relative to first timestamp (=HW)
     prediction_np_corr_one.index = (
         prediction_np_corr_one.index - prediction_np_corr_one.index[0]
-    )  # make relative to first timestamp (=HW)
+    )
     if scale_period:  # resampling required because of scaling
         prediction_np_corr_one = prediction_np_corr_one.resample(freq).nearest()
     prediction_np = repeat_signal(prediction_np_corr_one, nb=nb, nf=nf)
