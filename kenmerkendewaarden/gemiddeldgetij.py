@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from kenmerkendewaarden.tidalindicators import (calc_HWLWtidalrange,
                                                 calc_getijcomponenten)
 from kenmerkendewaarden.havengetallen import calc_havengetallen
+from kenmerkendewaarden.slotgemiddelden import calc_slotgemiddelden
 from kenmerkendewaarden.utils import (crop_timeseries_last_nyears,
                                       TimeSeries_TimedeltaFormatter_improved,
                                       )
@@ -72,6 +73,11 @@ def calc_gemiddeldgetij(
         dictionary with Dataframes with gemiddeld getij for mean, spring and neap tide.
 
     """
+    
+    slotgem_wl = calc_slotgemiddelden(df_meas, min_coverage=min_coverage, clip_physical_break=True)
+    if df_ext is not None:
+        slotgem_ext = calc_slotgemiddelden(df_ext, min_coverage=min_coverage, clip_physical_break=True)
+    
     df_meas_10y = crop_timeseries_last_nyears(df=df_meas, nyears=10)
     tstop_dt = df_meas.index.max()
 
