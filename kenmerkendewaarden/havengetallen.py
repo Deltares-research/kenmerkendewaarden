@@ -24,6 +24,7 @@ from matplotlib.ticker import MultipleLocator
 
 __all__ = [
     "calc_havengetallen",
+    "calc_HWLW_springneap",
     "plot_HWLW_pertimeclass",
     "plot_aardappelgrafiek",
 ]
@@ -75,28 +76,8 @@ def calc_havengetallen(
 
     # check if coverage is high enough for havengetallen
     if min_coverage is not None:
-        # TODO: compute_actual_counts only returns years for which there are no nans, so will have different length than expected counts if there is an all-nan year
-        # TODO: if we supply 4 years of complete data instead of 10 years, no error is raised
-        data_pd_hw = df_ext_10y.loc[df_ext_10y["HWLWcode"] == 1]["values"]
-        df_actual_counts_peryear = compute_actual_counts(data_pd_hw, freq="Y")
-        df_expected_counts_peryear = compute_expected_counts(data_pd_hw, freq="Y")
-        # floor expected counts to avoid rounding issues
-        df_expected_counts_peryear = df_expected_counts_peryear.apply(np.floor)
-        df_min_counts_peryear = df_expected_counts_peryear * min_coverage
-        bool_coverage_toolow = df_actual_counts_peryear < df_min_counts_peryear
-        df_debug = pd.DataFrame(
-            {
-                "#required": df_min_counts_peryear,
-                "#actual": df_actual_counts_peryear,
-                "too little": bool_coverage_toolow,
-            }
-        )
-        if bool_coverage_toolow.any():
-            raise ValueError(
-                f"coverage of some years is lower than "
-                f"min_coverage={min_coverage}:\n{df_debug}"
-            )
-
+        check_min_coverage_extremes(df_ext=df_ext_10y, min_coverage=min_coverage)
+    
     current_station = df_ext_10y.attrs["station"]
     logger.info(f"computing havengetallen for {current_station}")
     df_ext_culm = calc_hwlw_moonculm_combi(df_ext=df_ext_10y, moonculm_offset=moonculm_offset)
@@ -106,6 +87,75 @@ def calc_havengetallen(
         return df_havengetallen, df_ext_culm
     else:
         return df_havengetallen
+    
+
+def calc_HWLW_springneap(
+        df_ext: pd.DataFrame,
+        min_coverage=None,
+        moonculm_offset: int = 4):
+    raise_extremes_with_aggers(df_ext)
+    
+    # TODO: moonculminations cannot be computed before 1900
+    df_ext = df_ext.loc["1901":]
+
+    if min_coverage is not None:
+        check_min_coverage_extremes(df_ext=df_ext, min_coverage=min_coverage)
+    
+    current_station = df_ext.attrs["station"]
+    logger.info(f"computing HWLW for spring/neap tide for {current_station}")
+    df_ext_culm = calc_hwlw_moonculm_combi(df_ext=df_ext, moonculm_offset=moonculm_offset)
+
+    # all HW/LW at spring/neaptide
+    bool_hw = df_ext_culm["HWLWcode"] == 1
+    bool_lw = df_ext_culm["HWLWcode"] == 2
+    bool_spring = df_ext_culm["culm_hr"] == 0
+    bool_neap = df_ext_culm["culm_hr"] == 6
+    hw_spring = df_ext_culm.loc[bool_hw & bool_spring]['values']
+    lw_spring = df_ext_culm.loc[bool_lw & bool_spring]['values']
+    hw_neap = df_ext_culm.loc[bool_hw & bool_neap]['values']
+    lw_neap = df_ext_culm.loc[bool_lw & bool_neap]['values']
+    
+    # mean HW/LW at spring/neap tide
+    pi_hw_sp_y = pd.PeriodIndex(hw_spring.index, freq="Y")
+    pi_lw_sp_y = pd.PeriodIndex(lw_spring.index, freq="Y")
+    pi_hw_np_y = pd.PeriodIndex(hw_neap.index, freq="Y")
+    pi_lw_np_y = pd.PeriodIndex(lw_neap.index, freq="Y")
+    hw_spring_peryear = hw_spring.groupby(pi_hw_sp_y).mean()
+    lw_spring_peryear = lw_spring.groupby(pi_lw_sp_y).mean()
+    hw_neap_peryear = hw_neap.groupby(pi_hw_np_y).mean()
+    lw_neap_peryear = lw_neap.groupby(pi_lw_np_y).mean()
+    
+    # merge in dict
+    dict_hwlw_springneap = {
+        "hw_spring_peryear": hw_spring_peryear,
+        "lw_spring_peryear": lw_spring_peryear,
+        "hw_neap_peryear": hw_neap_peryear,
+        "lw_neap_peryear": lw_neap_peryear,
+    }
+    return dict_hwlw_springneap
+
+
+def check_min_coverage_extremes(df_ext, min_coverage):
+    # TODO: compute_actual_counts only returns years for which there are no nans, so will have different length than expected counts if there is an all-nan year
+    # TODO: if we supply 4 years of complete data instead of 10 years, no error is raised
+    data_pd_hw = df_ext.loc[df_ext["HWLWcode"] == 1]["values"]
+    df_actual_counts_peryear = compute_actual_counts(data_pd_hw, freq="Y")
+    df_expected_counts_peryear = compute_expected_counts(data_pd_hw, freq="Y")
+    # floor expected counts to avoid rounding issues
+    df_expected_counts_peryear = df_expected_counts_peryear.apply(np.floor)
+    df_min_counts_peryear = df_expected_counts_peryear * min_coverage
+    bool_coverage_toolow = df_actual_counts_peryear < df_min_counts_peryear
+    df_debug = pd.DataFrame(
+        {
+            "#required": df_min_counts_peryear.loc[bool_coverage_toolow],
+            "#actual": df_actual_counts_peryear.loc[bool_coverage_toolow],
+        }
+    )
+    if bool_coverage_toolow.any():
+        raise ValueError(
+            f"coverage of some years is lower than "
+            f"min_coverage={min_coverage}:\n{df_debug}"
+        )
 
 
 def get_moonculm_idxHWLWno(tstart, tstop):
