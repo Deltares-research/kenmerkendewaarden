@@ -164,19 +164,19 @@ def test_calc_HWLW_springneap(df_ext_12_2010_2014):
         years_exp = [2010, 2011, 2012, 2013, 2014]
         assert years_act == years_exp
     
-    vals_act = dict_spnp['HW_spring_peryear'].values
+    vals_act = dict_spnp['HW_spring_mean_peryear'].values
     vals_exp = np.array([1.33551724, 1.28111111, 1.29563636, 1.33185185, 1.37745455])
     assert np.allclose(vals_act, vals_exp)
     
-    vals_act = dict_spnp['LW_spring_peryear'].values
+    vals_act = dict_spnp['LW_spring_mean_peryear'].values
     vals_exp = np.array([-0.59724138, -0.6212963, -0.61872727, -0.60407407, -0.60145455])
     assert np.allclose(vals_act, vals_exp)
     
-    vals_act = dict_spnp['HW_neap_peryear'].values
+    vals_act = dict_spnp['HW_neap_mean_peryear'].values
     vals_exp = np.array([0.83887097, 0.95854839, 0.86225806, 0.87903226, 0.9696875])
     assert np.allclose(vals_act, vals_exp)
     
-    vals_act = dict_spnp['LW_neap_peryear'].values
+    vals_act = dict_spnp['LW_neap_mean_peryear'].values
     vals_exp = np.array([-0.62919355, -0.46758065, -0.5633871 , -0.60193548, -0.51421875])
     assert np.allclose(vals_act, vals_exp)
 
