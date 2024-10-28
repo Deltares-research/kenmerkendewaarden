@@ -121,7 +121,7 @@ for current_station in station_list:
         fig.savefig(os.path.join(dir_indicators,f'kw{year_slotgem}-tidalindicators-{current_station}.png'))
     
     
-    continue
+    
     
     #### SLOTGEMIDDELDEN
     # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND) >> still after linear?
