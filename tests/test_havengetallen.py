@@ -155,8 +155,8 @@ def test_calc_havengetallen_toolittle_data(df_ext_12_2010_2014):
 @pytest.mark.unittest
 def test_calc_HWLW_springneap(df_ext_12_2010_2014):
     dict_spnp = kw.calc_HWLW_springneap(df_ext_12_2010_2014)
-    df_columns = ['HW_spring_peryear', 'LW_spring_peryear', 
-                  'HW_neap_peryear', 'LW_neap_peryear']
+    df_columns = ['HW_spring_mean_peryear', 'LW_spring_mean_peryear', 
+                  'HW_neap_mean_peryear', 'LW_neap_mean_peryear']
     assert set(dict_spnp.keys()) == set(df_columns)
     
     for key in df_columns:

@@ -131,10 +131,10 @@ def calc_HWLW_springneap(
     
     # merge in dict
     dict_hwlw_springneap = {
-        "HW_spring_peryear": hw_spring_peryear,
-        "LW_spring_peryear": lw_spring_peryear,
-        "HW_neap_peryear": hw_neap_peryear,
-        "LW_neap_peryear": lw_neap_peryear,
+        "HW_spring_mean_peryear": hw_spring_peryear,
+        "LW_spring_mean_peryear": lw_spring_peryear,
+        "HW_neap_mean_peryear": hw_neap_peryear,
+        "LW_neap_mean_peryear": lw_neap_peryear,
     }
     return dict_hwlw_springneap
 
