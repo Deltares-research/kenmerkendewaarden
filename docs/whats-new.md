@@ -9,6 +9,7 @@
 - support for timedelta `diff()` because of update to `pandas>=2.1.4` in #161
 - neater handling of time in `kw.calc_havengetallen()` in #163
 - automatic cropping of timeseries if required to simplify user interaction in #168
+- exposed mean HW/LW during spring and neaptide with `kw.calc_HWLW_springneap()` in #175
 
 ### Deprecated
 - deprecated debug argument for `kw.calc_gemiddeldgetij()` in #170
