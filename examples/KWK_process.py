@@ -100,6 +100,7 @@ for current_station in station_list:
         # compute and plot tidal indicators
         dict_wltidalindicators = kw.calc_wltidalindicators(df_meas=df_meas_todate, min_coverage=min_coverage)
         dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(df_ext=df_ext_todate, min_coverage=min_coverage)
+        dict_HWLW_springneap = kw.calc_HWLW_springneap(df_ext=df_ext_todate, min_coverage=min_coverage)
         
         # add hat/lat
         hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_todate)
@@ -108,6 +109,7 @@ for current_station in station_list:
         
         # merge dictionaries
         dict_wltidalindicators.update(dict_HWLWtidalindicators)
+        dict_wltidalindicators.update(dict_HWLW_springneap)
         
         # csv for yearlymonthly indicators
         for key in ['wl_mean_peryear','wl_mean_permonth']:
@@ -119,7 +121,7 @@ for current_station in station_list:
         fig.savefig(os.path.join(dir_indicators,f'kw{year_slotgem}-tidalindicators-{current_station}.png'))
     
     
-    
+    continue
     
     #### SLOTGEMIDDELDEN
     # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND) >> still after linear?

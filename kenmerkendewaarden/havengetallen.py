@@ -74,7 +74,7 @@ def calc_havengetallen(
     raise_extremes_with_aggers(df_ext)
     df_ext_10y = crop_timeseries_last_nyears(df=df_ext, nyears=10)
 
-    # check if coverage is high enough for havengetallen
+    # check if coverage is high enough
     if min_coverage is not None:
         check_min_coverage_extremes(df_ext=df_ext_10y, min_coverage=min_coverage)
     
@@ -96,8 +96,12 @@ def calc_HWLW_springneap(
     raise_extremes_with_aggers(df_ext)
     
     # TODO: moonculminations cannot be computed before 1900
-    df_ext = df_ext.loc["1901":]
+    if df_ext.index.min().year < 1901:
+        logger.warning("calc_HWLW_springneap() only supports timestamps after 1900 "
+                       "all older data will be ignored")
+        df_ext = df_ext.loc["1901":]
 
+    # check if coverage is high enough
     if min_coverage is not None:
         check_min_coverage_extremes(df_ext=df_ext, min_coverage=min_coverage)
     
@@ -127,10 +131,10 @@ def calc_HWLW_springneap(
     
     # merge in dict
     dict_hwlw_springneap = {
-        "hw_spring_peryear": hw_spring_peryear,
-        "lw_spring_peryear": lw_spring_peryear,
-        "hw_neap_peryear": hw_neap_peryear,
-        "lw_neap_peryear": lw_neap_peryear,
+        "HW_spring_peryear": hw_spring_peryear,
+        "LW_spring_peryear": lw_spring_peryear,
+        "HW_neap_peryear": hw_neap_peryear,
+        "LW_neap_peryear": lw_neap_peryear,
     }
     return dict_hwlw_springneap
 
