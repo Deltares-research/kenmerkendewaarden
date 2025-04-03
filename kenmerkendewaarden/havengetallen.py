@@ -37,6 +37,7 @@ def calc_havengetallen(
     return_df_ext=False,
     min_coverage=None,
     moonculm_offset: int = 4,
+    newmethod=False,
 ):
     """
     havengetallen consist of the extreme (high and low) median values and the
@@ -80,7 +81,10 @@ def calc_havengetallen(
     
     current_station = df_ext_10y.attrs["station"]
     logger.info(f"computing havengetallen for {current_station}")
-    df_ext_culm = calc_hwlw_moonculm_combi(df_ext=df_ext_10y, moonculm_offset=moonculm_offset)
+    if newmethod:
+        df_ext_culm = calc_hwlw_moonculm_combi_days(df_ext=df_ext_10y, offset_days=moonculm_offset)
+    else:
+        df_ext_culm = calc_hwlw_moonculm_combi(df_ext=df_ext_10y, moonculm_offset=moonculm_offset)
     df_havengetallen = calc_HWLW_culmhr_summary(df_ext_culm)  # TODO: maybe add tijverschil
     logger.info("computing havengetallen done")
     if return_df_ext:
@@ -246,6 +250,79 @@ def calc_hwlw_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
     return df_ext_moon
 
 
+def calc_hwlw_moonculm_combi_days(df_ext: pd.DataFrame, offset_days: int = 2):
+    """
+
+    """
+    
+    data_pd_moonculm = astrog_culminations(
+        tFirst=df_ext.index.min() - dt.timedelta(days=offset_days*2),
+        tLast=df_ext.index.max(),
+        )
+    
+    data_pd_moonculm = data_pd_moonculm.tz_convert("UTC")  # convert to UTC (is already) >> is not, depends on tzone of requested times
+    data_pd_moonculm.index = data_pd_moonculm.index.round("s")
+    
+    df_ext = df_ext.drop(["moonculm","culm_hr","HWLW_delay"], axis=1, errors='ignore')
+    # TODO: maybe maintain columns if already present? Or always delete them? In that case always make copy of df
+
+    df_ext_hw = df_ext.loc[df_ext["HWLWcode"]==1].copy()
+    # generate empty dataframe with moonculminations corresponding to all df_ext
+    # dtype makes sure the timezone is correct
+    df_moonculm = pd.Series(index=df_ext_hw.index, dtype=data_pd_moonculm.index.dtype) # "datetime64[ns, UTC]"
+    for date in df_ext_hw.index:
+        timediffs = date - data_pd_moonculm.index
+        bool_ndays_after_culm = timediffs < pd.Timedelta(days=offset_days)
+        moonculm_idx = np.count_nonzero(~bool_ndays_after_culm) - 1
+        # just to be sure check whether idx is positive, but this is always 
+        # the case if the list of culminations is long enough
+        assert moonculm_idx >= 0
+        moonculm_time = data_pd_moonculm.index[moonculm_idx]
+        df_moonculm.loc[date] = moonculm_time
+    
+    # set moonculminations as values to
+    df_ext_moonculm = pd.Series(index=df_ext.index, data=df_moonculm)
+    df_ext_moonculm = df_ext_moonculm.ffill()
+    df_ext["moonculm"] = df_ext_moonculm
+    df_ext["culm_hr"] = df_ext_moonculm.dt.round("h").dt.hour % 12
+    # TODO: make sure that if first moonculm/timediff is NaT, this is supported
+    # TODO: e.g. culm_hr should be int, not float
+    # compute time of hwlw after moonculmination
+    df_ext["HWLW_delay"] = df_ext.index - df_ext_moonculm
+    
+    # culm_addtime was an 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek
+    # we now only do 2d and 1u20m now since we already account for the timezone when computing the timediffs
+    # more information about the effects of moonculm_offset and general time-offsets are documented in
+    # https://github.com/Deltares-research/kenmerkendewaarden/issues/164
+    # HW is 2 days after culmination (so 4 x 12h25min difference between length of avg moonculm and length of 2 days)
+    # 20 minutes (0 to 5 meridian)
+    culm_addtime = (
+        offset_days * 2 * dt.timedelta(hours=12, minutes=25)
+        - dt.timedelta(minutes=20)
+    )
+    df_ext["HWLW_delay"] -= culm_addtime
+    
+    hw_bool = df_ext["HWLWcode"] == 1
+    getijperiod = df_ext.index[hw_bool].diff()
+    df_ext.loc[hw_bool, "getijperiod"] = getijperiod
+    
+    df_ext_mc_idx = df_ext.copy()
+    df_ext_mc_idx["times"] = df_ext_mc_idx.index
+    df_ext_mc_idx = df_ext_mc_idx.set_index("moonculm", drop=False)
+    hw_bool = df_ext_mc_idx["HWLWcode"] == 1
+    # computing getijperiod like this works properly since index is HWLW
+    # TODO: this is only correct if there are no gaps in the timeseries
+    # compute duurdaling
+    # df_ext_mc_idx.loc[hw_bool, "duurdaling"] = (
+    #     df_ext_mc_idx.loc[~hw_bool, "times"]
+    #     - df_ext_mc_idx.loc[hw_bool, "times"]
+    # )
+    # TODO: duurdaling is probably essential, requires unique index
+    
+    df_ext_moon = df_ext_mc_idx.set_index("times")
+    return df_ext_moon
+
+
 def calc_HWLW_culmhr_summary(data_pd_HWLW):
     logger.info("calculate median per hour group for LW and HW")
     data_pd_HW = data_pd_HWLW.loc[data_pd_HWLW["HWLWcode"] == 1]
@@ -264,7 +341,7 @@ def calc_HWLW_culmhr_summary(data_pd_HWLW):
         - HWLW_culmhr_summary["LW_values_median"]
     )
     HWLW_culmhr_summary["getijperiod_median"] = hw_per_culmhr["getijperiod"].median()
-    HWLW_culmhr_summary["duurdaling_median"] = hw_per_culmhr["duurdaling"].median()
+    # HWLW_culmhr_summary["duurdaling_median"] = hw_per_culmhr["duurdaling"].median()
 
     # add mean row to dataframe (not convenient to add immediately due to plotting with index 0-11)
     HWLW_culmhr_summary.loc["mean", :] = HWLW_culmhr_summary.mean()
