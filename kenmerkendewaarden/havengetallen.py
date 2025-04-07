@@ -255,6 +255,18 @@ def calc_hwlw_moonculm_combi_days(df_ext: pd.DataFrame, offset_days: int = 2):
 
     """
     
+    # culm_addtime was an 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek
+    # we now only do 2d and 1u20m now since we already account for the timezone when computing the timediffs
+    # more information about the effects of moonculm_offset and general time-offsets are documented in
+    # https://github.com/Deltares-research/kenmerkendewaarden/issues/164
+    # HW is 2 days after culmination (so 4 x 12h25min difference between length of avg moonculm and length of 2 days)
+    # 20 minutes (0 to 5 meridian)
+    culm_addtime = (
+        offset_days * 2 * dt.timedelta(hours=12, minutes=25)
+        - dt.timedelta(minutes=20)
+    )
+
+    # compute moon culminations within the period of the provided timeseries
     data_pd_moonculm = astrog_culminations(
         tFirst=df_ext.index.min() - dt.timedelta(days=offset_days*2),
         tLast=df_ext.index.max(),
@@ -272,7 +284,7 @@ def calc_hwlw_moonculm_combi_days(df_ext: pd.DataFrame, offset_days: int = 2):
     df_moonculm = pd.Series(index=df_ext_hw.index, dtype=data_pd_moonculm.index.dtype) # "datetime64[ns, UTC]"
     for date in df_ext_hw.index:
         timediffs = date - data_pd_moonculm.index
-        bool_ndays_after_culm = timediffs < pd.Timedelta(days=offset_days)
+        bool_ndays_after_culm = timediffs < culm_addtime
         moonculm_idx = np.count_nonzero(~bool_ndays_after_culm) - 1
         # just to be sure check whether idx is positive, but this is always 
         # the case if the list of culminations is long enough
@@ -290,16 +302,6 @@ def calc_hwlw_moonculm_combi_days(df_ext: pd.DataFrame, offset_days: int = 2):
     # compute time of hwlw after moonculmination
     df_ext["HWLW_delay"] = df_ext.index - df_ext_moonculm
     
-    # culm_addtime was an 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek
-    # we now only do 2d and 1u20m now since we already account for the timezone when computing the timediffs
-    # more information about the effects of moonculm_offset and general time-offsets are documented in
-    # https://github.com/Deltares-research/kenmerkendewaarden/issues/164
-    # HW is 2 days after culmination (so 4 x 12h25min difference between length of avg moonculm and length of 2 days)
-    # 20 minutes (0 to 5 meridian)
-    culm_addtime = (
-        offset_days * 2 * dt.timedelta(hours=12, minutes=25)
-        - dt.timedelta(minutes=20)
-    )
     df_ext["HWLW_delay"] -= culm_addtime
     
     hw_bool = df_ext["HWLWcode"] == 1
