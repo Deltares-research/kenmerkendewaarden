@@ -82,7 +82,7 @@ def calc_havengetallen(
     current_station = df_ext_10y.attrs["station"]
     logger.info(f"computing havengetallen for {current_station}")
     if newmethod:
-        df_ext_culm = calc_hwlw_moonculm_combi_days(df_ext=df_ext_10y, offset_days=moonculm_offset)
+        df_ext_culm = calc_hwlw_moonculm_combi_new(df_ext=df_ext_10y, moonculm_offset=moonculm_offset)
     else:
         df_ext_culm = calc_hwlw_moonculm_combi(df_ext=df_ext_10y, moonculm_offset=moonculm_offset)
     df_havengetallen = calc_HWLW_culmhr_summary(df_ext_culm)  # TODO: maybe add tijverschil
@@ -250,11 +250,7 @@ def calc_hwlw_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
     return df_ext_moon
 
 
-def calc_hwlw_moonculm_combi_days(df_ext: pd.DataFrame, offset_days: int = 2):
-    """
-
-    """
-    
+def calc_hwlw_moonculm_combi_new(df_ext: pd.DataFrame, moonculm_offset: int = 4):
     # culm_addtime was an 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek
     # we now only do 2d and 1u20m now since we already account for the timezone when computing the timediffs
     # more information about the effects of moonculm_offset and general time-offsets are documented in
@@ -262,13 +258,13 @@ def calc_hwlw_moonculm_combi_days(df_ext: pd.DataFrame, offset_days: int = 2):
     # HW is 2 days after culmination (so 4 x 12h25min difference between length of avg moonculm and length of 2 days)
     # 20 minutes (0 to 5 meridian)
     culm_addtime = (
-        offset_days * 2 * dt.timedelta(hours=12, minutes=25)
+        moonculm_offset * dt.timedelta(hours=12, minutes=25)
         - dt.timedelta(minutes=20)
     )
 
     # compute moon culminations within the period of the provided timeseries
     data_pd_moonculm = astrog_culminations(
-        tFirst=df_ext.index.min() - dt.timedelta(days=offset_days*2),
+        tFirst=df_ext.index.min() - dt.timedelta(days=moonculm_offset),
         tLast=df_ext.index.max(),
         )
     
