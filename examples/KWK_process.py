@@ -13,9 +13,6 @@ import logging
 logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-# TODO: HW/LW numbers not always increasing (at havengetallen): ['HANSWT','BROUWHVSGT08','PETTZD','DORDT']
-# overview in https://github.com/Deltares-research/kenmerkendewaarden/issues/101 and the linked wm-ws-dl issue
-
 year_slotgem = 2021
 print(f'year_slotgem: {year_slotgem}')
 
@@ -51,8 +48,8 @@ station_list = ["HOEKVHLD"]
 # skip STELLDBTN since it has only extremes from 1984 to 1996: https://github.com/Deltares-research/kenmerkendewaarden/issues/125
 stations_skip = ["STELLDBTN"]
 # skip stations that raise "HW numbers not always increasing" because of almost-duplicated extremes
-# TODO: https://github.com/Deltares-research/kenmerkendewaarden/issues/101
-stations_skip += ["BROUWHVSGT08", "DENOVBTN", "HANSWT", "IJMDBTHVN"]
+# TODO: https://github.com/Deltares-research/kenmerkendewaarden/issues/182
+stations_skip += ["BROUWHVSGT08", "HANSWT"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
@@ -100,7 +97,8 @@ for current_station in station_list:
         # compute and plot tidal indicators
         dict_wltidalindicators = kw.calc_wltidalindicators(df_meas=df_meas_todate, min_coverage=min_coverage)
         dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(df_ext=df_ext_todate, min_coverage=min_coverage)
-        dict_HWLW_springneap = kw.calc_HWLW_springneap(df_ext=df_ext_todate, min_coverage=min_coverage)
+        # TODO: re-enable after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/185
+        # dict_HWLW_springneap = kw.calc_HWLW_springneap(df_ext=df_ext_todate, min_coverage=min_coverage)
         
         # add hat/lat
         hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_todate)
@@ -109,7 +107,7 @@ for current_station in station_list:
         
         # merge dictionaries
         dict_wltidalindicators.update(dict_HWLWtidalindicators)
-        dict_wltidalindicators.update(dict_HWLW_springneap)
+        # dict_wltidalindicators.update(dict_HWLW_springneap)
         
         # csv for yearlymonthly indicators
         for key in ['wl_mean_peryear','wl_mean_permonth']:
