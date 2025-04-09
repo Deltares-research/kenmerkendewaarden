@@ -183,8 +183,9 @@ def test_calc_HWLW_springneap(df_ext_12_2010_2014):
 
 @pytest.mark.unittest
 def test_calc_HWLW_springneap_min_coverage(df_ext_12_2010_2014):
-    # deliberately including 2011-01-01 since this causes the indexes between the dicts
-    # to be different (which is accounted for in min_coverage
+    # create df_ext with a large gap, deliberately including 2011-01-01 to 2011-01-10
+    # since this causes the indexes between the dicts to be different (which is
+    # accounted for in calc_HWLW_springneap since years_invalid is filtered per df)
     pre2011 = df_ext_12_2010_2014.index < pd.Timestamp("2011-01-10 00:00:00 +01:00")
     post2011 = df_ext_12_2010_2014.index > pd.Timestamp("2012-01-01 00:00:00 +01:00")
     df_ext = df_ext_12_2010_2014.loc[pre2011 | post2011]
