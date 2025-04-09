@@ -39,7 +39,7 @@ def test_derive_statistics(dir_meas, extremes):
             "timediff<4hr",
             "aggers",
         ]
-        stats_expected = np.array([0.07922705314009662, -1.33, 2.11])
+        stats_expected = np.array([7.922705314009662, -133, 211])
         timedif_min = pd.Timedelta("0 days 00:34:00")
         timedif_max = pd.Timedelta("0 days 08:57:00")
     else:
@@ -66,7 +66,7 @@ def test_derive_statistics(dir_meas, extremes):
             "dupltimes_#nans",
             "qc_none",
         ]
-        stats_expected = np.array([0.07962614866536023, -1.33, 2.11])
+        stats_expected = np.array([7.962614866536023, -133, 211])
         timedif_min = pd.Timedelta("0 days 00:10:00")
         timedif_max = pd.Timedelta("0 days 00:10:00")
 
