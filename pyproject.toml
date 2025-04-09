@@ -66,9 +66,9 @@ dev = [
 docs = [
 	"sphinx>=1.8.1",
 	"sphinx_mdinclude",
-	"nbsphinx",
+	# "nbsphinx", # not required since no ipynb yet
 	"pydata-sphinx-theme",
-	#"pandoc", # installed with choco on github
+	#"pandoc", # installed with choco on github, disabled since no ipynb yet
 ]
 examples = [
 	"jupyter",
