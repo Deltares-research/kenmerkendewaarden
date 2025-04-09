@@ -148,9 +148,6 @@ def calc_HWLW_springneap(
 
 
 def check_min_coverage_extremes(df_ext, min_coverage):
-    # TODO: compute_actual_counts only returns years for which there are no nans, so
-    # will have different length than expected counts if there is an all-nan year
-    # TODO: if we supply 4 years of complete data instead of 10 years, no error raised
     data_pd_hw = df_ext.loc[df_ext["HWLWcode"] == 1]["values"]
     df_actual_counts_peryear = compute_actual_counts(data_pd_hw, freq="Y")
     df_expected_counts_peryear = compute_expected_counts(data_pd_hw, freq="Y")
@@ -175,7 +172,8 @@ def get_moonculm_idxHWLWno(tstart, tstop):
     # in UTC, which is important since data_pd_HWLW['culm_hr']=range(12) hourvalues 
     # should be in UTC since that relates to the relation dateline/sun
     data_pd_moonculm = astrog_culminations(tFirst=tstart, tLast=tstop)
-    data_pd_moonculm = data_pd_moonculm.tz_convert("UTC")  # convert to UTC (is already)
+    # convert to UTC (if not already)
+    data_pd_moonculm = data_pd_moonculm.tz_convert("UTC")
     data_pd_moonculm["datetime"] = data_pd_moonculm.index
     # dummy values for TA in hatyan.calc_HWLWnumbering()
     data_pd_moonculm["values"] = data_pd_moonculm["type"]
@@ -302,6 +300,7 @@ def calc_HWLW_culmhr_summary_tidalcoeff(df_ext):
     # https://www.manche-toerisme.com/springtij
     # for HOEKVHLD, sp=0 is approx tc=1.2, np=6 is approx tc=0.8, av=mean is approx
     # tc=1.0 (for HW, for LW it is different)
+    # TODO: remove in https://github.com/Deltares-research/kenmerkendewaarden/issues/188
     raise_extremes_with_aggers(df_ext)
 
     data_pd_HWLW = df_ext.copy()
