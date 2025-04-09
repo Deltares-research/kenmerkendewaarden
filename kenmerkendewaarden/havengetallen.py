@@ -172,7 +172,7 @@ def get_moonculm_idxHWLWno(tstart, tstop):
     data_pd_moonculm["values"] = data_pd_moonculm["type"]
     data_pd_moonculm["HWLWcode"] = 1  # all HW values since one every ~12h25m
     # TODO: currently w.r.t. cadzd, is that an issue? With DELFZL the matched culmination is incorrect (since far away), but that might not be a big issue
-    data_pd_moonculm = calc_HWLWnumbering(data_pd_moonculm, doHWLWcheck=False)
+    data_pd_moonculm = calc_HWLWnumbering(data_pd_moonculm)
     moonculm_idxHWLWno = data_pd_moonculm.set_index("HWLWno")
     return moonculm_idxHWLWno
 
