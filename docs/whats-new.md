@@ -11,6 +11,9 @@
 - automatic cropping of timeseries if required to simplify user interaction in [#168](https://github.com/Deltares-research/kenmerkendewaarden/pull/168)
 - exposed mean HW/LW during spring and neaptide with `kw.calc_HWLW_springneap()` in [#175](https://github.com/Deltares-research/kenmerkendewaarden/pull/175)
 
+### Fix
+- filter instead of raise insufficient coverage in `kw.calc_HWLW_springneap()` in [#192](https://github.com/Deltares-research/kenmerkendewaarden/pull/192)
+
 ### Deprecated
 - deprecated debug argument for `kw.calc_gemiddeldgetij()` in [#170](https://github.com/Deltares-research/kenmerkendewaarden/pull/170)
 

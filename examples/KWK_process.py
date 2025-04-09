@@ -97,8 +97,10 @@ for current_station in station_list:
         # compute and plot tidal indicators
         dict_wltidalindicators = kw.calc_wltidalindicators(df_meas=df_meas_todate, min_coverage=min_coverage)
         dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(df_ext=df_ext_todate, min_coverage=min_coverage)
-        # TODO: re-enable after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/185
-        # dict_HWLW_springneap = kw.calc_HWLW_springneap(df_ext=df_ext_todate, min_coverage=min_coverage)
+        # TODO: use all data after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/191
+        df_ext_noduplicates = df_ext_todate.loc["2009":]
+        if not df_ext_noduplicates.empty:
+            dict_HWLW_springneap = kw.calc_HWLW_springneap(df_ext=df_ext_noduplicates, min_coverage=min_coverage)
         
         # add hat/lat
         hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_todate)
@@ -107,7 +109,8 @@ for current_station in station_list:
         
         # merge dictionaries
         dict_wltidalindicators.update(dict_HWLWtidalindicators)
-        # dict_wltidalindicators.update(dict_HWLW_springneap)
+        if not df_ext_noduplicates.empty:
+            dict_wltidalindicators.update(dict_HWLW_springneap)
         
         # csv for yearlymonthly indicators
         for key in ['wl_mean_peryear','wl_mean_permonth']:

@@ -182,6 +182,43 @@ def test_calc_HWLW_springneap(df_ext_12_2010_2014):
 
 
 @pytest.mark.unittest
+def test_calc_HWLW_springneap_min_coverage(df_ext_12_2010_2014):
+    # create df_ext with a large gap, deliberately including 2011-01-01 to 2011-01-10
+    # since this causes the indexes between the dicts to be different (which is
+    # accounted for in calc_HWLW_springneap since years_invalid is filtered per df)
+    pre2011 = df_ext_12_2010_2014.index < pd.Timestamp("2011-01-10 00:00:00 +01:00")
+    post2011 = df_ext_12_2010_2014.index > pd.Timestamp("2012-01-01 00:00:00 +01:00")
+    df_ext = df_ext_12_2010_2014.loc[pre2011 | post2011]
+    
+    dict_spnp = kw.calc_HWLW_springneap(df_ext, min_coverage=0.9)
+    
+    years_act = dict_spnp['HW_spring_mean_peryear'].index.year.tolist()
+    assert years_act == [2010, 2011, 2012, 2013, 2014]
+    years_act = dict_spnp['LW_spring_mean_peryear'].index.year.tolist()
+    assert years_act == [2010, 2011, 2012, 2013, 2014]
+    years_act = dict_spnp['HW_neap_mean_peryear'].index.year.tolist()
+    assert years_act == [2010, 2012, 2013, 2014]
+    years_act = dict_spnp['LW_neap_mean_peryear'].index.year.tolist()
+    assert years_act == [2010, 2012, 2013, 2014]
+    
+    vals_act = dict_spnp['HW_spring_mean_peryear'].values
+    vals_exp = np.array([1.33551724, np.nan, 1.29563636, 1.33185185, 1.37745455])
+    assert np.allclose(vals_act, vals_exp, equal_nan=True)
+    
+    vals_act = dict_spnp['LW_spring_mean_peryear'].values
+    vals_exp = np.array([-0.59724138, np.nan, -0.61872727, -0.60407407, -0.60145455])
+    assert np.allclose(vals_act, vals_exp, equal_nan=True)
+    
+    vals_act = dict_spnp['HW_neap_mean_peryear'].values
+    vals_exp = np.array([0.83887097, 0.86225806, 0.87903226, 0.9696875])
+    assert np.allclose(vals_act, vals_exp)
+    
+    vals_act = dict_spnp['LW_neap_mean_peryear'].values
+    vals_exp = np.array([-0.62919355, -0.5633871 , -0.60193548, -0.51421875])
+    assert np.allclose(vals_act, vals_exp)
+
+
+@pytest.mark.unittest
 def test_plot_HWLW_pertimeclass(df_ext_12_2010):
     df_havengetallen, data_pd_hwlw = kw.calc_havengetallen(
         df_ext=df_ext_12_2010, return_df_ext=True
