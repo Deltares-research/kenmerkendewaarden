@@ -11,7 +11,6 @@ import logging
 from hatyan.astrog import astrog_culminations
 from hatyan.timeseries import calc_HWLWnumbering
 from kenmerkendewaarden.tidalindicators import (
-    calc_HWLWtidalrange,
     compute_actual_counts,
     compute_expected_counts,
 )
@@ -97,6 +96,8 @@ def calc_HWLW_springneap(
         df_ext: pd.DataFrame,
         min_coverage=None,
         moonculm_offset: int = 4):
+    # fits better in tidalindicators, but that results in a circular import
+    
     raise_extremes_with_aggers(df_ext)
     
     # TODO: moonculminations cannot be computed before 1900
@@ -106,10 +107,6 @@ def calc_HWLW_springneap(
                        "all older data will be ignored")
         df_ext = df_ext.loc["1901":]
 
-    # check if coverage is high enough
-    if min_coverage is not None:
-        check_min_coverage_extremes(df_ext=df_ext, min_coverage=min_coverage)
-    
     current_station = df_ext.attrs["station"]
     logger.info(f"computing HWLW for spring/neap tide for {current_station}")
     df_ext_culm = calc_hwlw_moonculm_combi(
@@ -136,6 +133,32 @@ def calc_HWLW_springneap(
     lw_spring_peryear = lw_spring.groupby(pi_lw_sp_y).mean()
     hw_neap_peryear = hw_neap.groupby(pi_hw_np_y).mean()
     lw_neap_peryear = lw_neap.groupby(pi_lw_np_y).mean()
+
+    # replace invalids with nan (in case of too less values per month or year)
+    if min_coverage is not None:
+        assert 0 <= min_coverage <= 1
+        # get series for coverage. Note that it is not possible to get correct expected
+        # counts from spring/neap timeseries since all gaps are ignored. Therefore
+        # we use the full extremes timeseries to derive the invalid years.
+        ser_meas = df_ext_culm['values']
+        # count timeseries values per year/month
+        wl_count_peryear = compute_actual_counts(ser_meas, freq="Y")
+        # compute expected counts and multiply with min_coverage to get minimal counts
+        min_count_peryear = compute_expected_counts(ser_meas, freq="Y") * min_coverage
+        # get invalid years
+        bool_invalid = wl_count_peryear < min_count_peryear
+        years_invalid = bool_invalid.loc[bool_invalid].index
+        
+        # make sure to not have missing years in de index (happened for EEMSHVN 2021)
+        years_invalid_hw_sp = years_invalid[years_invalid.isin(hw_spring_peryear.index)]
+        years_invalid_lw_sp = years_invalid[years_invalid.isin(lw_spring_peryear.index)]
+        years_invalid_hw_np = years_invalid[years_invalid.isin(hw_neap_peryear.index)]
+        years_invalid_lw_np = years_invalid[years_invalid.isin(lw_neap_peryear.index)]
+        # set all statistics that were based on too little values to nan
+        hw_spring_peryear.loc[years_invalid_hw_sp] = np.nan
+        lw_spring_peryear.loc[years_invalid_lw_sp] = np.nan
+        hw_neap_peryear.loc[years_invalid_hw_np] = np.nan
+        lw_neap_peryear.loc[years_invalid_lw_np] = np.nan
     
     # merge in dict
     dict_hwlw_springneap = {
