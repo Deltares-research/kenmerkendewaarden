@@ -289,50 +289,6 @@ def calc_HWLW_culmhr_summary(data_pd_HWLW):
     return HWLW_culmhr_summary
 
 
-def calc_HWLW_culmhr_summary_tidalcoeff(df_ext):
-    # TODO: use tidal coefficient instead?: The tidal coefficient is the size of the
-    # tide in relation to its mean. It usually varies between 20 and 120. The higher the
-    # tidal coefficient, the larger the tidal range – i.e. the difference in water
-    # height between high and low tide. This means that the sea level rises and falls
-    # back a long way. The mean value is 70. We talk of strong tides – called spring
-    # tides – from coefficient 95.  Conversely, weak tides are called neap tides.
-    # https://escales.ponant.com/en/high-low-tide/ en
-    # https://www.manche-toerisme.com/springtij
-    # for HOEKVHLD, sp=0 is approx tc=1.2, np=6 is approx tc=0.8, av=mean is approx
-    # tc=1.0 (for HW, for LW it is different)
-    # TODO: remove in https://github.com/Deltares-research/kenmerkendewaarden/issues/188
-    raise_extremes_with_aggers(df_ext)
-
-    data_pd_HWLW = df_ext.copy()
-    data_pd_HWLW = calc_HWLWtidalrange(data_pd_HWLW)
-    data_pd_HWLW["tidalcoeff"] = (
-        data_pd_HWLW["tidalrange"] / data_pd_HWLW["tidalrange"].mean()
-    )
-    data_pd_HWLW["tidalcoeff_round"] = data_pd_HWLW["tidalcoeff"].round(1)
-    TR_groupby_median = data_pd_HWLW.groupby("tidalcoeff_round")["tidalrange"].median()
-    HW_groupby_median = (
-        data_pd_HWLW.loc[data_pd_HWLW["HWLWcode"] == 1]
-        .groupby("tidalcoeff_round")["values"]
-        .median()
-    )
-    LW_groupby_median = (
-        data_pd_HWLW.loc[data_pd_HWLW["HWLWcode"] == 2]
-        .groupby("tidalcoeff_round")["values"]
-        .median()
-    )
-
-    HWLW_culmhr_summary = pd.DataFrame()
-    HWLW_culmhr_summary["HW_values_median"] = HW_groupby_median
-    HWLW_culmhr_summary["LW_values_median"] = LW_groupby_median
-    HWLW_culmhr_summary["tidalrange_median"] = TR_groupby_median
-    HWLW_culmhr_summary = HWLW_culmhr_summary.loc[
-        [0.8, 1.0, 1.2]
-    ]  # select neap/mean/springtide
-    HWLW_culmhr_summary.index = ["neap", "mean", "spring"]
-
-    return HWLW_culmhr_summary
-
-
 def plot_HWLW_pertimeclass(df_ext: pd.DataFrame, df_havengetallen: pd.DataFrame):
     """
     Plot the extremes for each hour-class, including a median line.
