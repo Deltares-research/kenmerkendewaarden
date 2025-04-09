@@ -52,7 +52,7 @@ station_list = ["HOEKVHLD"]
 stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
-stations_nap_mls_dupl = ["EURPFM", "LICHTELGRE"]
+stations_nap_mls_dupl = ["EURPFM", "LICHTELGRE", "K13APFM"]
 stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
 # remove stations from station_list
 for stat_remove in stations_dupl:
