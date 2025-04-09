@@ -59,8 +59,9 @@ def calc_havengetallen(
         amount is not an exact extimate, so min_coverage=1 will probably result in nans
         even though all extremes are present. The default is None.
     moonculm_offset : int, optional
-        Offset between moonculmination and extremes. Passed on to `calc_HWLW_moonculm_combi`.
-        The default is 4, which corresponds to a 2-day offset, which is applicable to the Dutch coast.
+        Offset between moonculmination and extremes. Passed on to
+        `calc_HWLW_moonculm_combi`. The default is 4, which corresponds to a 2-day
+        offset, which is applicable to the Dutch coast.
 
     Returns
     -------
@@ -80,8 +81,11 @@ def calc_havengetallen(
     
     current_station = df_ext_10y.attrs["station"]
     logger.info(f"computing havengetallen for {current_station}")
-    df_ext_culm = calc_hwlw_moonculm_combi(df_ext=df_ext_10y, moonculm_offset=moonculm_offset)
-    df_havengetallen = calc_HWLW_culmhr_summary(df_ext_culm)  # TODO: maybe add tijverschil
+    df_ext_culm = calc_hwlw_moonculm_combi(
+        df_ext=df_ext_10y,
+        moonculm_offset=moonculm_offset,
+        )
+    df_havengetallen = calc_HWLW_culmhr_summary(df_ext_culm)
     logger.info("computing havengetallen done")
     if return_df_ext:
         return df_havengetallen, df_ext_culm
@@ -96,6 +100,7 @@ def calc_HWLW_springneap(
     raise_extremes_with_aggers(df_ext)
     
     # TODO: moonculminations cannot be computed before 1900
+    # https://github.com/Deltares-research/kenmerkendewaarden/issues/184
     if df_ext.index.min().year < 1901:
         logger.warning("calc_HWLW_springneap() only supports timestamps after 1900 "
                        "all older data will be ignored")
@@ -107,7 +112,10 @@ def calc_HWLW_springneap(
     
     current_station = df_ext.attrs["station"]
     logger.info(f"computing HWLW for spring/neap tide for {current_station}")
-    df_ext_culm = calc_hwlw_moonculm_combi(df_ext=df_ext, moonculm_offset=moonculm_offset)
+    df_ext_culm = calc_hwlw_moonculm_combi(
+        df_ext=df_ext,
+        moonculm_offset=moonculm_offset,
+        )
 
     # all HW/LW at spring/neaptide
     bool_hw = df_ext_culm["HWLWcode"] == 1
@@ -140,8 +148,6 @@ def calc_HWLW_springneap(
 
 
 def check_min_coverage_extremes(df_ext, min_coverage):
-    # TODO: compute_actual_counts only returns years for which there are no nans, so will have different length than expected counts if there is an all-nan year
-    # TODO: if we supply 4 years of complete data instead of 10 years, no error is raised
     data_pd_hw = df_ext.loc[df_ext["HWLWcode"] == 1]["values"]
     df_actual_counts_peryear = compute_actual_counts(data_pd_hw, freq="Y")
     df_expected_counts_peryear = compute_expected_counts(data_pd_hw, freq="Y")
@@ -166,12 +172,14 @@ def get_moonculm_idxHWLWno(tstart, tstop):
     # in UTC, which is important since data_pd_HWLW['culm_hr']=range(12) hourvalues 
     # should be in UTC since that relates to the relation dateline/sun
     data_pd_moonculm = astrog_culminations(tFirst=tstart, tLast=tstop)
-    data_pd_moonculm = data_pd_moonculm.tz_convert("UTC")  # convert to UTC (is already)
+    # convert to UTC (if not already)
+    data_pd_moonculm = data_pd_moonculm.tz_convert("UTC")
     data_pd_moonculm["datetime"] = data_pd_moonculm.index
     # dummy values for TA in hatyan.calc_HWLWnumbering()
     data_pd_moonculm["values"] = data_pd_moonculm["type"]
     data_pd_moonculm["HWLWcode"] = 1  # all HW values since one every ~12h25m
-    # TODO: currently w.r.t. cadzd, is that an issue? With DELFZL the matched culmination is incorrect (since far away), but that might not be a big issue
+    # TODO: currently w.r.t. cadzd, is that an issue? With DELFZL the matched
+    # culmination is incorrect (since far away), but that might not be a big issue
     data_pd_moonculm = calc_HWLWnumbering(data_pd_moonculm)
     moonculm_idxHWLWno = data_pd_moonculm.set_index("HWLWno")
     return moonculm_idxHWLWno
@@ -188,15 +196,17 @@ def calc_hwlw_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
     df_ext : pd.DataFrame
         DataFrame with extremes (highs and lows, no aggers).
     moonculm_offset : int, optional
-        The extremes of a Dutch station are related to the moonculmination two days before,
-        so the fourth extreme after a certain moonculmination is related to that moonculmination.
-        For more northward stations, one could consider using the 5th extreme after a certain moonculmination.
-        This number rotates the aardappelgrafiek, and impacts its shape. The default is 4.
+        The extremes of a Dutch station are related to the moonculmination two days
+        before, so the fourth extreme after a certain moonculmination is related to that
+        moonculmination. For more northward stations, one could consider using the 5th
+        extreme after a certain moonculmination. This number rotates the
+        aardappelgrafiek, and impacts its shape. The default is 4.
 
     Returns
     -------
     df_ext_moon : pd.DataFrame
-        Copy of the input dataframe enriched with several columns related to the moonculminations.
+        Copy of the input dataframe enriched with several columns related to the
+        moonculminations.
 
     """
     
@@ -220,7 +230,7 @@ def calc_hwlw_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
         df_ext_idxHWLWno.loc[~hw_bool, "times"]
         - df_ext_idxHWLWno.loc[hw_bool, "times"]
     )
-    # couple HWLW to moonculminations two days earlier (this works since index is HWLWno)
+    # couple HWLW to moonculminations two days earlier (works because of HWLWno index)
     tz_hwlw = df_ext.index.tz
     culm_time_utc = moonculm_idxHWLWno["datetime"]
     culm_hr = culm_time_utc.dt.round("h").dt.hour % 12
@@ -230,11 +240,13 @@ def calc_hwlw_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
     hwlw_delay = df_ext_idxHWLWno["times"] - df_ext_idxHWLWno["culm_time"]
     df_ext_idxHWLWno["HWLW_delay"] = hwlw_delay
 
-    # culm_addtime was an 2d and 2u20min correction, this shifts the x-axis of aardappelgrafiek
-    # we now only do 2d and 1u20m now since we already account for the timezone when computing the timediffs
-    # more information about the effects of moonculm_offset and general time-offsets are documented in
+    # culm_addtime was an 2d and 2u20min correction, this shifts the x-axis of
+    # aardappelgrafiek. We now only do 2d and 1u20m now since we already account for the
+    # timezone when computing the timediffs. More information about the effects of
+    # moonculm_offset and general time-offsets are documented in
     # https://github.com/Deltares-research/kenmerkendewaarden/issues/164
-    # HW is 2 days after culmination (so 4 x 12h25min difference between length of avg moonculm and length of 2 days)
+    # HW is 2 days after culmination (so 4 x 12h25min difference between length of avg
+    # moonculm and length of 2 days)
     # 20 minutes (0 to 5 meridian)
     culm_addtime = (
         moonculm_offset * dt.timedelta(hours=12, minutes=25)
@@ -266,7 +278,7 @@ def calc_HWLW_culmhr_summary(data_pd_HWLW):
     HWLW_culmhr_summary["getijperiod_median"] = hw_per_culmhr["getijperiod"].median()
     HWLW_culmhr_summary["duurdaling_median"] = hw_per_culmhr["duurdaling"].median()
 
-    # add mean row to dataframe (not convenient to add immediately due to plotting with index 0-11)
+    # add mean row to dataframe
     HWLW_culmhr_summary.loc["mean", :] = HWLW_culmhr_summary.mean()
 
     # round all timedeltas to seconds to make outputformat nicer
@@ -278,8 +290,17 @@ def calc_HWLW_culmhr_summary(data_pd_HWLW):
 
 
 def calc_HWLW_culmhr_summary_tidalcoeff(df_ext):
-    # TODO: use tidal coefficient instead?: The tidal coefficient is the size of the tide in relation to its mean. It usually varies between 20 and 120. The higher the tidal coefficient, the larger the tidal range – i.e. the difference in water height between high and low tide. This means that the sea level rises and falls back a long way. The mean value is 70. We talk of strong tides – called spring tides – from coefficient 95.  Conversely, weak tides are called neap tides. https://escales.ponant.com/en/high-low-tide/ en https://www.manche-toerisme.com/springtij
-    # for HOEKVHLD, sp=0 is approx tc=1.2, np=6 is approx tc=0.8, av=mean is approx tc=1.0 (for HW, for LW it is different)
+    # TODO: use tidal coefficient instead?: The tidal coefficient is the size of the
+    # tide in relation to its mean. It usually varies between 20 and 120. The higher the
+    # tidal coefficient, the larger the tidal range – i.e. the difference in water
+    # height between high and low tide. This means that the sea level rises and falls
+    # back a long way. The mean value is 70. We talk of strong tides – called spring
+    # tides – from coefficient 95.  Conversely, weak tides are called neap tides.
+    # https://escales.ponant.com/en/high-low-tide/ en
+    # https://www.manche-toerisme.com/springtij
+    # for HOEKVHLD, sp=0 is approx tc=1.2, np=6 is approx tc=0.8, av=mean is approx
+    # tc=1.0 (for HW, for LW it is different)
+    # TODO: remove in https://github.com/Deltares-research/kenmerkendewaarden/issues/188
     raise_extremes_with_aggers(df_ext)
 
     data_pd_HWLW = df_ext.copy()
@@ -321,7 +342,8 @@ def plot_HWLW_pertimeclass(df_ext: pd.DataFrame, df_havengetallen: pd.DataFrame)
     df_ext : pd.DataFrame
         DataFrame with measurement extremes, as provided by `kw.calc_havengetallen()`.
     df_havengetallen : pd.DataFrame
-        DataFrame with havengetallen for all hour-classes, as provided by `kw.calc_havengetallen()`.
+        DataFrame with havengetallen for all hour-classes, as provided by
+        `kw.calc_havengetallen()`.
 
     Returns
     -------
@@ -378,7 +400,8 @@ def plot_aardappelgrafiek(df_havengetallen: pd.DataFrame):
     Parameters
     ----------
     df_havengetallen : pd.DataFrame
-        DataFrame with havengetallen for all hour-classes, as provided by `kw.calc_havengetallen()`.
+        DataFrame with havengetallen for all hour-classes, as provided by
+        `kw.calc_havengetallen()`.
 
     Returns
     -------
