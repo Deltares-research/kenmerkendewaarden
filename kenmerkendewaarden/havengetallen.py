@@ -81,7 +81,7 @@ def calc_havengetallen(
     current_station = df_ext_10y.attrs["station"]
     logger.info(f"computing havengetallen for {current_station}")
     df_ext_culm = calc_hwlw_moonculm_combi(df_ext=df_ext_10y, moonculm_offset=moonculm_offset)
-    df_havengetallen = calc_HWLW_culmhr_summary(df_ext_culm)  # TODO: maybe add tijverschil
+    df_havengetallen = calc_HWLW_culmhr_summary(df_ext_culm)
     logger.info("computing havengetallen done")
     if return_df_ext:
         return df_havengetallen, df_ext_culm
