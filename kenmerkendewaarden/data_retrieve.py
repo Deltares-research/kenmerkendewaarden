@@ -331,7 +331,7 @@ def xarray_to_hatyan(ds):
     """
     df = pd.DataFrame(
         {
-            "values": ds["Meetwaarde.Waarde_Numeriek"].to_pandas() / 100,
+            "values": ds["Meetwaarde.Waarde_Numeriek"].to_pandas(),
             "qualitycode": ds[
                 "WaarnemingMetadata.KwaliteitswaardecodeLijst"
             ].to_pandas(),
@@ -346,6 +346,7 @@ def xarray_to_hatyan(ds):
 
     # add attrs
     df.attrs["station"] = ds.attrs["Code"]
+    df.attrs["eenheid"] = ds.attrs["Eenheid.Code"]
     return df
 
 
@@ -429,8 +430,6 @@ def read_measurements(
         return ds_meas
 
     df_meas = xarray_to_hatyan(ds_meas)
-    # back to centimeters
-    df_meas['values'] *= 100
 
     if drop_duplicates:
         df_meas = drop_duplicate_times(df_meas)
