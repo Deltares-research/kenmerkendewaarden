@@ -123,10 +123,10 @@ def plot_measurements(df_meas: pd.DataFrame, df_ext: pd.DataFrame = None):
 
         ax1.plot(HW_mean_peryear_long, "m", linewidth=0.7, label=None)
         ax1.plot(LW_mean_peryear_long, "m", linewidth=0.7, label=None)
-    ax1.set_ylim(-4, 4)
     ax1.legend(loc=4)
     ax2.legend(loc=1)
-    ax2.set_ylim(-0.5, 0.5)
+    ax1.set_ylim(-400, 400)
+    ax2.set_ylim(-50, 50)
     return fig, (ax1, ax2)
 
 
