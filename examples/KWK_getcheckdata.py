@@ -51,15 +51,15 @@ station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCH
 # short list for testing
 station_list = ["HOEKVHLD"]
 
+stations_skip = []
 # skip duplicate code stations from station_list_tk (hist/realtime)
 # TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
-stations_realtime_hist_dupl = ["BATH", "D15", "J6", "NES"]
+stations_skip += ["BATH", "D15", "J6", "NES"]
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
-stations_nap_mls_dupl = ["EURPFM", "LICHTELGRE", "K13APFM"]
-stations_dupl = stations_realtime_hist_dupl + stations_nap_mls_dupl
+stations_skip += ["EURPFM", "LICHTELGRE", "K13APFM"]
 # remove stations from station_list
-for stat_remove in stations_dupl:
+for stat_remove in stations_skip:
     if stat_remove in station_list:
         print(f"removing {stat_remove} from station_list")
         station_list.remove(stat_remove)

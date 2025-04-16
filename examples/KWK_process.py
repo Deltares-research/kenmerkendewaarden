@@ -33,7 +33,7 @@ os.makedirs(dir_overschrijding, exist_ok=True)
 fig_alltimes_ext = [dt.datetime.strptime(x,'%Y%m%d') for x in os.path.basename(dir_meas).split('_')[2:4]]
 
 # all stations from TK (dataTKdia)
-# TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM
+# TODO: maybe add from Dillingh 2013: DORDT, MAASMSMPL, PETTZD, ROTTDM (not downloaded)
 station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUWHVSGT08","GATVBSLE","BRESKVHVN","CADZD",
                 "D15","DELFZL","DENHDR","EEMSHVN","EURPFM","F16","F3PFM","HARVT10","HANSWT","HARLGN","HOEKVHLD","HOLWD","HUIBGT",
                 "IJMDBTHVN","IJMDSMPL","J6","K13APFM","K14PFM","KATSBTN","KORNWDZBTN","KRAMMSZWT","L9PFM","LAUWOG","LICHTELGRE",
@@ -45,8 +45,20 @@ station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCH
 # short list for testing
 station_list = ["HOEKVHLD"]
 
-# skip STELLDBTN since it has only extremes from 1984 to 1996: https://github.com/Deltares-research/kenmerkendewaarden/issues/125
-stations_skip = ["STELLDBTN"]
+stations_skip = []
+# skip duplicate code stations from station_list_tk (hist/realtime)
+# TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
+stations_skip += ["BATH", "D15", "J6", "NES"]
+# skip MSL/NAP duplicate stations from station_list_tk
+# TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
+stations_skip += ["EURPFM", "LICHTELGRE", "K13APFM"]
+# skip stations without extremes
+stations_skip += ['A12', 'AWGPFM', 'F16', 'F3PFM', 'K14PFM', 'L9PFM', 'NORTHCMRT', 'Q1']
+# skip stations that have no extremes before 2021-01-01
+# TODO: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
+stations_skip += ['BAALHK', 'GATVBSLE', 'BRESKVHVN', 'IJMDSMPL', 'OVLVHWT', 'VLAKTVDRN', 'WALSODN']
+# skip STELLDBTN since it has only extremes from 1984 to 1996
+stations_skip += ["STELLDBTN"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
