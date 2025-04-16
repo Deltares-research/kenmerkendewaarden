@@ -54,7 +54,10 @@ stations_skip += ["BATH", "D15", "J6", "NES"]
 stations_skip += ["EURPFM", "LICHTELGRE", "K13APFM"]
 # skip stations without extremes
 stations_skip += ['A12', 'AWGPFM', 'F16', 'F3PFM', 'K14PFM', 'L9PFM', 'NORTHCMRT', 'Q1']
-# skip STELLDBTN since it has only extremes from 1984 to 1996: https://github.com/Deltares-research/kenmerkendewaarden/issues/125
+# skip stations that have no extremes before 2021-01-01
+# TODO: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
+stations_skip += ['BAALHK', 'GATVBSLE', 'BRESKVHVN', 'IJMDSMPL', 'OVLVHWT', 'VLAKTVDRN', 'WALSODN']
+# skip STELLDBTN since it has only extremes from 1984 to 1996
 stations_skip += ["STELLDBTN"]
 # remove stations from station_list
 for stat_remove in stations_skip:
