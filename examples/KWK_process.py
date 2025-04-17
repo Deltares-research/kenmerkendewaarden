@@ -61,6 +61,13 @@ stations_skip += ["BAALHK", "GATVBSLE", "BRESKVHVN", "IJMDSMPL", "OVLVHWT", "VLA
 # for KATSBTN/OOSTSDE04/OOSTSDE14/YERSKE no extremes between 1986 and 2020-12-31
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
 stations_skip += ["STELLDBTN", "KATSBTN", "OOSTSDE04", "OOSTSDE14", "YERSKE"]
+# remove stations with too little extremes in 2000-2020 as documented in
+# https://github.com/Deltares-research/kenmerkendewaarden/issues/202
+# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
+stations_skip += ["BROUWHVSGT02", "HOLWD", "MARLGT", "OOSTSDE11", "SINTANLHVSGR"]
+# TODO: consider fixing lat computation in case of some years with too little coverage
+# https://github.com/Deltares-research/kenmerkendewaarden/issues/202
+stations_skip += ["TEXNZE"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
