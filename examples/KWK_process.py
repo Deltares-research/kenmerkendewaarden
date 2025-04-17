@@ -67,7 +67,7 @@ stations_skip += ["STELLDBTN", "KATSBTN", "OOSTSDE04", "OOSTSDE14", "YERSKE"]
 stations_skip += ["BROUWHVSGT02", "HOLWD", "MARLGT", "OOSTSDE11", "SINTANLHVSGR"]
 # TODO: consider fixing lat computation in case of some years with too little coverage
 # https://github.com/Deltares-research/kenmerkendewaarden/issues/202
-stations_skip += ["TEXNZE"]
+stations_skip += ["TEXNZE","HARVT10"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
