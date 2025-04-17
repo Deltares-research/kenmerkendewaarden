@@ -117,7 +117,7 @@ for current_station in station_list:
         dict_wltidalindicators = kw.calc_wltidalindicators(df_meas=df_meas_todate, min_coverage=min_coverage)
         dict_HWLWtidalindicators = kw.calc_HWLWtidalindicators(df_ext=df_ext_todate, min_coverage=min_coverage)
         # TODO: use all data after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/191
-        df_ext_noduplicates = df_ext_todate.loc["1973":]
+        df_ext_noduplicates = df_ext_todate.loc["1993":]
         dict_HWLW_springneap = kw.calc_HWLW_springneap(df_ext=df_ext_noduplicates, min_coverage=min_coverage)
         
         # add hat/lat
