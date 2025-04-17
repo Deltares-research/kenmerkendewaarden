@@ -53,12 +53,14 @@ stations_skip += ["BATH", "D15", "J6", "NES"]
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
 stations_skip += ["EURPFM", "LICHTELGRE", "K13APFM"]
 # skip stations without extremes
-stations_skip += ['A12', 'AWGPFM', 'F16', 'F3PFM', 'K14PFM', 'L9PFM', 'NORTHCMRT', 'Q1']
+stations_skip += ["A12", "AWGPFM", "F16", "F3PFM", "K14PFM", "L9PFM", "NORTHCMRT", "Q1"]
 # skip stations that have no extremes before 2021-01-01
 # TODO: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ['BAALHK', 'GATVBSLE', 'BRESKVHVN', 'IJMDSMPL', 'OVLVHWT', 'VLAKTVDRN', 'WALSODN']
+stations_skip += ["BAALHK", "GATVBSLE", "BRESKVHVN", "IJMDSMPL", "OVLVHWT", "VLAKTVDRN", "WALSODN"]
 # skip STELLDBTN since it has only extremes from 1984 to 1996
-stations_skip += ["STELLDBTN"]
+# for KATSBTN/OOSTSDE04/OOSTSDE14/YERSKE no extremes between 1986 and 2020-12-31
+# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
+stations_skip += ["STELLDBTN", "KATSBTN", "OOSTSDE04", "OOSTSDE14", "YERSKE"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
