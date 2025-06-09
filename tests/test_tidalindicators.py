@@ -8,6 +8,7 @@ from kenmerkendewaarden.tidalindicators import (
     compute_expected_counts,
 )
 import pandas as pd
+import logging
 
 
 @pytest.mark.unittest
@@ -308,20 +309,20 @@ def test_calc_hat_lat_fromcomponents(df_components_2010):
 def test_calc_hat_lat_frommeasurements(df_meas):
     df_meas_19y = df_meas.loc["2001":"2019"]
     hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_19y)
-    assert np.isclose(hat, 1.6856114961274238)
-    assert np.isclose(lat, -1.0395726747948162)
+    assert np.isclose(hat, 1.537069511856788)
+    assert np.isclose(lat, -1.0278794120928976)
 
 
 @pytest.mark.unittest
-def test_calc_hat_lat_frommeasurements_tooshortperiod(df_meas_2010_2014):
-    with pytest.raises(ValueError) as e:
+def test_calc_hat_lat_frommeasurements_tooshortperiod(df_meas_2010_2014, caplog):
+    with caplog.at_level(logging.WARNING):
         kw.calc_hat_lat_frommeasurements(df_meas_2010_2014)
-    assert "please provide a timeseries of 19 years instead of 5 years" in str(e.value)
+    assert "requested 19 years but resulted in 5" in caplog.text
 
 
 @pytest.mark.unittest
 def test_calc_getijcomponenten(df_meas_2010_2014):
-    comp_av, comp_all = kw.calc_getijcomponenten(df_meas_2010_2014)
+    comp_av, comp_all = kw.calc_getijcomponenten(df_meas_2010_2014, return_allperiods=True)
     assert comp_av.shape == (95, 2)
     assert comp_all.shape == (95, 10)
     m2_av = comp_av.loc["M2"].values

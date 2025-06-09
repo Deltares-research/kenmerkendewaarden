@@ -384,10 +384,6 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     return hat, lat
 
 
-
-
-
-
 def predict_19y_peryear(comp, ymin=2020, ymax=2039):
     list_pred = []
     # TODO: a frequency of 1min is better in theory, but 10min is faster and hat/lat 
@@ -414,29 +410,15 @@ def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame, slotgem=0) -> tuple:
     df_meas_19y = crop_timeseries_last_nyears(df=df_meas, nyears=19)
     df_meas_4y = crop_timeseries_last_nyears(df=df_meas, nyears=4)
 
-    # RWS-default settings
-    const_list = hatyan.get_const_list_hatyan("year")  
-    # TODO: fu_alltimes=False makes the process significantly faster (default is True)
-    # TODO: xfac actually varies between stations (default is False),
-    # but different xfac has only very limited impact on the resulting hat/lat values
-    hatyan_settings_ana = dict(
-        nodalfactors=True,
-        fu_alltimes=False, # TODO: should be True for atonce analysis/predictions
-        xfac=True,
-    )
-    
-    # TODO use calc_getijcomponenten()
-    comp_19y = hatyan.analysis(
-        df_meas_19y, const_list=["SA","SM"], 
+    comp_19y = calc_getijcomponenten(
+        df_meas_19y,
+        const_list=["SA","SM"], 
         analysis_perperiod=False,
-        return_allperiods=False,
-        **hatyan_settings_ana,
     )
-    comp_4y = hatyan.analysis(
-        df_meas_4y, const_list=const_list, 
+    comp_4y = calc_getijcomponenten(
+        df_meas_4y,
+        const_list=hatyan.get_const_list_hatyan("year"), 
         analysis_perperiod="Y",
-        return_allperiods=False,
-        **hatyan_settings_ana,
     )
 
     comp_comb = comp_4y.copy()
@@ -454,19 +436,23 @@ def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame, slotgem=0) -> tuple:
     return hat, lat
 
 
-def calc_getijcomponenten(df_meas, const_list=None):
-    if const_list is None:
-        const_list = hatyan.get_const_list_hatyan("year")  
+def calc_getijcomponenten(df_meas, const_list=None, analysis_perperiod="Y", return_allperiods=False):
     # RWS-default settings
-    hatyan_settings_ana = dict(
-        nodalfactors=True,
-        fu_alltimes=False,
-        xfac=True,
-        analysis_perperiod="Y",
-        return_allperiods=True,
-    )
+    if const_list is None:
+        const_list = hatyan.get_const_list_hatyan("year")
+    # fu_alltimes=False makes the process significantly faster (default is True)
+    fu_alltimes = False
+    # xfac actually varies between stations (default is False), but different xfac
+    # has very limited impact on the resulting hat/lat values
+    xfac = True
+    
     # analysis
-    comp_avg, comp_all = hatyan.analysis(
-        df_meas, const_list=const_list, **hatyan_settings_ana
-    )
-    return comp_avg, comp_all
+    comp_avg = hatyan.analysis(
+        ts=df_meas,
+        const_list=const_list,
+        fu_alltimes=fu_alltimes,
+        xfac=xfac,
+        analysis_perperiod=analysis_perperiod,
+        return_allperiods=return_allperiods,
+        )
+    return comp_avg
