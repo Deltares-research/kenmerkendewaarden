@@ -104,14 +104,14 @@ def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame) -> tuple:
 
     comp_19y = calc_getijcomponenten(
         df_meas_19y,
-        const_list=["SA","SM"], 
+        const_list=["SA","SM"],
         analysis_perperiod=False,
-    )
+        )
     comp_4y = calc_getijcomponenten(
         df_meas_4y,
         const_list=hatyan.get_const_list_hatyan("year"), 
         analysis_perperiod="Y",
-    )
+        )
 
     comp_comb = comp_4y.copy()
     comp_comb.update(comp_19y)
