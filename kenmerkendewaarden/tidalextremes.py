@@ -86,17 +86,33 @@ def predict_19y_peryear(comp, yearmax=2039):
 
 def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame) -> tuple:
     """
+    Computing HAT and LAT from measurement timeseries, highest respectively lowest
+    astronomical tides. This method derives the SA and SM components from 19 years of
+    measurements (at once) and the other components from the most recent 4 years of
+    measurements (per year, then vector averaged). The mean is overwitten with the
+    slotgemiddelde, derived from the entire timerseries. The resulting component set is
+    used to make a prediction of 19 years per year. The min and max from the resulting
+    prediction timeseries are the LAT and HAT values.
     
+    SA and SM can only be derived from long timeseries covering an entire nodal cycle
+    to avoid interference. The other components are varying more quickly and for those
+    only the last four years are used to represent the tidal dynamics at the end of
+    the period. This also goes for the average, which is overwritten by the
+    slotgemiddelde corresponding to the end of the period. This results in LAT/HAT
+    values that are representative for the end of the supplied period.
+    
+    Several alternative methods were considered, details are available in 
+    https://github.com/Deltares-research/kenmerkendewaarden/issues/73
 
     Parameters
     ----------
     df_meas : pd.DataFrame
-        DESCRIPTION.
+        Dataframe with waterlevel timeseries.
 
     Returns
     -------
     tuple
-        DESCRIPTION.
+        hat and lat values.
 
     """
     df_meas_19y = crop_timeseries_last_nyears(df=df_meas, nyears=19)
