@@ -88,8 +88,20 @@ def predict_19y_peryear(comp, yearmax=2039):
 
 
 def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame) -> tuple:
-    slotgem = calc_slotgemiddelden(df_meas=df_meas)["wl_model_fit"].iloc[-1]
+    """
     
+
+    Parameters
+    ----------
+    df_meas : pd.DataFrame
+        DESCRIPTION.
+
+    Returns
+    -------
+    tuple
+        DESCRIPTION.
+
+    """
     df_meas_19y = crop_timeseries_last_nyears(df=df_meas, nyears=19)
     df_meas_4y = crop_timeseries_last_nyears(df=df_meas, nyears=4)
 
@@ -107,8 +119,9 @@ def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame) -> tuple:
     comp_comb = comp_4y.copy()
     comp_comb.update(comp_19y)
     
-    if slotgem is not None:
-        comp_comb.loc["A0","A"] = slotgem
+    # overwrite A0 with slotgemiddelde
+    slotgem = calc_slotgemiddelden(df_meas=df_meas)["wl_model_fit"].iloc[-1]
+    comp_comb.loc["A0","A"] = slotgem
 
     yearmax = df_meas_19y.index.year.max()
     df_pred = predict_19y_peryear(comp_comb, yearmax=yearmax)
