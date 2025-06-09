@@ -346,7 +346,7 @@ def get_gemgetij_components(data_pd_meas):
     # =============================================================================
     
     # components should not be reduced, since higher harmonics are necessary
-    comp_frommeasurements_avg, _ = calc_getijcomponenten(df_meas=data_pd_meas, )
+    comp_frommeasurements_avg, _ = calc_getijcomponenten(df_meas=data_pd_meas)
     
     # check if nans in analysis
     if comp_frommeasurements_avg.isnull()["A"].any():
