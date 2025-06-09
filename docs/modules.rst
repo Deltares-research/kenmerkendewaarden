@@ -27,6 +27,14 @@ kenmerkendewaarden.tidalindicators
    :undoc-members:
    :show-inheritance:
 
+kenmerkendewaarden.tidalextremes
+--------------------------------
+
+.. automodule:: kenmerkendewaarden.tidalextremes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kenmerkendewaarden.slotgemiddelden
 ----------------------------------
 
