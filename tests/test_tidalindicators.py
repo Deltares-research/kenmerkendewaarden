@@ -295,33 +295,8 @@ def test_plot_wltidalindicators(df_meas_2010_2014, df_ext_12_2010_2014):
 
 
 @pytest.mark.unittest
-def test_calc_hat_lat_fromcomponents(df_components_2010):
-    # use subset to speed up test
-    df_components_2010_sel = df_components_2010.loc[["M2", "M4", "S2"]]
-    # generate prediction and derive hat/lat
-    hat, lat = kw.calc_hat_lat_fromcomponents(df_components_2010_sel)
-    assert np.isclose(hat, 1.2259179749801052)
-    assert np.isclose(lat, -0.8368954797393148)
-
-
-@pytest.mark.unittest
-def test_calc_hat_lat_frommeasurements(df_meas):
-    df_meas_19y = df_meas.loc["2001":"2019"]
-    hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_19y)
-    assert np.isclose(hat, 1.6856114961274238)
-    assert np.isclose(lat, -1.0395726747948162)
-
-
-@pytest.mark.unittest
-def test_calc_hat_lat_frommeasurements_tooshortperiod(df_meas_2010_2014):
-    with pytest.raises(ValueError) as e:
-        kw.calc_hat_lat_frommeasurements(df_meas_2010_2014)
-    assert "please provide a timeseries of 19 years instead of 5 years" in str(e.value)
-
-
-@pytest.mark.unittest
 def test_calc_getijcomponenten(df_meas_2010_2014):
-    comp_av, comp_all = kw.calc_getijcomponenten(df_meas_2010_2014)
+    comp_av, comp_all = kw.calc_getijcomponenten(df_meas_2010_2014, return_allperiods=True)
     assert comp_av.shape == (95, 2)
     assert comp_all.shape == (95, 10)
     m2_av = comp_av.loc["M2"].values
