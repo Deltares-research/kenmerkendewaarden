@@ -11,7 +11,8 @@ import hatyan
 import logging
 from kenmerkendewaarden.utils import (raise_extremes_with_aggers,
                                       crop_timeseries_last_nyears)
-
+# from kenmerkendewaarden.slotgemiddelden import calc_slotgemiddelden
+# TODO: circular import
 
 __all__ = [
     "calc_wltidalindicators",
@@ -363,12 +364,14 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
 
     min_vallist_allyears = pd.Series(dtype=float)
     max_vallist_allyears = pd.Series(dtype=float)
+    tz = comp.attrs["tzone"] # to avoid tzone warning for all years
     logger.info("generating prediction for 19 years")
     for year in range(
         2020, 2039
     ):  # 19 arbitrary consequtive years to capture entire nodal cycle
         times_pred_all = pd.date_range(
-            start=dt.datetime(year, 1, 1), end=dt.datetime(year + 1, 1, 1), freq="10min"
+            start=dt.datetime(year, 1, 1), end=dt.datetime(year + 1, 1, 1), freq="10min",
+            tz=tz,
         )
         ts_prediction = hatyan.prediction(comp=comp, times=times_pred_all)
 
@@ -381,44 +384,70 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     return hat, lat
 
 
-def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame) -> tuple:
-    """
-    Derive highest and lowest astronomical tide (HAT/LAT) from a measurement timeseries of 19 years.
-    Tidal components are derived for each year of the measurement timeseries.
-    The resulting component sets are used to make a tidal prediction each year of the measurement
-    timeseries with a 10 minute interval.
-    The max/min values of the predictions of all years are the HAT/LAT values.
-    The HAT/LAT is very dependent on the A0 of the component sets. Therefore, the HAT/LAT values are
-    relevant for the same period as the measurement timeseries.
 
-    Parameters
-    ----------
-    df_meas : pd.DataFrame
-        Measurements timeseries. The last 19 years of this 
-        timeseries are used to compute hat and lat.
 
-    Returns
-    -------
-    tuple
-        hat and lat values.
 
-    """
 
-    df_meas_19y = crop_timeseries_last_nyears(df=df_meas, nyears=19)
-    num_years = len(df_meas_19y.index.year.unique())
-    if num_years != 19:
-        raise ValueError(
-            f"please provide a timeseries of 19 years instead of {num_years} years"
+def predict_19y_peryear(comp, ymin=2020, ymax=2039):
+    list_pred = []
+    # TODO: a frequency of 1min is better in theory, but 10min is faster and hat/lat 
+    # values differ only 2mm for HOEKVHLD
+    freq = "10min"
+    tz = comp.attrs["tzone"] # to avoid tzone warning for all years
+    # 19 arbitrary consequtive years to capture entire nodal cycle
+    # TODO: the chosen period does influence the results slightly
+    for year in range(ymin, ymax+1):
+        times_pred_all = pd.date_range(
+            start=pd.Timestamp(year, 1, 1), end=pd.Timestamp(year + 1, 1, 1), freq=freq,
+            tz=tz,
         )
+        ts_prediction = hatyan.prediction(comp=comp, times=times_pred_all)
+        ts_prediction = ts_prediction.loc[str(year)]
+        list_pred.append(ts_prediction)
+    pred_all = pd.concat(list_pred, axis=0)
+    return pred_all
 
+def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame, slotgem=0) -> tuple:
+    # slotgem = calc_slotgemiddelden(df_meas=df_meas_todate)["wl_model_fit"].iloc[-1]
+    # TODO: use real slotgem
+    
+    df_meas_19y = crop_timeseries_last_nyears(df=df_meas, nyears=19)
+    df_meas_4y = crop_timeseries_last_nyears(df=df_meas, nyears=4)
+
+    # RWS-default settings
+    const_list = hatyan.get_const_list_hatyan("year")  
     # TODO: fu_alltimes=False makes the process significantly faster (default is True)
     # TODO: xfac actually varies between stations (default is False),
     # but different xfac has only very limited impact on the resulting hat/lat values
-    _, comp_all = calc_getijcomponenten(df_meas=df_meas_19y, const_list=None)
+    hatyan_settings_ana = dict(
+        nodalfactors=True,
+        fu_alltimes=False, # TODO: should be True for atonce analysis/predictions
+        xfac=True,
+    )
+    
+    # TODO use calc_getijcomponenten()
+    comp_19y = hatyan.analysis(
+        df_meas_19y, const_list=["SA","SM"], 
+        analysis_perperiod=False,
+        return_allperiods=False,
+        **hatyan_settings_ana,
+    )
+    comp_4y = hatyan.analysis(
+        df_meas_4y, const_list=const_list, 
+        analysis_perperiod="Y",
+        return_allperiods=False,
+        **hatyan_settings_ana,
+    )
 
-    # TODO: a frequency of 1min is better in theory, but 10min is faster and hat/lat 
-    # values differ only 2mm for HOEKVHLD
-    df_pred = hatyan.prediction(comp_all, timestep="10min")
+    comp_comb = comp_4y.copy()
+    comp_comb.update(comp_19y)
+    
+    if slotgem is not None:
+        comp_comb.loc["A0","A"] = slotgem
+
+    ymax = df_meas_19y.index.year.max()
+    ymin = ymax - 19
+    df_pred = predict_19y_peryear(comp_comb, ymin=ymin, ymax=ymax)
 
     lat = df_pred["values"].min()
     hat = df_pred["values"].max()
