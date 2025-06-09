@@ -94,15 +94,18 @@ def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame) -> tuple:
     used to make a prediction of 19 years per year. The min and max from the resulting
     prediction timeseries are the LAT and HAT values.
     
-    SA and SM can only be derived from long timeseries covering an entire nodal cycle
-    to avoid interference. The other components are varying more quickly and for those
-    only the last four years are used to represent the tidal dynamics at the end of
-    the period. This also goes for the average, which is overwritten by the
-    slotgemiddelde corresponding to the end of the period. This results in LAT/HAT
-    values that are representative for the end of the supplied period.
+    The slowly varying SA and SM can only be derived from long timeseries covering an
+    entire nodal cycle. These components are sensitive to timeseries length, so it is
+    important to supply a sufficiently long timeseries. The other components are varying
+    more quickly and for those only the last four years are used to represent the tidal
+    dynamics at the end of the period instead of the average over the last 19 years.
+    This also goes for the average, which is overwritten by the slotgemiddelde
+    corresponding to the end of the period. This results in LAT/HAT values that are
+    representative for the end of the supplied period.
     
     Several alternative methods were considered, details are available in 
     https://github.com/Deltares-research/kenmerkendewaarden/issues/73
+    
 
     Parameters
     ----------
