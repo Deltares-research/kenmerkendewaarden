@@ -13,6 +13,7 @@
 
 ### Fix
 - filter instead of raise insufficient coverage in `kw.calc_HWLW_springneap()` in [#192](https://github.com/Deltares-research/kenmerkendewaarden/pull/192)
+- improved `kw.calc_hat_lat_frommeasurements()` in [#215](https://github.com/Deltares-research/kenmerkendewaarden/pull/215)
 
 ### Deprecated
 - deprecated debug argument for `kw.calc_gemiddeldgetij()` in [#170](https://github.com/Deltares-research/kenmerkendewaarden/pull/170)
