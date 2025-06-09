@@ -21,7 +21,6 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-
 def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     """
     Derive highest and lowest astronomical tide (HAT/LAT) from a component set.
@@ -48,9 +47,8 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
     max_vallist_allyears = pd.Series(dtype=float)
     tz = comp.attrs["tzone"] # to avoid tzone warning for all years
     logger.info("generating prediction for 19 years")
-    for year in range(
-        2020, 2039
-    ):  # 19 arbitrary consequtive years to capture entire nodal cycle
+    # 19 arbitrary consequtive years to capture entire nodal cycle
+    for year in range(2020, 2039):  
         times_pred_all = pd.date_range(
             start=dt.datetime(year, 1, 1), end=dt.datetime(year + 1, 1, 1), freq="10min",
             tz=tz,
@@ -71,17 +69,16 @@ def predict_19y_peryear(comp, yearmax=2039):
     # frequency of 1min is better in theory, but 10min is faster and hat/lat values
     # differ only 2mm for HOEKVHLD
     freq = "10min"
-    tz = comp.attrs["tzone"] # to avoid tzone warning for all years
     # 19 arbitrary consequtive years to capture entire nodal cycle
     # the chosen period does influence the results slightly
     yearmin = yearmax - 19
     for year in range(yearmin, yearmax+1):
         times_pred_all = pd.date_range(
             start=pd.Timestamp(year, 1, 1), end=pd.Timestamp(year + 1, 1, 1), freq=freq,
-            tz=tz,
+            tz=comp.attrs["tzone"], # to avoid tzone warning for all years
+            inclusive="left", # skip last (1jan) value
         )
         ts_prediction = hatyan.prediction(comp=comp, times=times_pred_all)
-        ts_prediction = ts_prediction.loc[str(year)]
         list_pred.append(ts_prediction)
     pred_all = pd.concat(list_pred, axis=0)
     return pred_all
