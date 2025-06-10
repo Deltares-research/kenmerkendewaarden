@@ -7,8 +7,10 @@ Created on Fri Aug 23 11:33:11 2024
 import pytest
 from kenmerkendewaarden.utils import (raise_extremes_with_aggers,
                                       raise_empty_df,
+                                      raise_not_monotonic,
                                       clip_timeseries_last_newyearsday,
-                                      crop_timeseries_last_nyears)
+                                      crop_timeseries_last_nyears,
+                                      )
 import pandas as pd
 import numpy as np
 
@@ -50,10 +52,10 @@ def test_clip_timeseries_last_newyearsday(df_meas, df_meas_2010):
 
 
 @pytest.mark.unittest
-def test_clip_timeseries_last_newyearsday_notmonotonic(df_meas_2010):
+def test_raise_not_monotonic(df_meas_2010):
     df_meas_wrongorder = df_meas_2010.sort_values('values')
     with pytest.raises(ValueError) as e:
-        _ = clip_timeseries_last_newyearsday(df_meas_wrongorder)
+        _ = raise_not_monotonic(df_meas_wrongorder)
     assert "(dataframe index) has to be monotonically increasing" in str(e.value)
 
 
