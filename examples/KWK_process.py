@@ -59,15 +59,13 @@ stations_skip += ["A12", "AWGPFM", "F16", "F3PFM", "K14PFM", "L9PFM", "NORTHCMRT
 stations_skip += ["BAALHK", "GATVBSLE", "BRESKVHVN", "IJMDSMPL", "OVLVHWT", "VLAKTVDRN", "WALSODN"]
 # skip STELLDBTN since it has only extremes from 1984 to 1996
 # for KATSBTN/OOSTSDE04/OOSTSDE14/YERSKE no extremes between 1986 and 2020-12-31
+# skip other stations with too little extremes in 2000-2020
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["STELLDBTN", "KATSBTN", "OOSTSDE04", "OOSTSDE14", "YERSKE"]
-# remove stations with too little extremes in 2000-2020 as documented in
-# https://github.com/Deltares-research/kenmerkendewaarden/issues/202
+stations_skip += ["STELLDBTN", "KATSBTN", "OOSTSDE04", "OOSTSDE11", "OOSTSDE14", "YERSKE"]
+stations_skip += ["BROUWHVSGT02", "HOLWD", "MARLGT", "SCHAARVDND", "SINTANLHVSGR"]
+# skip TEXNZE since it hass too little data in 2007 (at least lat+slotgemiddelden fail)
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["BROUWHVSGT02", "HOLWD", "MARLGT", "OOSTSDE11", "SCHAARVDND", "SINTANLHVSGR"]
-# TODO: consider fixing lat computation in case of some years with too little coverage
-# https://github.com/Deltares-research/kenmerkendewaarden/issues/202
-stations_skip += ["TEXNZE","HARVT10"]
+stations_skip += ["TEXNZE"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
