@@ -14,6 +14,7 @@ from kenmerkendewaarden.havengetallen import calc_havengetallen
 from kenmerkendewaarden.utils import (crop_timeseries_last_nyears,
                                       TimeSeries_TimedeltaFormatter_improved,
                                       raise_empty_df,
+                                      raise_not_monotonic,
                                       )
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 
@@ -74,8 +75,10 @@ def calc_gemiddeldgetij(
 
     """
     raise_empty_df(df_meas)
+    raise_not_monotonic(df_meas)
     if not df_ext is None:
         raise_empty_df(df_ext)
+        raise_not_monotonic(df_ext)
     
     df_meas_10y = crop_timeseries_last_nyears(df=df_meas, nyears=10)
     tstop_dt = df_meas.index.max()
@@ -420,6 +423,7 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
 
     time_down was scaled with havengetallen before, but not anymore to avoid issues with aggers
     """
+    
     # early escape # TODO: should also be possible to only scale tP_goal
     if HW_goal is None and LW_goal is None:
         ts.index.name = "timedelta"
@@ -437,6 +441,9 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     timesLW = ts_ext.index[idx_HW[:-1] + 1]
 
     # crop from first to last HW (rest is not scaled anyway)
+    # this requires the index to be monotonic increasing
+    raise_not_monotonic(ts)
+    raise_not_monotonic(ts_ext)
     ts_time_firstHW = ts_ext[bool_HW].index[0]
     ts_time_lastHW = ts_ext[bool_HW].index[-1]
     ts_corr = ts.copy().loc[ts_time_firstHW:ts_time_lastHW]
@@ -480,7 +487,7 @@ def repeat_signal(ts_one_HWtoHW, nb, nf):
     """
     repeat tidal signal, necessary for sp/np, since they are computed as single tidal signal first
     """
-    tidalperiod = ts_one_HWtoHW.index[-1] - ts_one_HWtoHW.index[0]
+    tidalperiod = ts_one_HWtoHW.index.max() - ts_one_HWtoHW.index.min()
     ts_rep = pd.DataFrame()
     for iAdd in np.arange(-nb, nf + 1):
         ts_add = pd.DataFrame(
