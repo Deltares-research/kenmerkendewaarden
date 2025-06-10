@@ -23,10 +23,15 @@ def raise_empty_df(df):
     if df is None:
         raise TypeError("None was provided instead of a dataframe.")
     if df.empty:
-        raise TypeError("Provided dataframe is empty.")
+        raise ValueError("Provided dataframe is empty.")
 
 
 def clip_timeseries_last_newyearsday(df):
+    if not df.index.is_monotonic_increasing:
+        raise ValueError(
+            "The timeseries times (dataframe index) has to be monotonically increasing "
+            "in order to clip the last value from it."
+            )
     # clip last value of the timeseries if this is exactly newyearsday
     # so remove last timestep if equal to "yyyy-01-01 00:00:00"
     if '-01-01 00:00:00' in str(df.index[-1]):

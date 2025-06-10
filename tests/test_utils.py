@@ -48,7 +48,15 @@ def test_clip_timeseries_last_newyearsday(df_meas, df_meas_2010):
     assert len(df_meas_clipped) == len(df_meas)-1
     assert len(df_meas_2010_clipped) == len(df_meas_2010)
 
-    
+
+@pytest.mark.unittest
+def test_clip_timeseries_last_newyearsday_notmonotonic(df_meas_2010):
+    df_meas_wrongorder = df_meas_2010.sort_values('values')
+    with pytest.raises(ValueError) as e:
+        _ = clip_timeseries_last_newyearsday(df_meas_wrongorder)
+    assert "(dataframe index) has to be monotonically increasing" in str(e.value)
+
+
 @pytest.mark.unittest
 def test_crop_timeseries_last_nyears(df_meas):
     assert df_meas.index[0] == pd.Timestamp("1987-01-01 00:00:00+01:00 ")
