@@ -13,7 +13,7 @@ import logging
 logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-year_slotgem = 2011
+year_slotgem = 2021
 print(f'year_slotgem: {year_slotgem}')
 
 dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
@@ -41,9 +41,9 @@ station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUW
                 "ROOMPBNN","ROOMPBTN","SCHAARVDND","SCHEVNGN","SCHIERMNOG","SINTANLHVSGR","STAVNSE","STELLDBTN","TERNZN","TERSLNZE","TEXNZE",
                 "VLAKTVDRN","VLIELHVN","VLISSGN","WALSODN","WESTKPLE","WESTTSLG","WIERMGDN","YERSKE"]
 # subset of 11 stations along the coast
-# station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
+station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
 # short list for testing
-# station_list = ["HOEKVHLD"]
+station_list = ["HOEKVHLD"]
 
 stations_skip = []
 # skip duplicate code stations from station_list_tk (hist/realtime)
