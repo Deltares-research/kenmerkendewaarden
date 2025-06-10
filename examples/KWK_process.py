@@ -41,9 +41,9 @@ station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUW
                 "ROOMPBNN","ROOMPBTN","SCHAARVDND","SCHEVNGN","SCHIERMNOG","SINTANLHVSGR","STAVNSE","STELLDBTN","TERNZN","TERSLNZE","TEXNZE",
                 "VLAKTVDRN","VLIELHVN","VLISSGN","WALSODN","WESTKPLE","WESTTSLG","WIERMGDN","YERSKE"]
 # subset of 11 stations along the coast
-station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
+# station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
 # short list for testing
-station_list = ["HOEKVHLD"]
+# station_list = ["HOEKVHLD"]
 
 stations_skip = []
 # skip duplicate code stations from station_list_tk (hist/realtime)
@@ -59,15 +59,10 @@ stations_skip += ["A12", "AWGPFM", "F16", "F3PFM", "K14PFM", "L9PFM", "NORTHCMRT
 stations_skip += ["BAALHK", "GATVBSLE", "BRESKVHVN", "IJMDSMPL", "OVLVHWT", "VLAKTVDRN", "WALSODN"]
 # skip STELLDBTN since it has only extremes from 1984 to 1996
 # for KATSBTN/OOSTSDE04/OOSTSDE14/YERSKE no extremes between 1986 and 2020-12-31
+# skip other stations with too little extremes in 2000-2020
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["STELLDBTN", "KATSBTN", "OOSTSDE04", "OOSTSDE14", "YERSKE"]
-# remove stations with too little extremes in 2000-2020 as documented in
-# https://github.com/Deltares-research/kenmerkendewaarden/issues/202
-# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["BROUWHVSGT02", "HOLWD", "MARLGT", "OOSTSDE11", "SCHAARVDND", "SINTANLHVSGR"]
-# TODO: consider fixing lat computation in case of some years with too little coverage
-# https://github.com/Deltares-research/kenmerkendewaarden/issues/202
-stations_skip += ["TEXNZE","HARVT10"]
+stations_skip += ["STELLDBTN", "KATSBTN", "OOSTSDE04", "OOSTSDE11", "OOSTSDE14", "YERSKE"]
+stations_skip += ["BROUWHVSGT02", "HOLWD", "MARLGT", "SCHAARVDND", "SINTANLHVSGR"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
