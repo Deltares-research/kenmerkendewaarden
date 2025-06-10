@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import hatyan
 import logging
-from kenmerkendewaarden.utils import raise_extremes_with_aggers
+from kenmerkendewaarden.utils import raise_extremes_with_aggers, raise_empty_df
 
 __all__ = [
     "calc_wltidalindicators",
@@ -42,6 +42,7 @@ def calc_HWLWtidalindicators(df_ext: pd.DataFrame, min_coverage: float = None):
         Dictionary with several tidal indicators like yearly/monthly means.
 
     """
+    raise_empty_df(df_ext)
     # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
     if df_ext.index.tz is not None:
         df_ext = df_ext.tz_localize(None)
@@ -150,7 +151,8 @@ def calc_wltidalindicators(df_meas: pd.DataFrame, min_coverage: float = None):
         Dictionary with several tidal indicators like yearly/monthly means.
 
     """
-
+    raise_empty_df(df_meas)
+    
     # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
     if df_meas.index.tz is not None:
         df_meas = df_meas.tz_localize(None)
@@ -320,6 +322,7 @@ def calc_HWLWtidalrange(df_ext: pd.DataFrame):
         Input dataframe enriched with 'tidalindicators' and 'HWLWno' columns.
 
     """
+    raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)
 
     df_ext = hatyan.calc_HWLWnumbering(ts_ext=df_ext)
@@ -335,6 +338,7 @@ def calc_HWLWtidalrange(df_ext: pd.DataFrame):
 
 
 def calc_getijcomponenten(df_meas, const_list=None, analysis_perperiod="Y", return_allperiods=False):
+    raise_empty_df(df_meas)
     # RWS-default settings
     if const_list is None:
         const_list = hatyan.get_const_list_hatyan("year")
