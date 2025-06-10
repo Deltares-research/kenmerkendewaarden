@@ -412,7 +412,7 @@ def determine_threshold(values: np.ndarray, peak_indices: np.ndarray) -> float:
 
 
 def get_total_years(ser: pd.Series) -> float:
-    return (ser.index[-1] - ser.index[0]).total_seconds() / (3600 * 24 * 365)
+    return (ser.index.max() - ser.index.min()).total_seconds() / (3600 * 24 * 365)
 
 
 def apply_trendanalysis(
@@ -430,7 +430,7 @@ def apply_trendanalysis(
         dx = np.array(
             [
                 rule_value * x.total_seconds() / (365 * 24 * 3600)
-                for x in (ser.index[-1] - ser.index)
+                for x in (ser.index.max() - ser.index)
             ]
         )
         ser = ser + dx
