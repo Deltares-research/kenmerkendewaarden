@@ -76,7 +76,7 @@ def calc_gemiddeldgetij(
     """
     raise_empty_df(df_meas)
     raise_not_monotonic(df_meas)
-    if not df_ext is None:
+    if df_ext is not None:
         raise_empty_df(df_ext)
         raise_not_monotonic(df_ext)
     
