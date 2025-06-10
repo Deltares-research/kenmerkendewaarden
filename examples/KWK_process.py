@@ -13,7 +13,7 @@ import logging
 logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-year_slotgem = 2021
+year_slotgem = 2011
 print(f'year_slotgem: {year_slotgem}')
 
 dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
@@ -63,6 +63,9 @@ stations_skip += ["BAALHK", "GATVBSLE", "BRESKVHVN", "IJMDSMPL", "OVLVHWT", "VLA
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
 stations_skip += ["STELLDBTN", "KATSBTN", "OOSTSDE04", "OOSTSDE11", "OOSTSDE14", "YERSKE"]
 stations_skip += ["BROUWHVSGT02", "HOLWD", "MARLGT", "SCHAARVDND", "SINTANLHVSGR"]
+# skip TEXNZE since it hass too little data in 2007 (at least lat+slotgemiddelden fail)
+# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
+stations_skip += ["TEXNZE"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
