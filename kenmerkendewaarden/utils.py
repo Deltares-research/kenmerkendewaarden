@@ -19,6 +19,13 @@ def raise_extremes_with_aggers(df_ext):
         )
 
 
+def raise_empty_df(df):
+    if df is None:
+        raise TypeError("None was provided instead of a dataframe.")
+    if df.empty:
+        raise TypeError("Provided dataframe is empty.")
+
+
 def clip_timeseries_last_newyearsday(df):
     # clip last value of the timeseries if this is exactly newyearsday
     # so remove last timestep if equal to "yyyy-01-01 00:00:00"

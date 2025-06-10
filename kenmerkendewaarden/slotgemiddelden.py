@@ -12,7 +12,7 @@ from kenmerkendewaarden.tidalindicators import (
     calc_wltidalindicators,
     calc_HWLWtidalindicators,
 )
-from kenmerkendewaarden.utils import clip_timeseries_last_newyearsday
+from kenmerkendewaarden.utils import clip_timeseries_last_newyearsday, raise_empty_df
 import logging
 
 __all__ = [
@@ -54,6 +54,9 @@ def calc_slotgemiddelden(
         and corresponding tidal range.
 
     """
+    raise_empty_df(df_meas)
+    if df_ext is not None:
+        raise_empty_df(df_ext)
     # initialize dict
     slotgemiddelden_dict = {}
 

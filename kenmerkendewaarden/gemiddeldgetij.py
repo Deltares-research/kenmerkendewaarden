@@ -13,6 +13,7 @@ from kenmerkendewaarden.tidalindicators import (calc_HWLWtidalrange,
 from kenmerkendewaarden.havengetallen import calc_havengetallen
 from kenmerkendewaarden.utils import (crop_timeseries_last_nyears,
                                       TimeSeries_TimedeltaFormatter_improved,
+                                      raise_empty_df,
                                       )
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 
@@ -72,6 +73,10 @@ def calc_gemiddeldgetij(
         dictionary with Dataframes with gemiddeld getij for mean, spring and neap tide.
 
     """
+    raise_empty_df(df_meas)
+    if not df_ext is None:
+        raise_empty_df(df_ext)
+    
     df_meas_10y = crop_timeseries_last_nyears(df=df_meas, nyears=10)
     tstop_dt = df_meas.index.max()
 

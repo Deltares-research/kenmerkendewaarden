@@ -15,6 +15,7 @@ from kenmerkendewaarden.tidalindicators import (
     compute_expected_counts,
 )
 from kenmerkendewaarden.utils import (
+    raise_empty_df,
     raise_extremes_with_aggers,
     crop_timeseries_last_nyears,
     TimeSeries_TimedeltaFormatter_improved,
@@ -71,6 +72,7 @@ def calc_havengetallen(
         An enriched copy of the input DataFrame including a 'culm_hr' column.
 
     """
+    raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)
     df_ext_10y = crop_timeseries_last_nyears(df=df_ext, nyears=10)
 
@@ -98,6 +100,7 @@ def calc_HWLW_springneap(
         moonculm_offset: int = 4):
     # fits better in tidalindicators, but that results in a circular import
     
+    raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)
     
     # TODO: moonculminations cannot be computed before 1900

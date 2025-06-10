@@ -12,7 +12,7 @@ from scipy import optimize, signal
 from typing import Union, List
 import logging
 from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
-from kenmerkendewaarden.utils import raise_extremes_with_aggers
+from kenmerkendewaarden.utils import raise_extremes_with_aggers, raise_empty_df
 
 __all__ = [
     "calc_overschrijding",
@@ -74,6 +74,7 @@ def calc_overschrijding(
 
     """
 
+    raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)
     # take only high or low extremes
     # TODO: this might not be useful in case of river discharge influenced stations where a filter is needed

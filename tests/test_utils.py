@@ -6,6 +6,7 @@ Created on Fri Aug 23 11:33:11 2024
 """
 import pytest
 from kenmerkendewaarden.utils import (raise_extremes_with_aggers,
+                                      raise_empty_df,
                                       clip_timeseries_last_newyearsday,
                                       crop_timeseries_last_nyears)
 import pandas as pd
@@ -27,6 +28,18 @@ def test_raise_extremes_with_aggers_raise_12345df(df_ext):
 def test_raise_extremes_with_aggers_pass_12df(df_ext_12_2010):
     raise_extremes_with_aggers(df_ext_12_2010)
 
+
+@pytest.mark.unittest
+def test_raise_empty_df():
+    df_empty = pd.DataFrame()
+    df_none = None
+    with pytest.raises(ValueError) as e:
+        raise_empty_df(df_empty)
+    assert "Provided dataframe is empty" in str(e.value)
+    with pytest.raises(TypeError) as e:
+        raise_empty_df(df_none)
+    assert "None was provided instead of a dataframe" in str(e.value)
+    
 
 @pytest.mark.unittest
 def test_clip_timeseries_last_newyearsday(df_meas, df_meas_2010):

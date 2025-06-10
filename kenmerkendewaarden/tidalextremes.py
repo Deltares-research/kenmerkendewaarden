@@ -9,7 +9,7 @@ import pandas as pd
 import datetime as dt
 import hatyan
 import logging
-from kenmerkendewaarden.utils import crop_timeseries_last_nyears
+from kenmerkendewaarden.utils import crop_timeseries_last_nyears, raise_empty_df
 from kenmerkendewaarden.tidalindicators import calc_getijcomponenten
 from kenmerkendewaarden.slotgemiddelden import calc_slotgemiddelden
 
@@ -42,7 +42,7 @@ def calc_hat_lat_fromcomponents(comp: pd.DataFrame) -> tuple:
         hat and lat values.
 
     """
-
+    
     min_vallist_allyears = pd.Series(dtype=float)
     max_vallist_allyears = pd.Series(dtype=float)
     tz = comp.attrs["tzone"] # to avoid tzone warning for all years
@@ -118,6 +118,8 @@ def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame) -> tuple:
         hat and lat values.
 
     """
+    raise_empty_df(df_meas)
+
     df_meas_19y = crop_timeseries_last_nyears(df=df_meas, nyears=19)
     df_meas_4y = crop_timeseries_last_nyears(df=df_meas, nyears=4)
 
