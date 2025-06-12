@@ -5,7 +5,6 @@
 ### Feat
 - expanded physical_break_dict in [#151](https://github.com/Deltares-research/kenmerkendewaarden/pull/151)
 - linear fit for slotgemiddelden (no nodal) in [#157](https://github.com/Deltares-research/kenmerkendewaarden/pull/157)
-- exposed yearly tidal components with `kw.calc_getijcomponenten()` in [#159](https://github.com/Deltares-research/kenmerkendewaarden/pull/159)
 - support for timedelta `diff()` because of update to `pandas>=2.1.4` in [#161](https://github.com/Deltares-research/kenmerkendewaarden/pull/161)
 - neater handling of time in `kw.calc_havengetallen()` in [#163](https://github.com/Deltares-research/kenmerkendewaarden/pull/163)
 - automatic cropping of timeseries if required to simplify user interaction in [#168](https://github.com/Deltares-research/kenmerkendewaarden/pull/168)

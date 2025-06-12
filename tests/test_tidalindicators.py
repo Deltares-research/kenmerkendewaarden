@@ -6,6 +6,7 @@ import numpy as np
 from kenmerkendewaarden.tidalindicators import (
     compute_actual_counts,
     compute_expected_counts,
+    calc_getijcomponenten,
 )
 import pandas as pd
 
@@ -296,7 +297,7 @@ def test_plot_wltidalindicators(df_meas_2010_2014, df_ext_12_2010_2014):
 
 @pytest.mark.unittest
 def test_calc_getijcomponenten(df_meas_2010_2014):
-    comp_av, comp_all = kw.calc_getijcomponenten(df_meas_2010_2014, return_allperiods=True)
+    comp_av, comp_all = calc_getijcomponenten(df_meas_2010_2014, return_allperiods=True)
     assert comp_av.shape == (95, 2)
     assert comp_all.shape == (95, 10)
     m2_av = comp_av.loc["M2"].values
