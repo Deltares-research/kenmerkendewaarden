@@ -15,7 +15,6 @@ __all__ = [
     "calc_HWLWtidalindicators",
     "plot_tidalindicators",
     "calc_HWLWtidalrange",
-    "calc_getijcomponenten",
 ]
 
 logger = logging.getLogger(__name__)
