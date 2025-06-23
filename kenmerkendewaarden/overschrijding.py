@@ -607,11 +607,25 @@ def plot_overschrijding(dist: dict):
     return fig, ax
 
 
-def calc_highest_extremes(df_ext, num_extremes=5):
+def calc_highest_extremes(df_ext:pd.DataFrame, ascending:bool = False, num_extremes:int = 5):
     """
-    sort the input dataframe with extremes from high to low and return the first n
+    Calculate the n amount of highest lowest extremes, by sorting the input dataframe
+    with extremes from high to low (ascending=False) or low to high (ascending=True)
+    and return the first n times and values.    
+
+    Parameters
+    ----------
+    df_ext : pd.DataFrame
+        The timeseries of extremes (high and low waters).
+    ascending : bool, optional
+        Whether to sort from high to low (ascending=False) or low to high
+        (ascending=True). The default is False.
+    num_extremes : int, optional
+        The number of extremes to return. The default is 5.
+    
     """
     raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)
-    df_ext_nhighest = df_ext["values"].sort_values(ascending=False).head(num_extremes)
+    df_ext_sorted = df_ext["values"].sort_values(ascending=ascending)
+    df_ext_nhighest = df_ext_sorted.head(num_extremes)
     return df_ext_nhighest
