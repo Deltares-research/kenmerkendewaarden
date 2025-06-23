@@ -327,3 +327,7 @@ for current_station in station_list:
         
         fig, ax = kw.plot_overschrijding(dist_dec)
         fig.savefig(os.path.join(dir_overschrijding, f'kw{year_slotgem}-deceedance-{current_station}.png'))
+
+        # get n highest/lowest values
+        df_ext_nhighest = kw.calc_highest_extemes(df_ext=df_ext_todate, num_extremes=5)
+        df_ext_nhighest.to_csv(os.path.join(dir_overschrijding, f'kw{year_slotgem}-highest_extremes-{current_station}.csv'))

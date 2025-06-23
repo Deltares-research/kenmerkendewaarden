@@ -17,6 +17,7 @@ from kenmerkendewaarden.utils import raise_extremes_with_aggers, raise_empty_df
 __all__ = [
     "calc_overschrijding",
     "plot_overschrijding",
+    "calc_highest_extremes",
 ]
 
 logger = logging.getLogger(__name__)
@@ -604,3 +605,13 @@ def plot_overschrijding(dist: dict):
     ax.set_axisbelow(True)
     fig.tight_layout()
     return fig, ax
+
+
+def calc_highest_extremes(df_ext, num_extremes=5):
+    """
+    sort the input dataframe with extremes from high to low and return the first n
+    """
+    raise_empty_df(df_ext)
+    raise_extremes_with_aggers(df_ext)
+    df_ext_nhighest = df_ext["values"].sort_values(ascending=False).head(num_extremes)
+    return df_ext_nhighest
