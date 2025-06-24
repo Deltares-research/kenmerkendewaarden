@@ -12,6 +12,8 @@ keywords = ["kenmerkendewaarden"]
 license = { text = "GPLv3" }
 requires-python = ">=3.9"
 dependencies = [
+	#TODO: remove scipy dependency/limit after statsmodels release: https://github.com/Deltares-research/kenmerkendewaarden/issues/230
+	"scipy<1.16.0",
 	#numpy>=1.25.0 supports wide range of python versions
 	"numpy>=1.25.0",
 	#pandas>=2.1.4 supports diff on timedeltas
