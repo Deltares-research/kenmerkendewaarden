@@ -13,7 +13,7 @@ from kenmerkendewaarden.tidalindicators import calc_getijcomponenten
 from kenmerkendewaarden.slotgemiddelden import calc_slotgemiddelden
 
 __all__ = [
-    "calc_hat_lat_frommeasurements",
+    "calc_highest_lowest_astronomical_tide",
 ]
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ def predict_19y_peryear(comp, yearmax=2039):
     return pred_all
 
 
-def calc_hat_lat_frommeasurements(df_meas: pd.DataFrame) -> tuple:
+def calc_highest_lowest_astronomical_tide(df_meas: pd.DataFrame) -> tuple:
     """
     Computing HAT and LAT from measurement timeseries, highest respectively lowest
     astronomical tides. This method derives the SA and SM components from 19 years of

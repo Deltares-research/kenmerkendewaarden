@@ -128,7 +128,7 @@ for current_station in station_list:
         dict_HWLW_springneap = kw.calc_HWLW_springneap(df_ext=df_ext_noduplicates, min_coverage=min_coverage)
         
         # add hat/lat
-        hat, lat = kw.calc_hat_lat_frommeasurements(df_meas_todate)
+        hat, lat = kw.calc_highest_lowest_astronomical_tide(df_meas_todate)
         dict_HWLWtidalindicators["hat"] = hat
         dict_HWLWtidalindicators["lat"] = lat
         
