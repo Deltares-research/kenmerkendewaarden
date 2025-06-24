@@ -18,6 +18,8 @@
 
 ### Deprecated
 - deprecated debug argument for `kw.calc_gemiddeldgetij()` in [#170](https://github.com/Deltares-research/kenmerkendewaarden/pull/170)
+- deprecated `kw.calc_hat_lat_fromcomponents()` in [#232](https://github.com/Deltares-research/kenmerkendewaarden/pull/232)
+- renamed `kw.calc_hat_lat_frommeasurements()` to `kw.calc_highest_lowest_astronomical_tide()` in [#232](https://github.com/Deltares-research/kenmerkendewaarden/pull/232)
 
 
 ## 0.3.0 (2024-10-01)
