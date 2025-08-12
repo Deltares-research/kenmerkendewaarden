@@ -153,19 +153,28 @@ def retrieve_measurements_amount(
         loc_meas_one = locs_meas.loc[bool_station]
 
         raise_multiple_locations(loc_meas_one)
-
+        
+        def empty_df_row(station):
+            empty_df = pd.DataFrame({station: []}, dtype="int64")
+            empty_df.index.name = "Groeperingsperiode"
+            return empty_df
+        
         if len(loc_meas_one) == 0:
             logger.info(f"no station available (extremes={extremes})")
             # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
             #                                     "L9PFM","MAASMSMPL","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
             # https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-            amount_meas = pd.DataFrame({station: []}, dtype="int64")
-            amount_meas.index.name = "Groeperingsperiode"
+            amount_meas = empty_df_row(station)
         else:
-            amount_meas = ddlpy.measurements_amount(
-                location=loc_meas_one.iloc[0], start_date=start_date, end_date=end_date
-            )
-            amount_meas = amount_meas.rename(columns={"AantalMetingen": station})
+            from ddlpy.ddlpy import NoDataError
+            try:
+                amount_meas = ddlpy.measurements_amount(
+                    location=loc_meas_one.iloc[0], start_date=start_date, end_date=end_date
+                    )
+                amount_meas = amount_meas.rename(columns={"AantalMetingen": station})
+            except NoDataError:
+                logger.info(f"no measurements available in this period (extremes={extremes})")
+                amount_meas = empty_df_row(station)
 
         amount_list.append(amount_meas)
 
