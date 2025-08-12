@@ -12,8 +12,6 @@ keywords = ["kenmerkendewaarden"]
 license = { text = "GPLv3" }
 requires-python = ">=3.9"
 dependencies = [
-	#TODO: remove scipy dependency/limit after statsmodels release: https://github.com/Deltares-research/kenmerkendewaarden/issues/230
-	"scipy<1.16.0",
 	#numpy>=1.25.0 supports wide range of python versions
 	"numpy>=1.25.0",
 	#pandas>=2.1.4 supports diff on timedeltas
@@ -28,8 +26,8 @@ dependencies = [
 	"rws-ddlpy>=0.7.0",
 	#hatyan>=2.11.0 has improved duplicated timesteps error message, better calc_HWLW() parameters
 	"hatyan>=2.11.0",
-	#statsmodels>=0.13.2 has support for pandas 2.0.0
-	"statsmodels>=0.13.2",
+	#statsmodels>=0.14.5 fixed scipy _lazywhere importerror
+	"statsmodels>=0.14.5",
 	#pyproj>=3.1.0 pip installable in py38
 	"pyproj>=3.1.0",
 	#pooch>=1.1.0 has attribute retrieve
