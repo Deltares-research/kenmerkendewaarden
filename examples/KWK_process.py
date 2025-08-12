@@ -53,17 +53,15 @@ stations_skip += ["BATH", "D15", "J6", "NES"]
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
 stations_skip += ["EURPFM", "LICHTELGRE", "K13APFM"]
 # skip stations without extremes
-stations_skip += ["A12", "AWGPFM", "F16", "F3PFM", "K14PFM", "L9PFM", "NORTHCMRT", "Q1"]
+stations_skip += ["A12", "AWGPFM", "BAALHK", "F16", "F3PFM", "K14PFM", "L9PFM", "NORTHCMRT", "Q1"]
 # skip stations that have no extremes before 2021-01-01
 # TODO: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["BAALHK", "GATVBSLE", "BRESKVHVN", "IJMDSMPL", "OVLVHWT", "VLAKTVDRN", "WALSODN"]
-# skip STELLDBTN since it has only extremes from 1984 to 1996
-# for KATSBTN/OOSTSDE04/OOSTSDE14/YERSKE no extremes between 1986 and 2020-12-31
-# skip other stations with too little extremes in 2000-2020
+stations_skip += ["GATVBSLE", "BRESKVHVN", "IJMDSMPL", "OVLVHWT", "SINTANLHVSGR", "VLAKTVDRN", "WALSODN"]
+# skip stations with too little extremes in 2000-2020
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["STELLDBTN", "KATSBTN", "OOSTSDE04", "OOSTSDE11", "OOSTSDE14", "YERSKE"]
-stations_skip += ["BROUWHVSGT02", "HOLWD", "MARLGT", "SCHAARVDND", "SINTANLHVSGR"]
-# skip TEXNZE since it hass too little data in 2007 (at least lat+slotgemiddelden fail)
+stations_skip += ["BROUWHVSGT02", "HOLWD", "KATSBTN", "MARLGT", "OOSTSDE04", "OOSTSDE11",
+                  "OOSTSDE14", "SCHAARVDND", "STELLDBTN", "YERSKE"]
+# skip TEXNZE since it hass too little meas data in 2007 (at least lat+slotgemiddelden fail)
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
 stations_skip += ["TEXNZE"]
 # remove stations from station_list
@@ -105,16 +103,7 @@ for current_station in station_list:
     df_meas_todate = df_meas_all.loc[:str(year_slotgem-1)]
     df_ext_todate = df_ext_all.loc[:str(year_slotgem-1)]
     
-    # TODO: remove this filter again after fixing the source data
-    # https://github.com/Deltares-research/kenmerkendewaarden/issues/196
-    list_20201231 = [
-        'BROUWHVSGT08', 'DELFZL', 'DENHDR', 'EEMSHVN', 'HARLGN', 'HOEKVHLD', 'HOLWD',
-        'HUIBGT', 'IJMDBTHVN', 'KORNWDZBTN', 'LAUWOG', 'NIEUWSTZL', 'DENOVBTN',
-        'ROOMPBTN', 'SCHEVNGN', 'TERSLNZE', 'WESTTSLG']
-    if current_station in list_20201231:
-        print(f"extremes after 2020-12-30 were removed for {current_station} as a "
-              "temporary workaround")
-        df_ext_todate = df_ext_todate.loc[:"2020-12-30"]
+    
     
     
     #### TIDAL INDICATORS
@@ -329,7 +318,7 @@ for current_station in station_list:
         fig.savefig(os.path.join(dir_overschrijding, f'kw{year_slotgem}-deceedance-{current_station}.png'))
 
         # get n highest/lowest values
-        df_ext_nhighest = kw.calc_highest_extemes(df_ext=df_ext_todate, num_extremes=5)
+        df_ext_nhighest = kw.calc_highest_extremes(df_ext=df_ext_todate, num_extremes=5)
         df_ext_nhighest.to_csv(os.path.join(dir_overschrijding, f'kw{year_slotgem}-highest_extremes-{current_station}.csv'))
-        df_ext_nlowest = kw.calc_highest_extemes(df_ext=df_ext_todate, num_extremes=5, ascending=True)
+        df_ext_nlowest = kw.calc_highest_extremes(df_ext=df_ext_todate, num_extremes=5, ascending=True)
         df_ext_nlowest.to_csv(os.path.join(dir_overschrijding, f'kw{year_slotgem}-lowest_extremes-{current_station}.csv'))
