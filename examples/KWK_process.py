@@ -44,10 +44,6 @@ station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUW
 station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
 # short list for testing
 station_list = ["HOEKVHLD"]
-station_list = [
-    'BROUWHVSGT08', 'DELFZL', 'DENHDR', 'EEMSHVN', 'HARLGN', 'HOEKVHLD', 'HOLWD',
-    'HUIBGT', 'IJMDBTHVN', 'KORNWDZBTN', 'LAUWOG', 'NIEUWSTZL', 'DENOVBTN',
-    'ROOMPBTN', 'SCHEVNGN', 'TERSLNZE', 'WESTTSLG']
 
 stations_skip = []
 # skip duplicate code stations from station_list_tk (hist/realtime)
