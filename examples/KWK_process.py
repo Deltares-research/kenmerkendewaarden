@@ -105,16 +105,7 @@ for current_station in station_list:
     df_meas_todate = df_meas_all.loc[:str(year_slotgem-1)]
     df_ext_todate = df_ext_all.loc[:str(year_slotgem-1)]
     
-    # TODO: remove this filter again after fixing the source data
-    # https://github.com/Deltares-research/kenmerkendewaarden/issues/196
-    list_20201231 = [
-        'BROUWHVSGT08', 'DELFZL', 'DENHDR', 'EEMSHVN', 'HARLGN', 'HOEKVHLD', 'HOLWD',
-        'HUIBGT', 'IJMDBTHVN', 'KORNWDZBTN', 'LAUWOG', 'NIEUWSTZL', 'DENOVBTN',
-        'ROOMPBTN', 'SCHEVNGN', 'TERSLNZE', 'WESTTSLG']
-    if current_station in list_20201231:
-        print(f"extremes after 2020-12-30 were removed for {current_station} as a "
-              "temporary workaround")
-        df_ext_todate = df_ext_todate.loc[:"2020-12-30"]
+    
     
     
     #### TIDAL INDICATORS
