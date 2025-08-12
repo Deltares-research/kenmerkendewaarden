@@ -107,14 +107,14 @@ def test_read_measurements_notfound(tmp_path):
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
-def test_retrieve_measurements_wrongperiod():
+def test_retrieve_measurements_wrongperiod(caplog):
     dir_meas = "."
     start_date = pd.Timestamp(3010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(3010, 1, 2, tz="UTC+01:00")
     current_station = "HOEKVHLD"
 
     # retrieve measurements
-    with pytest.raises(ValueError) as e:
+    with caplog.at_level(logging.INFO):
         kw.retrieve_measurements(
             dir_output=dir_meas,
             station=current_station,
@@ -122,7 +122,7 @@ def test_retrieve_measurements_wrongperiod():
             start_date=start_date,
             end_date=end_date,
         )
-    assert "[NO DATA]" in str(e.value)
+    assert "no data found for the requested period" in caplog.text
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
