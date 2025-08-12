@@ -307,7 +307,8 @@ def retrieve_measurements(
         freq=freq,
     )
     if measurements.empty:
-        raise ValueError("[NO DATA]")
+        logger.info("no data found for the requested period")
+        return
     ds_meas = ddlpy.dataframe_to_xarray(measurements, drop_if_constant)
     if extremes:
         # convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
