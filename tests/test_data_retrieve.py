@@ -5,6 +5,7 @@ import kenmerkendewaarden as kw
 import numpy as np
 import pandas as pd
 from kenmerkendewaarden.data_retrieve import drop_duplicate_times
+import logging
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
@@ -122,6 +123,26 @@ def test_retrieve_measurements_wrongperiod():
             end_date=end_date,
         )
     assert "[NO DATA]" in str(e.value)
+
+
+@pytest.mark.timeout(60)  # useful in case of ddl failure
+@pytest.mark.unittest
+def test_retrieve_measurements_amount_periodwithoutdata(tmp_path, caplog):
+    dir_meas = tmp_path
+    start_date = pd.Timestamp(2020, 1, 1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2021, 1, 2, tz="UTC+01:00")
+    current_station = "BAALHK"
+
+    # retrieve measurements
+    with caplog.at_level(logging.INFO):
+        kw.retrieve_measurements_amount(
+            dir_output=dir_meas,
+            station_list=[current_station],
+            extremes=True,
+            start_date=start_date,
+            end_date=end_date,
+        )
+    assert 'no measurements available for BAALHK in this period' in caplog.text
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
