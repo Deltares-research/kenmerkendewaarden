@@ -22,7 +22,7 @@ retrieve_catalog(overwrite=True)
 
 retrieve_meas_amount = False
 plot_meas_amount = False
-retrieve_meas = True
+retrieve_meas = False
 derive_stats = False
 plot_meas = False
 plot_stations = False
@@ -47,9 +47,9 @@ station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUW
                 "ROOMPBNN","ROOMPBTN","SCHAARVDND","SCHEVNGN","SCHIERMNOG","SINTANLHVSGR","STAVNSE","STELLDBTN","TERNZN","TERSLNZE","TEXNZE",
                 "VLAKTVDRN","VLIELHVN","VLISSGN","WALSODN","WESTKPLE","WESTTSLG","WIERMGDN","YERSKE"]
 # subset of 11 stations along the coast
-# station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
-# # short list for testing
-# station_list = ["HOEKVHLD"]
+station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
+# short list for testing
+station_list = ["HOEKVHLD"]
 
 stations_skip = []
 # skip duplicate code stations from station_list_tk (hist/realtime)
@@ -94,8 +94,8 @@ for current_station in station_list:
     if not retrieve_meas:
         continue
     
-    # kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
-    #                          start_date=start_date, end_date=end_date)
+    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
+                             start_date=start_date, end_date=end_date)
     kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=True,
                              start_date=start_date, end_date=end_date)
 
