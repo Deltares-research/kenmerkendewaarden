@@ -173,7 +173,7 @@ def retrieve_measurements_amount(
                     )
                 amount_meas = amount_meas.rename(columns={"AantalMetingen": station})
             except NoDataError:
-                logger.info(f"no measurements available for {station} in this period (extremes={extremes})")
+                logger.info(f"no measurements available in this period (extremes={extremes})")
                 amount_meas = empty_df_row(station)
 
         amount_list.append(amount_meas)
