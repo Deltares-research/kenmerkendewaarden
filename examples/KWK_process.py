@@ -98,7 +98,6 @@ for current_station in station_list:
         raise ValueError(f"missing data for {current_station}")
     
     # convert 12345 to 12 by taking minimum of 345 as 2 (laagste laagwater)
-    # TODO: make calc_HWLW12345to12() faster: https://github.com/Deltares/hatyan/issues/311
     df_ext_all = hatyan.calc_HWLW12345to12(df_ext_12345_all)
     
     # crop measurement data to (excluding) year_slotgem
@@ -140,7 +139,6 @@ for current_station in station_list:
     
     
     #### SLOTGEMIDDELDEN
-    # TODO: more data is needed for proper working of fitting for some stations (2011: BAALHK, BRESKVHVN, GATVBSLE, SCHAARVDND) >> still after linear?
     if compute_slotgem:
         print(f'slotgemiddelden for {current_station}')
                 
@@ -229,7 +227,7 @@ for current_station in station_list:
                                                    scale_extremes=True, scale_period=True,
                                                    min_coverage=min_coverage)
 
-        # TODO: the shape of the validation lines are different, so compare krommes to gele boekje instead
+        # TODO: the shape of the validation lines are different, so compare krommes to gele boekje instead (first add values to plots?)
         # p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211
         fig, ax = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
         fig.savefig(os.path.join(dir_gemgetij,f'kw{year_slotgem}-gemiddeldgetij-{current_station}.png'))
@@ -253,8 +251,7 @@ for current_station in station_list:
     
     
     #### OVERSCHRIJDINGSFREQUENTIES
-    # TODO: SLR trend correctie voor overschrijdingsfrequenties en evt ook voor andere KW?
-    # TODO: resulting freqs seem to be shifted w.r.t. getijtafelboekje (mail PH 9-3-2022)
+    # TODO: resulting freqs seem to be shifted w.r.t. getijtafelboekje (mail PH 9-3-2022): https://github.com/Deltares-research/kenmerkendewaarden/issues/154
     # plots beoordelen: rode lijn moet ongeveer verlengde zijn van groene, als die ineens 
     # omhoog piekt komt dat door hele extreme waardes die je dan vermoedelijk ook al ziet in je groene lijn
     
@@ -262,8 +259,7 @@ for current_station in station_list:
         """
         get Hydra-NL and KWK-RMM validation data (only available for selection of stations)
         """
-        # TODO: this data is not reproducible yet: https://github.com/Deltares-research/kenmerkendewaarden/issues/107
-        # TODO: HOEKVHLD Hydra values are different than old ones in validation line and p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Data\Processed_HydraNL
+        # TODO: this data is not reproducible yet: https://github.com/Deltares-research/kenmerkendewaarden/issues/107 (and #155)
 
         dist_dict = {}
         dir_overschr_hydra = os.path.join(dir_base,'data_hydraNL')
