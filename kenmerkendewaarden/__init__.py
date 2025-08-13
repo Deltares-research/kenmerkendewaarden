@@ -4,7 +4,7 @@ Derive indicators from waterlevel measurements
 
 __author__ = """Jelmer Veenstra"""
 __email__ = "jelmer.veenstra@deltares.nl"
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 from kenmerkendewaarden.data_retrieve import *
 from kenmerkendewaarden.data_analysis import *
