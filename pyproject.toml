@@ -9,7 +9,7 @@ maintainers = [{ name = "Jelmer Veenstra", email = "jelmer.veenstra@deltares.nl"
 description = "Derive indicators from waterlevel measurements"
 readme = "README.md"
 keywords = ["kenmerkendewaarden"]
-license = { text = "GPLv3" }
+license = "LGPL-3.0"
 requires-python = ">=3.9"
 dependencies = [
 	#numpy>=1.25.0 supports wide range of python versions
@@ -38,7 +38,6 @@ classifiers = [
 	"Intended Audience :: Science/Research",
 	"Operating System :: OS Independent",
 	"Topic :: Scientific/Engineering :: Information Analysis",
-	"License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
 	"Programming Language :: Python",
 	"Programming Language :: Python :: 3",
 	"Programming Language :: Python :: 3.9",
