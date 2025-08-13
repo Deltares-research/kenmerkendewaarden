@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kenmerkendewaarden"
-version = "0.3.1"
+version = "0.4.0"
 maintainers = [{ name = "Jelmer Veenstra", email = "jelmer.veenstra@deltares.nl" }]
 description = "Derive indicators from waterlevel measurements"
 readme = "README.md"
