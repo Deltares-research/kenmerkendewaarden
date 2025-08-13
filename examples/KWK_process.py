@@ -55,15 +55,17 @@ stations_skip += ["EURPFM", "LICHTELGRE", "K13APFM"]
 # skip stations without extremes
 stations_skip += ["A12", "AWGPFM", "BAALHK", "F16", "F3PFM", "K14PFM", "L9PFM", "NORTHCMRT", "Q1"]
 # skip stations that have no extremes before 2021-01-01
-# TODO: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
+# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
 stations_skip += ["GATVBSLE", "BRESKVHVN", "IJMDSMPL", "OVLVHWT", "SINTANLHVSGR", "VLAKTVDRN", "WALSODN"]
 # skip stations with too little extremes in 2000-2020
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
 stations_skip += ["BROUWHVSGT02", "HOLWD", "KATSBTN", "MARLGT", "OOSTSDE04", "OOSTSDE11",
                   "OOSTSDE14", "SCHAARVDND", "STELLDBTN", "YERSKE"]
-# skip TEXNZE since it hass too little meas data in 2007 (at least lat+slotgemiddelden fail)
+# skip TEXNZE for 2011.0 since it has too little meas/ext data in 2007
+# skip BROUWHVSGT08 for 2011.0 since it has no ext data in 2010 (disappeared with DDL update of August 8)
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["TEXNZE"]
+if year_slotgem == 2011:
+    stations_skip += ["TEXNZE", "BROUWHVSGT08"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
