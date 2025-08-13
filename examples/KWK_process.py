@@ -6,7 +6,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 plt.close('all')
 import hatyan
-import kenmerkendewaarden as kw # pip install git+https://github.com/Deltares-research/kenmerkendewaarden
+import kenmerkendewaarden as kw
 
 # set logging level to INFO to get log messages
 import logging
