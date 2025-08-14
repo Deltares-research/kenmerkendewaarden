@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 def raise_extremes_with_aggers(df_ext):
     # TODO: alternatively we can convert 12345 to 12 here
     hwlwcodes = df_ext["HWLWcode"].drop_duplicates()
-    bool_is_12 = np.asarray([x in [1,2] for x in set(hwlwcodes)])
+    bool_is_12 = np.asarray([x in [1, 2] for x in set(hwlwcodes)])
     if not bool_is_12.all():
         raise ValueError(
             "df_ext should only contain extremes (HWLWcode 1/2), "
@@ -31,28 +31,28 @@ def raise_not_monotonic(df):
         raise ValueError(
             "The timeseries times (dataframe index) has to be monotonically increasing "
             "since it is assumed here that the first/last values are the min/max."
-            )
+        )
 
 
 def clip_timeseries_last_newyearsday(df):
     raise_not_monotonic(df)
     # clip last value of the timeseries if this is exactly newyearsday
     # so remove last timestep if equal to "yyyy-01-01 00:00:00"
-    if '-01-01 00:00:00' in str(df.index[-1]):
+    if "-01-01 00:00:00" in str(df.index[-1]):
         df = df.iloc[:-1]
     return df
 
 
 def crop_timeseries_last_nyears(df, nyears):
     df = clip_timeseries_last_newyearsday(df)
-    
+
     # last_year, for instance 2020
     last_year = df.index[-1].year
     # first_year, for instance 2011
-    first_year = last_year - (nyears-1)
+    first_year = last_year - (nyears - 1)
 
-    df_10y = df.loc[str(first_year):str(last_year)]
-    
+    df_10y = df.loc[str(first_year) : str(last_year)]
+
     # TODO: consider enforcing nyears instead of warning if it is not the case
     # just like in `kw.calc_hat_lat_frommeasurements()`, but requires updates to tests
     actual_years = df_10y.index.year.drop_duplicates().to_numpy()
@@ -60,9 +60,11 @@ def crop_timeseries_last_nyears(df, nyears):
     is_exp_last = actual_years[-1] == last_year
     is_exp_amount = len(actual_years) == nyears
     if not (is_exp_first & is_exp_last & is_exp_amount):
-        logger.warning(f"requested {nyears} years but resulted in "
-                       f"{len(actual_years)}: {actual_years}")
-    
+        logger.warning(
+            f"requested {nyears} years but resulted in "
+            f"{len(actual_years)}: {actual_years}"
+        )
+
     return df_10y
 
 

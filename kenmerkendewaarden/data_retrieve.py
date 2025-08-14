@@ -92,7 +92,7 @@ def raise_multiple_locations(locations):
     """
     checks the amount of rows in a ddlpy.locations dataframe.
     It allows for zero stations, since this regularly happens for extremes.
-    It also allows for single stations. It raises an error in case of 
+    It also allows for single stations. It raises an error in case of
     multiple stations, stricter station selection is required.
     """
     if len(locations) > 1:
@@ -153,12 +153,12 @@ def retrieve_measurements_amount(
         loc_meas_one = locs_meas.loc[bool_station]
 
         raise_multiple_locations(loc_meas_one)
-        
+
         def empty_df_row(station):
             empty_df = pd.DataFrame({station: []}, dtype="int64")
             empty_df.index.name = "Groeperingsperiode"
             return empty_df
-        
+
         if len(loc_meas_one) == 0:
             logger.info(f"no station available (extremes={extremes})")
             # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
@@ -167,13 +167,18 @@ def retrieve_measurements_amount(
             amount_meas = empty_df_row(station)
         else:
             from ddlpy.ddlpy import NoDataError
+
             try:
                 amount_meas = ddlpy.measurements_amount(
-                    location=loc_meas_one.iloc[0], start_date=start_date, end_date=end_date
-                    )
+                    location=loc_meas_one.iloc[0],
+                    start_date=start_date,
+                    end_date=end_date,
+                )
                 amount_meas = amount_meas.rename(columns={"AantalMetingen": station})
             except NoDataError:
-                logger.info(f"no measurements available in this period (extremes={extremes})")
+                logger.info(
+                    f"no measurements available in this period (extremes={extremes})"
+                )
                 amount_meas = empty_df_row(station)
 
         amount_list.append(amount_meas)
@@ -368,7 +373,7 @@ def drop_duplicate_times(df_meas):
     """
     # drop unique time-value-combinations
     df_meas_withtime = df_meas.copy()
-    df_meas_withtime['time'] = df_meas.index
+    df_meas_withtime["time"] = df_meas.index
     dupl_timevals = df_meas_withtime.duplicated(keep="first")
     df_meas_clean1 = df_meas.loc[~dupl_timevals]
     nrows_dropped1 = len(df_meas) - len(df_meas_clean1)
@@ -469,8 +474,8 @@ def clip_timeseries_physical_break(df_meas):
         "DENOVBTN": "1933",
         "HARLGN": "1933",
         "VLIELHVN": "1941",
-        }
-    
+    }
+
     station = df_meas.attrs["station"]
     if station not in physical_break_dict.keys():
         logger.info(
@@ -498,7 +503,7 @@ def nap2005_correction(df_meas):
         "HOEKVHLD": -0.0277,
         "HARVT10": -0.0210,
         "VLISSGN": -0.0297,
-        }
+    }
 
     station = df_meas.attrs["station"]
     if station not in dict_correct_nap2005.keys():

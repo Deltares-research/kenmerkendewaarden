@@ -33,7 +33,7 @@ def calc_slotgemiddelden(
     Compute slotgemiddelden from measurement timeseries and optionally also from extremes timeseries.
     A simple linear trend is used to avoid all pretend-accuracy. However, when fitting a
     linear trend on a limited amount of data, the nodal cycle and wind effects will cause
-    the model fit to be inaccurate. It is wise to use at least 30 years of data for 
+    the model fit to be inaccurate. It is wise to use at least 30 years of data for
     a valid fit, this is >1.5 times the nodal cycle.
 
     Parameters
@@ -99,7 +99,9 @@ def calc_slotgemiddelden(
         if clip_physical_break:
             HW_mean_peryear = clip_timeseries_physical_break(HW_mean_peryear)
             LW_mean_peryear = clip_timeseries_physical_break(LW_mean_peryear)
-            tidalrange_mean_peryear = clip_timeseries_physical_break(tidalrange_mean_peryear)
+            tidalrange_mean_peryear = clip_timeseries_physical_break(
+                tidalrange_mean_peryear
+            )
 
         # fit linear models over yearly mean values
         pred_pd_HW = predict_linear_model(HW_mean_peryear)
@@ -116,7 +118,7 @@ def plot_slotgemiddelden(
     slotgemiddelden_dict: dict, slotgemiddelden_dict_all: dict = None
 ):
     """
-    plot timeseries of yearly mean waterlevels and corresponding model fits.
+    Plot timeseries of yearly mean waterlevels and corresponding model fits.
 
     Parameters
     ----------
@@ -170,7 +172,7 @@ def plot_slotgemiddelden(
         ".k",
         label=f"slotgemiddelde for {slotgem_time_value.index.year[0]}",
     )
-    
+
     # plot timeseries of average extremes
     if slotgemiddelden_dict_all is not None:
         # compare station attributes
@@ -198,8 +200,8 @@ def plot_slotgemiddelden(
         LW_model_fit = slotgemiddelden_dict["LW_model_fit"]
         ax.plot(HW_model_fit, ".-", color=cmap(0), label=None)
         ax.plot(LW_model_fit, ".-", color=cmap(0), label=None)
-        ax.plot(slotgemiddelden_dict["HW_model_fit"].iloc[[-1]],".k")
-        ax.plot(slotgemiddelden_dict["LW_model_fit"].iloc[[-1]],".k")
+        ax.plot(slotgemiddelden_dict["HW_model_fit"].iloc[[-1]], ".k")
+        ax.plot(slotgemiddelden_dict["LW_model_fit"].iloc[[-1]], ".k")
 
     ax.set_ylabel("water level [cm]")
     ax.set_title(f"yearly mean HW/wl/LW for {station}")
@@ -233,7 +235,7 @@ def predict_linear_model(ser: pd.Series, with_nodal=False) -> pd.DataFrame:
     # generate contiguous timeseries including gaps and including slotgemiddelde year
     allyears_dt = pd.period_range(start=start, end=end)
     ser_allyears = pd.Series(ser, index=allyears_dt)
-    
+
     ser_nonans = ser_allyears.loc[~ser_allyears.isnull()]
     if len(ser_nonans) < 2:
         raise ValueError(
@@ -256,7 +258,7 @@ def fit_linear_model(df, with_nodal=False):
     simplified from https://github.com/openearth/sealevel/blob/master/slr/slr/models.py
     """
 
-    # just use the years. This assumes that annual waterlevels are used that are 
+    # just use the years. This assumes that annual waterlevels are used that are
     # stored left-padded, the mean waterlevel for 2020 is stored as 2020-1-1
     # This is not logical, but common practice.
     years = df.index.year

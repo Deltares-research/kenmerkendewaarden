@@ -39,7 +39,7 @@ def calc_havengetallen(
     moonculm_offset: int = 4,
 ):
     """
-    havengetallen consist of the extreme (high and low) median values and the
+    Havengetallen consist of the extreme (high and low) median values and the
     extreme median time delays with respect to the moonculmination.
     Besides that it computes the tide difference for each cycle and the tidal period.
     All these indicators are derived by dividing the extremes in hour-classes
@@ -48,7 +48,7 @@ def calc_havengetallen(
     Parameters
     ----------
     df_ext : pd.DataFrame
-        DataFrame with extremes (highs and lows, no aggers). The last 10 years of this 
+        DataFrame with extremes (highs and lows, no aggers). The last 10 years of this
         timeseries are used to compute the havengetallen.
     return_df : bool
         Whether to return the enriched input dataframe. Default is False.
@@ -79,35 +79,36 @@ def calc_havengetallen(
     # check if coverage is high enough
     if min_coverage is not None:
         check_min_coverage_extremes(df_ext=df_ext_10y, min_coverage=min_coverage)
-    
+
     current_station = df_ext_10y.attrs["station"]
     logger.info(f"computing havengetallen for {current_station}")
     df_ext_culm = calc_hwlw_moonculm_combi(
         df_ext=df_ext_10y,
         moonculm_offset=moonculm_offset,
-        )
+    )
     df_havengetallen = calc_HWLW_culmhr_summary(df_ext_culm)
     logger.info("computing havengetallen done")
     if return_df_ext:
         return df_havengetallen, df_ext_culm
     else:
         return df_havengetallen
-    
+
 
 def calc_HWLW_springneap(
-        df_ext: pd.DataFrame,
-        min_coverage=None,
-        moonculm_offset: int = 4):
+    df_ext: pd.DataFrame, min_coverage=None, moonculm_offset: int = 4
+):
     # fits better in tidalindicators, but that results in a circular import
-    
+
     raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)
-    
+
     # TODO: moonculminations cannot be computed before 1900
     # https://github.com/Deltares-research/kenmerkendewaarden/issues/184
     if df_ext.index.min().year < 1901:
-        logger.warning("calc_HWLW_springneap() only supports timestamps after 1900 "
-                       "all older data will be ignored")
+        logger.warning(
+            "calc_HWLW_springneap() only supports timestamps after 1900 "
+            "all older data will be ignored"
+        )
         df_ext = df_ext.loc["1901":]
 
     current_station = df_ext.attrs["station"]
@@ -115,18 +116,18 @@ def calc_HWLW_springneap(
     df_ext_culm = calc_hwlw_moonculm_combi(
         df_ext=df_ext,
         moonculm_offset=moonculm_offset,
-        )
+    )
 
     # all HW/LW at spring/neaptide
     bool_hw = df_ext_culm["HWLWcode"] == 1
     bool_lw = df_ext_culm["HWLWcode"] == 2
     bool_spring = df_ext_culm["culm_hr"] == 0
     bool_neap = df_ext_culm["culm_hr"] == 6
-    hw_spring = df_ext_culm.loc[bool_hw & bool_spring]['values']
-    lw_spring = df_ext_culm.loc[bool_lw & bool_spring]['values']
-    hw_neap = df_ext_culm.loc[bool_hw & bool_neap]['values']
-    lw_neap = df_ext_culm.loc[bool_lw & bool_neap]['values']
-    
+    hw_spring = df_ext_culm.loc[bool_hw & bool_spring]["values"]
+    lw_spring = df_ext_culm.loc[bool_lw & bool_spring]["values"]
+    hw_neap = df_ext_culm.loc[bool_hw & bool_neap]["values"]
+    lw_neap = df_ext_culm.loc[bool_lw & bool_neap]["values"]
+
     # mean HW/LW at spring/neap tide
     pi_hw_sp_y = pd.PeriodIndex(hw_spring.index, freq="Y")
     pi_lw_sp_y = pd.PeriodIndex(lw_spring.index, freq="Y")
@@ -143,7 +144,7 @@ def calc_HWLW_springneap(
         # get series for coverage. Note that it is not possible to get correct expected
         # counts from spring/neap timeseries since all gaps are ignored. Therefore
         # we use the full extremes timeseries to derive the invalid years.
-        ser_meas = df_ext_culm['values']
+        ser_meas = df_ext_culm["values"]
         # count timeseries values per year/month
         wl_count_peryear = compute_actual_counts(ser_meas, freq="Y")
         # compute expected counts and multiply with min_coverage to get minimal counts
@@ -151,7 +152,7 @@ def calc_HWLW_springneap(
         # get invalid years
         bool_invalid = wl_count_peryear < min_count_peryear
         years_invalid = bool_invalid.loc[bool_invalid].index
-        
+
         # make sure to not have missing years in de index (happened for EEMSHVN 2021)
         years_invalid_hw_sp = years_invalid[years_invalid.isin(hw_spring_peryear.index)]
         years_invalid_lw_sp = years_invalid[years_invalid.isin(lw_spring_peryear.index)]
@@ -162,7 +163,7 @@ def calc_HWLW_springneap(
         lw_spring_peryear.loc[years_invalid_lw_sp] = np.nan
         hw_neap_peryear.loc[years_invalid_hw_np] = np.nan
         lw_neap_peryear.loc[years_invalid_lw_np] = np.nan
-    
+
     # merge in dict
     dict_hwlw_springneap = {
         "HW_spring_mean_peryear": hw_spring_peryear,
@@ -195,7 +196,7 @@ def check_min_coverage_extremes(df_ext, min_coverage):
 
 
 def get_moonculm_idxHWLWno(tstart, tstop):
-    # in UTC, which is important since data_pd_HWLW['culm_hr']=range(12) hourvalues 
+    # in UTC, which is important since data_pd_HWLW['culm_hr']=range(12) hourvalues
     # should be in UTC since that relates to the relation dateline/sun
     data_pd_moonculm = astrog_culminations(tFirst=tstart, tLast=tstop)
     # convert to UTC (if not already)
@@ -235,14 +236,14 @@ def calc_hwlw_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
         moonculminations.
 
     """
-    
+
     moonculm_idxHWLWno = get_moonculm_idxHWLWno(
         tstart=df_ext.index.min() - dt.timedelta(days=3),
         tstop=df_ext.index.max(),
     )
     # correlate HWLW to moonculmination 2 days before.
     moonculm_idxHWLWno.index = moonculm_idxHWLWno.index + moonculm_offset
-    
+
     df_ext_idxHWLWno = calc_HWLWnumbering(df_ext)
     df_ext_idxHWLWno["times"] = df_ext_idxHWLWno.index
     df_ext_idxHWLWno = df_ext_idxHWLWno.set_index("HWLWno", drop=False)
@@ -253,8 +254,7 @@ def calc_hwlw_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
     df_ext_idxHWLWno.loc[hw_bool, "getijperiod"] = getijperiod
     # compute duurdaling
     df_ext_idxHWLWno.loc[hw_bool, "duurdaling"] = (
-        df_ext_idxHWLWno.loc[~hw_bool, "times"]
-        - df_ext_idxHWLWno.loc[hw_bool, "times"]
+        df_ext_idxHWLWno.loc[~hw_bool, "times"] - df_ext_idxHWLWno.loc[hw_bool, "times"]
     )
     # couple HWLW to moonculminations two days earlier (works because of HWLWno index)
     tz_hwlw = df_ext.index.tz
@@ -274,9 +274,8 @@ def calc_hwlw_moonculm_combi(df_ext: pd.DataFrame, moonculm_offset: int = 4):
     # HW is 2 days after culmination (so 4 x 12h25min difference between length of avg
     # moonculm and length of 2 days)
     # 20 minutes (0 to 5 meridian)
-    culm_addtime = (
-        moonculm_offset * dt.timedelta(hours=12, minutes=25)
-        - dt.timedelta(minutes=20)
+    culm_addtime = moonculm_offset * dt.timedelta(hours=12, minutes=25) - dt.timedelta(
+        minutes=20
     )
     df_ext_idxHWLWno["HWLW_delay"] -= culm_addtime
 
@@ -362,7 +361,7 @@ def plot_HWLW_pertimeclass(df_ext: pd.DataFrame, df_havengetallen: pd.DataFrame)
     )
     ax4.plot(HWLW_culmhr_summary["LW_delay_median"].dt.total_seconds() / 3600, ".-")
     ax4.set_xlim([0 - 0.5, 12 - 0.5])
-    
+
     ax1.set_ylabel("water level [cm]")
     ax2.set_ylabel("water level [cm]")
     ax3.set_ylabel("time delay [hours]")

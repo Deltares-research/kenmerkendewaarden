@@ -25,11 +25,13 @@ def predict_19y_peryear(comp, yearmax=2039):
     # 19 arbitrary consequtive years to capture entire nodal cycle
     # the chosen period does influence the results slightly
     yearmin = yearmax - 19
-    for year in range(yearmin, yearmax+1):
+    for year in range(yearmin, yearmax + 1):
         times_pred_all = pd.date_range(
-            start=pd.Timestamp(year, 1, 1), end=pd.Timestamp(year + 1, 1, 1), freq=freq,
-            tz=comp.attrs["tzone"], # to avoid tzone warning for all years
-            inclusive="left", # skip last (1jan) value
+            start=pd.Timestamp(year, 1, 1),
+            end=pd.Timestamp(year + 1, 1, 1),
+            freq=freq,
+            tz=comp.attrs["tzone"],  # to avoid tzone warning for all years
+            inclusive="left",  # skip last (1jan) value
         )
         ts_prediction = hatyan.prediction(comp=comp, times=times_pred_all)
         list_pred.append(ts_prediction)
@@ -46,7 +48,7 @@ def calc_highest_lowest_astronomical_tide(df_meas: pd.DataFrame) -> tuple:
     slotgemiddelde, derived from the entire timerseries. The resulting component set is
     used to make a prediction of 19 years per year. The min and max from the resulting
     prediction timeseries are the LAT and HAT values.
-    
+
     The slowly varying SA and SM can only be derived from long timeseries covering an
     entire nodal cycle. These components are sensitive to timeseries length, so it is
     important to supply a sufficiently long timeseries. The other components are varying
@@ -55,10 +57,10 @@ def calc_highest_lowest_astronomical_tide(df_meas: pd.DataFrame) -> tuple:
     This also goes for the average, which is overwritten by the slotgemiddelde
     corresponding to the end of the period. This results in LAT/HAT values that are
     representative for the end of the supplied period.
-    
-    Several alternative methods were considered, details are available in 
+
+    Several alternative methods were considered, details are available in
     https://github.com/Deltares-research/kenmerkendewaarden/issues/73
-    
+
 
     Parameters
     ----------
@@ -78,21 +80,21 @@ def calc_highest_lowest_astronomical_tide(df_meas: pd.DataFrame) -> tuple:
 
     comp_19y = calc_getijcomponenten(
         df_meas_19y,
-        const_list=["SA","SM"],
+        const_list=["SA", "SM"],
         analysis_perperiod=False,
-        )
+    )
     comp_4y = calc_getijcomponenten(
         df_meas_4y,
-        const_list=hatyan.get_const_list_hatyan("year"), 
+        const_list=hatyan.get_const_list_hatyan("year"),
         analysis_perperiod="Y",
-        )
+    )
 
     comp_comb = comp_4y.copy()
     comp_comb.update(comp_19y)
-    
+
     # overwrite A0 with slotgemiddelde
     slotgem = calc_slotgemiddelden(df_meas=df_meas)["wl_model_fit"].iloc[-1]
-    comp_comb.loc["A0","A"] = slotgem
+    comp_comb.loc["A0", "A"] = slotgem
 
     yearmax = df_meas_19y.index.year.max()
     df_pred = predict_19y_peryear(comp_comb, yearmax=yearmax)

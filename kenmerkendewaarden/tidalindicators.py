@@ -70,10 +70,14 @@ def calc_HWLWtidalindicators(df_ext: pd.DataFrame, min_coverage: float = None):
     # proxy for LW at neap tide
     LW_monthmax_permonth = data_pd_lw.groupby(pi_lw_m).max()
 
-    ser_list = [HW_mean_peryear, LW_mean_peryear,
-                HW_monthmax_permonth, LW_monthmin_permonth, 
-                HW_monthmin_permonth, LW_monthmax_permonth, 
-                ]
+    ser_list = [
+        HW_mean_peryear,
+        LW_mean_peryear,
+        HW_monthmax_permonth,
+        LW_monthmin_permonth,
+        HW_monthmin_permonth,
+        LW_monthmax_permonth,
+    ]
     for ser_one in ser_list:
         ser_one.index.name = "period"
 
@@ -116,7 +120,7 @@ def calc_HWLWtidalindicators(df_ext: pd.DataFrame, min_coverage: float = None):
     LW_monthmax_mean_peryear = LW_monthmax_permonth.groupby(pi_lw_mmax_pm_y).mean()
     HW_monthmin_mean_peryear = HW_monthmin_permonth.groupby(pi_hw_mmin_pm_y).mean()
     LW_monthmin_mean_peryear = LW_monthmin_permonth.groupby(pi_lw_mmin_pm_y).mean()
-    
+
     dict_tidalindicators = {
         "HW_mean": data_pd_hw.mean(),  # GHW
         "LW_mean": data_pd_lw.mean(),  # GLW
@@ -151,14 +155,14 @@ def calc_wltidalindicators(df_meas: pd.DataFrame, min_coverage: float = None):
 
     """
     raise_empty_df(df_meas)
-    
+
     # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
     if df_meas.index.tz is not None:
         df_meas = df_meas.tz_localize(None)
 
     # series from dataframe
     ser_meas = df_meas["values"]
-    
+
     # yearmean wl from wl values
     pi_wl_y = pd.PeriodIndex(ser_meas.index, freq="Y")
     pi_wl_m = pd.PeriodIndex(ser_meas.index, freq="M")
@@ -336,7 +340,9 @@ def calc_HWLWtidalrange(df_ext: pd.DataFrame):
     return df_ext
 
 
-def calc_getijcomponenten(df_meas, const_list=None, analysis_perperiod="Y", return_allperiods=False):
+def calc_getijcomponenten(
+    df_meas, const_list=None, analysis_perperiod="Y", return_allperiods=False
+):
     raise_empty_df(df_meas)
     # RWS-default settings
     if const_list is None:
@@ -346,7 +352,7 @@ def calc_getijcomponenten(df_meas, const_list=None, analysis_perperiod="Y", retu
     # xfac actually varies between stations (default is False), but different xfac
     # has very limited impact on the resulting hat/lat values
     xfac = True
-    
+
     # analysis
     comp_avg = hatyan.analysis(
         ts=df_meas,
@@ -355,7 +361,5 @@ def calc_getijcomponenten(df_meas, const_list=None, analysis_perperiod="Y", retu
         xfac=xfac,
         analysis_perperiod=analysis_perperiod,
         return_allperiods=return_allperiods,
-        )
+    )
     return comp_avg
-
-
