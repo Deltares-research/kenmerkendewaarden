@@ -34,8 +34,8 @@ logger = logging.getLogger(__name__)
 
 def calc_havengetallen(
     df_ext: pd.DataFrame,
-    return_df_ext=False,
-    min_coverage=None,
+    return_df_ext: bool = False,
+    min_coverage: float = None,
     moonculm_offset: int = 4,
 ):
     """
@@ -95,8 +95,34 @@ def calc_havengetallen(
 
 
 def calc_HWLW_springneap(
-    df_ext: pd.DataFrame, min_coverage=None, moonculm_offset: int = 4
+    df_ext: pd.DataFrame, min_coverage: float = None, moonculm_offset: int = 4
 ):
+    """
+    Compute the yearly means of the extremes (high and low waters) for spring tide and neap tide.
+
+    Parameters
+    ----------
+    df_ext : pd.DataFrame
+        DataFrame with extremes (highs and lows, no aggers). The last 10 years of this
+        timeseries are used to compute the havengetallen.
+    min_coverage : float, optional
+        The minimal required coverage (between 0 to 1) of the df_ext timeseries to
+        consider the statistics to be valid. It is the factor between the actual amount
+        and the expected amount of high waters in the series. Note that the expected
+        amount is not an exact extimate, so min_coverage=1 will probably result in nans
+        even though all extremes are present. The default is None.
+    moonculm_offset : int, optional
+        Offset between moonculmination and extremes. Passed on to
+        `calc_HWLW_moonculm_combi`. The default is 4, which corresponds to a 2-day
+        offset, which is applicable to the Dutch coast. The default is 4.
+
+
+    Returns
+    -------
+    dict_hwlw_springneap : dict
+        Dictionary with Dataframes with yearly means of high and low waters for spring and neap tide.
+
+    """
     # fits better in tidalindicators, but that results in a circular import
 
     raise_empty_df(df_ext)

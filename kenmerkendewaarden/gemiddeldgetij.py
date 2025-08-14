@@ -74,7 +74,7 @@ def calc_gemiddeldgetij(
     Returns
     -------
     gemgetij_dict : dict
-        dictionary with Dataframes with gemiddeld getij for mean, spring and neap tide.
+        Dictionary with Dataframes with gemiddeld getij for mean, spring and neap tide.
 
     """
     raise_empty_df(df_meas)
