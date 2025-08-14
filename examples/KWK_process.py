@@ -226,8 +226,6 @@ for current_station in station_list:
                                                    scale_extremes=True, scale_period=True,
                                                    min_coverage=min_coverage)
 
-        # TODO: the shape of the validation lines are different, so compare krommes to gele boekje instead (first add values to plots?)
-        # p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\07_Figuren\figures_ppSCL_2\final20201211
         fig, ax = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
         fig.savefig(os.path.join(dir_gemgetij,f'kw{year_slotgem}-gemiddeldgetij-{current_station}.png'))
         
