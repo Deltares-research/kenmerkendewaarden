@@ -44,7 +44,7 @@ def calc_HWLW_springneap(
     moonculm_offset : int, optional
         Offset between moonculmination and extremes. Passed on to
         `calc_HWLW_moonculm_combi`. The default is 4, which corresponds to a 2-day
-        offset, which is applicable to the Dutch coast. The default is 4.
+        offset, which is applicable to the Dutch coast.
 
 
     Returns
