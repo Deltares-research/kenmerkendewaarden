@@ -8,6 +8,7 @@ kenmerkendewaarden.data_retrieve
    :members:
    :undoc-members:
    :show-inheritance:
+   :member-order: bysource
 
 
 kenmerkendewaarden.data_analysis
@@ -17,6 +18,7 @@ kenmerkendewaarden.data_analysis
    :members:
    :undoc-members:
    :show-inheritance:
+   :member-order: bysource
 
 
 kenmerkendewaarden.tidalindicators
@@ -26,6 +28,7 @@ kenmerkendewaarden.tidalindicators
    :members:
    :undoc-members:
    :show-inheritance:
+   :member-order: bysource
 
 kenmerkendewaarden.tidalextremes
 --------------------------------
@@ -34,6 +37,7 @@ kenmerkendewaarden.tidalextremes
    :members:
    :undoc-members:
    :show-inheritance:
+   :member-order: bysource
 
 kenmerkendewaarden.slotgemiddelden
 ----------------------------------
@@ -42,6 +46,7 @@ kenmerkendewaarden.slotgemiddelden
    :members:
    :undoc-members:
    :show-inheritance:
+   :member-order: bysource
 
 kenmerkendewaarden.havengetallen
 --------------------------------
@@ -50,6 +55,7 @@ kenmerkendewaarden.havengetallen
    :members:
    :undoc-members:
    :show-inheritance:
+   :member-order: bysource
 
 kenmerkendewaarden.gemiddeldgetij
 ---------------------------------
@@ -58,6 +64,7 @@ kenmerkendewaarden.gemiddeldgetij
    :members:
    :undoc-members:
    :show-inheritance:
+   :member-order: bysource
 
 kenmerkendewaarden.overschrijding
 ---------------------------------
@@ -66,3 +73,4 @@ kenmerkendewaarden.overschrijding
    :members:
    :undoc-members:
    :show-inheritance:
+   :member-order: bysource
