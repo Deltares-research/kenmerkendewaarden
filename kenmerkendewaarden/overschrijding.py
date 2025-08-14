@@ -291,7 +291,7 @@ def distribution(
     rank = np.array(range(len(ser))) + 1
     ser.index = (1 - (rank + c) / (len(rank) + d)) * (len(rank) / years)
     ser_sorted = ser.sort_index(ascending=False)
-    
+
     series_copy_properties(ser=ser_sorted, ser_reference=ser)
     ser_sorted.index.name = "frequency"
     return ser_sorted
@@ -304,7 +304,7 @@ def get_weibull(
     col: str = None,
     inverse: bool = False,
 ) -> pd.Series:
-    
+
     values = ser.values
     if inverse:
         values = -values
@@ -323,19 +323,14 @@ def get_weibull(
 
     def der_pfunc(x, p_val_gt_threshold, threshold, alpha, sigma):
         longexpra = (
-            -p_val_gt_threshold
-            * (alpha * x ** (alpha - 1))
-            * (sigma ** (-alpha))
+            -p_val_gt_threshold * (alpha * x ** (alpha - 1)) * (sigma ** (-alpha))
         )
         longexprb = -((x / sigma) ** alpha) + ((threshold / sigma) ** alpha)
         return np.log(-longexpra) + longexprb
 
     def cost_func(params, *args):
         return -np.sum(
-            [
-                der_pfunc(x, args[0], args[1], params[0], params[1])
-                for x in args[2]
-            ]
+            [der_pfunc(x, args[0], args[1], params[0], params[1]) for x in args[2]]
         )
 
     initial_guess = np.array([1, abs(threshold)])
@@ -344,7 +339,7 @@ def get_weibull(
         x0=initial_guess,
         args=(p_val_gt_threshold, threshold, values[values > threshold]),
         method="Nelder-Mead",
-        bounds = [[-math.inf, math.inf], [1e-10, math.inf]],
+        bounds=[[-math.inf, math.inf], [1e-10, math.inf]],
         options={"maxiter": 1e4},
     )
     if result.success:
@@ -390,12 +385,11 @@ def detect_peaks(ser: pd.Series, prominence: int = 10, inverse: bool = False):
     if inverse:
         ser = -1 * ser
     peak_indices = signal.find_peaks(ser.values, prominence=prominence)[0]
-    ser_peaks = pd.Series(ser.iloc[peak_indices],
-                          index=ser.iloc[peak_indices].index,
-                          )
-    threshold = determine_threshold(
-        values=ser.values, peak_indices=peak_indices
+    ser_peaks = pd.Series(
+        ser.iloc[peak_indices],
+        index=ser.iloc[peak_indices].index,
     )
+    threshold = determine_threshold(values=ser.values, peak_indices=peak_indices)
     return ser_peaks, threshold, peak_indices
 
 
@@ -467,7 +461,9 @@ def blend_distributions(
     if ser_hydra is not None:
         ser_hydra = ser_hydra.sort_index(ascending=False)
 
-        Tfreqs_combined = np.unique(np.concatenate((ser_weibull.index, ser_hydra.index)))
+        Tfreqs_combined = np.unique(
+            np.concatenate((ser_weibull.index, ser_hydra.index))
+        )
         vals_weibull = np.interp(
             Tfreqs_combined,
             np.flip(ser_weibull.index),
@@ -497,9 +493,7 @@ def blend_distributions(
             + (1 - 0.5 * (np.cos(grads) + 1)) * vals_hydra[indices]
         )
 
-        ser_blended2 = pd.Series(vals_blend, 
-                                index=Tfreqs
-                                ).sort_index(ascending=False)
+        ser_blended2 = pd.Series(vals_blend, index=Tfreqs).sort_index(ascending=False)
 
         ser_blended = pd.concat(
             [
@@ -515,7 +509,10 @@ def blend_distributions(
         )
     else:
         ser_blended = pd.concat(
-            [ser_blended1, ser_weibull.loc[(ser_weibull.index < ser_blended1.index[-1])]],
+            [
+                ser_blended1,
+                ser_weibull.loc[(ser_weibull.index < ser_blended1.index[-1])],
+            ],
             axis=0,
         )
 
@@ -523,13 +520,11 @@ def blend_distributions(
     ser_blended = ser_blended.loc[~duplicated_freqs].sort_index(ascending=False)
 
     series_copy_properties(ser=ser_blended, ser_reference=ser_trend)
-    
+
     return ser_blended
 
 
-def interpolate_interested_Tfreqs(
-    ser: pd.Series, Tfreqs: List[float]
-) -> pd.DataFrame:
+def interpolate_interested_Tfreqs(ser: pd.Series, Tfreqs: List[float]) -> pd.DataFrame:
 
     interp_vals = np.interp(Tfreqs, np.flip(ser.index), np.flip(ser.values))
     ser_interp = pd.Series(interp_vals, index=Tfreqs).sort_index(ascending=False)
@@ -540,7 +535,7 @@ def interpolate_interested_Tfreqs(
 
 def plot_overschrijding(dist: dict):
     """
-    plot overschrijding/onderschrijding
+    Plot overschrijding/onderschrijding.
 
     Parameters
     ----------
@@ -607,11 +602,13 @@ def plot_overschrijding(dist: dict):
     return fig, ax
 
 
-def calc_highest_extremes(df_ext:pd.DataFrame, ascending:bool = False, num_extremes:int = 5):
+def calc_highest_extremes(
+    df_ext: pd.DataFrame, ascending: bool = False, num_extremes: int = 5
+):
     """
     Calculate the n amount of highest lowest extremes, by sorting the input dataframe
     with extremes from high to low (ascending=False) or low to high (ascending=True)
-    and return the first n times and values.    
+    and return the first n times and values.
 
     Parameters
     ----------
@@ -622,7 +619,7 @@ def calc_highest_extremes(df_ext:pd.DataFrame, ascending:bool = False, num_extre
         (ascending=True). The default is False.
     num_extremes : int, optional
         The number of extremes to return. The default is 5.
-    
+
     """
     raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)

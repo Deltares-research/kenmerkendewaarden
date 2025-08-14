@@ -8,14 +8,17 @@ import pandas as pd
 import hatyan
 import logging
 import matplotlib.pyplot as plt
-from kenmerkendewaarden.tidalindicators import (calc_HWLWtidalrange,
-                                                calc_getijcomponenten)
+from kenmerkendewaarden.tidalindicators import (
+    calc_HWLWtidalrange,
+    calc_getijcomponenten,
+)
 from kenmerkendewaarden.havengetallen import calc_havengetallen
-from kenmerkendewaarden.utils import (crop_timeseries_last_nyears,
-                                      TimeSeries_TimedeltaFormatter_improved,
-                                      raise_empty_df,
-                                      raise_not_monotonic,
-                                      )
+from kenmerkendewaarden.utils import (
+    crop_timeseries_last_nyears,
+    TimeSeries_TimedeltaFormatter_improved,
+    raise_empty_df,
+    raise_not_monotonic,
+)
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 
 
@@ -48,16 +51,16 @@ def calc_gemiddeldgetij(
     Parameters
     ----------
     df_meas : pd.DataFrame
-        Timeseries of waterlevel measurements. The last 10 years of this 
+        Timeseries of waterlevel measurements. The last 10 years of this
         timeseries are used to compute the getijkrommes.
     df_ext : pd.DataFrame, optional
-        Timeseries of waterlevel extremes (1/2 only). The last 10 years of this 
+        Timeseries of waterlevel extremes (1/2 only). The last 10 years of this
         timeseries are used to compute the getijkrommes. The default is None.
     min_coverage : float, optional
-        The minimal required coverage of the df_ext timeseries. Passed on to 
+        The minimal required coverage of the df_ext timeseries. Passed on to
         `calc_havengetallen()`. The default is None.
     freq : str, optional
-        Frequency of the prediction, a value of 60 seconds or lower is adivisable for 
+        Frequency of the prediction, a value of 60 seconds or lower is adivisable for
         decent results. The default is "60sec".
     nb : int, optional
         Amount of periods to repeat backward. The default is 0.
@@ -71,7 +74,7 @@ def calc_gemiddeldgetij(
     Returns
     -------
     gemgetij_dict : dict
-        dictionary with Dataframes with gemiddeld getij for mean, spring and neap tide.
+        Dictionary with Dataframes with gemiddeld getij for mean, spring and neap tide.
 
     """
     raise_empty_df(df_meas)
@@ -79,7 +82,7 @@ def calc_gemiddeldgetij(
     if df_ext is not None:
         raise_empty_df(df_ext)
         raise_not_monotonic(df_ext)
-    
+
     df_meas_10y = crop_timeseries_last_nyears(df=df_meas, nyears=10)
     tstop_dt = df_meas.index.max()
 
@@ -101,7 +104,9 @@ def calc_gemiddeldgetij(
         assert all(x == station_attrs[0] for x in station_attrs)
 
         df_ext_10y = crop_timeseries_last_nyears(df_ext, nyears=10)
-        df_havengetallen = calc_havengetallen(df_ext=df_ext_10y, min_coverage=min_coverage)
+        df_havengetallen = calc_havengetallen(
+            df_ext=df_ext_10y, min_coverage=min_coverage
+        )
         list_cols = ["HW_values_median", "LW_values_median"]
         HW_sp, LW_sp = df_havengetallen.loc[0, list_cols]  # spring
         HW_np, LW_np = df_havengetallen.loc[6, list_cols]  # neap
@@ -200,7 +205,7 @@ def calc_gemiddeldgetij(
     prediction_sp_ext_one = prediction_sn_ext.loc[is1:is2]
     prediction_np_one = prediction_sn.loc[in1:in2]
     prediction_np_ext_one = prediction_sn_ext.loc[in1:in2]
-    
+
     # timeseries for gele boekje (av/sp/np have different lengths, time is relative to HW of av and HW of sp/np are shifted there)
     logger.info(f"reshape_signal GEMGETIJ: {current_station}")
     prediction_av_corr_one = reshape_signal(
@@ -252,9 +257,9 @@ def calc_gemiddeldgetij(
 
     # combine in single dictionary
     gemgetij_dict = {}
-    gemgetij_dict["mean"] = prediction_av['values']
-    gemgetij_dict["spring"] = prediction_sp['values']
-    gemgetij_dict["neap"] = prediction_np['values']
+    gemgetij_dict["mean"] = prediction_av["values"]
+    gemgetij_dict["spring"] = prediction_sp["values"]
+    gemgetij_dict["neap"] = prediction_np["values"]
 
     return gemgetij_dict
 
@@ -321,9 +326,7 @@ def plot_gemiddeldgetij(
     prediction_sp_corr = gemgetij_dict["spring"]
     prediction_np_corr = gemgetij_dict["neap"]
     prediction_av_corr.plot(ax=ax, color=cmap(0), label="gemiddeldgetij mean")
-    prediction_sp_corr.plot(
-        ax=ax, color=cmap(1), label="gemiddeldgetij spring"
-    )
+    prediction_sp_corr.plot(ax=ax, color=cmap(1), label="gemiddeldgetij spring")
     prediction_np_corr.plot(ax=ax, color=cmap(2), label="gemiddeldgetij neap")
 
     ax.set_title(f"getijkrommes for {station}")
@@ -331,7 +334,7 @@ def plot_gemiddeldgetij(
     ax.grid()
     ax.set_xlabel("time since high water")
     ax.set_ylabel("water level [cm]")
-    
+
     # fix timedelta ticks
     ax.xaxis.set_major_formatter(TimeSeries_TimedeltaFormatter_improved())
     # put ticks at intervals of multiples of 3 and 6, resulting in whole seconds
@@ -352,10 +355,10 @@ def get_gemgetij_components(data_pd_meas):
     # =============================================================================
     # Hatyan analyse voor 10 jaar (alle componenten voor gemiddelde getijcyclus) #TODO: maybe use original 4y period/componentfile instead? SA/SM should come from 19y analysis
     # =============================================================================
-    
+
     # components should not be reduced, since higher harmonics are necessary
     comp_frommeasurements_avg = calc_getijcomponenten(df_meas=data_pd_meas)
-    
+
     # check if nans in analysis
     if comp_frommeasurements_avg.isnull()["A"].any():
         raise ValueError("analysis result contains nan values")
@@ -407,7 +410,7 @@ def get_gemgetij_components(data_pd_meas):
 
     # values are different than 1991.0 document and differs per station while the
     # document states "Zoals te verwachten is de verhouding per component tussen deze
-    # wortel en de oorspronkelijke amplitude voor alle plaatsen gelijk"    
+    # wortel en de oorspronkelijke amplitude voor alle plaatsen gelijk"
     logger.debug(
         "verhouding tussen originele en kwadratensom componenten:\n"
         f"{comp_av/comp_frommeasurements_avg.loc[components_av]}"
@@ -423,7 +426,7 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
 
     time_down was scaled with havengetallen before, but not anymore to avoid issues with aggers
     """
-    
+
     # early escape # TODO: should also be possible to only scale tP_goal
     if HW_goal is None and LW_goal is None:
         ts.index.name = "timedelta"
@@ -449,7 +452,7 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     ts_corr = ts.copy().loc[ts_time_firstHW:ts_time_lastHW]
 
     # this is necessary since datetimeindex with freq is not editable, and Series is editable
-    ts_corr["timedelta"] = (ts_corr.index)
+    ts_corr["timedelta"] = ts_corr.index
     for i in np.arange(0, len(timesHW) - 1):
         HW1_val = ts_corr.loc[timesHW[i], "values"]
         HW2_val = ts_corr.loc[timesHW[i + 1], "values"]
