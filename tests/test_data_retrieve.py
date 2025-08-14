@@ -142,7 +142,7 @@ def test_retrieve_measurements_amount_periodwithoutdata(tmp_path, caplog):
             start_date=start_date,
             end_date=end_date,
         )
-    assert 'no measurements available in this period' in caplog.text
+    assert "no measurements available in this period" in caplog.text
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
@@ -162,7 +162,7 @@ def test_retrieve_measurements_amount_emptylocslist(tmp_path, caplog):
             start_date=start_date,
             end_date=end_date,
         )
-    assert 'no station available' in caplog.text
+    assert "no station available" in caplog.text
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure

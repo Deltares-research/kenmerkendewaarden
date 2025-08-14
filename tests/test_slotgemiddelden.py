@@ -34,7 +34,7 @@ def test_predict_linear_model(df_meas_2010_2014):
         [0.07860955, 0.08999961, 0.07954378, 0.07398706, 0.09952146, 0.17882958]
     )
     assert np.allclose(wl_model_fit_nodal.values, nodal_expected)
-    
+
     wl_model_fit_linear = kw.slotgemiddelden.predict_linear_model(
         wl_mean_peryear_valid, with_nodal=False
     )
@@ -42,7 +42,6 @@ def test_predict_linear_model(df_meas_2010_2014):
         [0.07917004, 0.08175116, 0.08433229, 0.08691342, 0.08949454, 0.09207567]
     )
     assert np.allclose(wl_model_fit_linear.values, linear_expected)
-
 
 
 @pytest.mark.unittest
