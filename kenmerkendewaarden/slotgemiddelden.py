@@ -30,11 +30,12 @@ def calc_slotgemiddelden(
     clip_physical_break: bool = False,
 ):
     """
-    Compute slotgemiddelden from measurement timeseries and optionally also from extremes timeseries.
-    A simple linear trend is used to avoid all pretend-accuracy. However, when fitting a
-    linear trend on a limited amount of data, the nodal cycle and wind effects will cause
-    the model fit to be inaccurate. It is wise to use at least 30 years of data for
-    a valid fit, this is >1.5 times the nodal cycle.
+    Compute slotgemiddelden from measurement timeseries and optionally also from
+    extremes timeseries.
+    A simple linear trend is used to avoid all pretend-accuracy. However, when fitting
+    a linear trend on a limited amount of data, the nodal cycle and wind effects will
+    cause the model fit to be inaccurate. It is wise to use at least 30 years of data
+    for a valid fit, this is >1.5 times the nodal cycle.
 
     Parameters
     ----------
@@ -43,9 +44,11 @@ def calc_slotgemiddelden(
     df_ext : pd.DataFrame, optional
         the timeseries of extremes (high and low waters). The default is None.
     min_coverage : float, optional
-        Set yearly means to nans for years that do not have sufficient data coverage. The default is None.
+        Set yearly means to nans for years that do not have sufficient data coverage.
+        The default is None.
     clip_physical_break : bool, optional
-        Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
+        Whether to exclude the part of the timeseries before physical breaks like
+        estuary closures. The default is False.
 
     Returns
     -------
@@ -213,7 +216,8 @@ def plot_slotgemiddelden(
 
 def predict_linear_model(ser: pd.Series, with_nodal=False) -> pd.DataFrame:
     """
-    Fit linear model over yearly means in mean_array_todate, including five years in the future.
+    Fit linear model over yearly means in mean_array_todate, including five years in the
+    future.
 
     Parameters
     ----------
@@ -239,7 +243,8 @@ def predict_linear_model(ser: pd.Series, with_nodal=False) -> pd.DataFrame:
     ser_nonans = ser_allyears.loc[~ser_allyears.isnull()]
     if len(ser_nonans) < 2:
         raise ValueError(
-            f"nan-filtered timeseries has only one timestep, cannot perform model fit:\n{ser_nonans}"
+            "nan-filtered timeseries has only one timestep, cannot perform model "
+            f"fit:\n{ser_nonans}"
         )
 
     # get model fit

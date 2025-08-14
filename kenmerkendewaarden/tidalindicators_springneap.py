@@ -28,7 +28,8 @@ def calc_HWLW_springneap(
     df_ext: pd.DataFrame, min_coverage: float = None, moonculm_offset: int = 4
 ):
     """
-    Compute the yearly means of the extremes (high and low waters) for spring tide and neap tide.
+    Compute the yearly means of the extremes (high and low waters) for spring tide and
+    neap tide.
 
     Parameters
     ----------
@@ -50,7 +51,8 @@ def calc_HWLW_springneap(
     Returns
     -------
     dict_hwlw_springneap : dict
-        Dictionary with Dataframes with yearly means of high and low waters for spring and neap tide.
+        Dictionary with Dataframes with yearly means of high and low waters for spring
+        and neap tide.
 
     """
 

@@ -35,11 +35,7 @@ jobs:
         pip list
     - name: Lint with flake8
       run: |
-        # ignore star import (F401+F403).
-        # ignore whitespace before ':' (E203)
-        # ignore line too long (E501).
-        # same maxlinelenght as black.
-        flake8 . --count --extend-ignore=F401,F403,E203,E501 --max-line-length=88 --exclude="docs,examples" --show-source --statistics
+        flake8 .
     - name: Test with pytest
       run: |
         pytest --cov=kenmerkendewaarden --cov-report xml --cov-report term

@@ -68,7 +68,8 @@ def crop_timeseries_last_nyears(df, nyears):
     return df_10y
 
 
-# TODO: fixing display of negative timedeltas was requested in https://github.com/pandas-dev/pandas/issues/17232#issuecomment-2205579156
+# TODO: fixing display of negative timedeltas was requested in
+# https://github.com/pandas-dev/pandas/issues/17232#issuecomment-2205579156
 class TimeSeries_TimedeltaFormatter_improved(Formatter):
     """
     Formats the ticks along an axis controlled by a :class:`TimedeltaIndex`.

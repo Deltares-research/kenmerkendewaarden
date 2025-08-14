@@ -42,7 +42,8 @@ def calc_HWLWtidalindicators(df_ext: pd.DataFrame, min_coverage: float = None):
 
     """
     raise_empty_df(df_ext)
-    # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
+    # dropping the timezone makes the code below much faster and gives equal results
+    # https://github.com/pandas-dev/pandas/issues/58956
     if df_ext.index.tz is not None:
         df_ext = df_ext.tz_localize(None)
 
@@ -146,7 +147,8 @@ def calc_wltidalindicators(df_meas: pd.DataFrame, min_coverage: float = None):
     df_meas : pd.DataFrame
         Dataframe with waterlevel timeseries.
     min_coverage : float, optional
-        The minimum percentage (from 0 to 1) of timeseries coverage to consider the statistics to be valid. The default is None.
+        The minimum percentage (from 0 to 1) of timeseries coverage to consider the
+        statistics to be valid. The default is None.
 
     Returns
     -------
@@ -156,7 +158,8 @@ def calc_wltidalindicators(df_meas: pd.DataFrame, min_coverage: float = None):
     """
     raise_empty_df(df_meas)
 
-    # dropping the timezone makes the code below much faster and gives equal results: https://github.com/pandas-dev/pandas/issues/58956
+    # dropping the timezone makes the code below much faster and gives equal results
+    # https://github.com/pandas-dev/pandas/issues/58956
     if df_meas.index.tz is not None:
         df_meas = df_meas.tz_localize(None)
 
@@ -201,7 +204,8 @@ def calc_wltidalindicators(df_meas: pd.DataFrame, min_coverage: float = None):
 
 def compute_actual_counts(ser_meas, freq):
     """
-    Compute the number of non-nan values in a column for all years/months in a timeseries index.
+    Compute the number of non-nan values in a column for all years/months in a
+    timeseries index.
     """
     ser_meas_isnotnull = ~ser_meas.isnull()
     period_index = pd.PeriodIndex(ser_meas_isnotnull.index, freq=freq)
@@ -212,7 +216,8 @@ def compute_actual_counts(ser_meas, freq):
 def compute_expected_counts(ser_meas, freq):
     """
     Compute the expected number of values for all years/months in a timeseries index,
-    by taking the number of days for each year/month and dividing it by the median frequency in that period.
+    by taking the number of days for each year/month and dividing it by the median
+    frequency in that period.
     This functionhas will result in incorrect values for months/years with only a value
     on the first and last timestep, since the derived frequency will be 15/183 days days
     and this will result in 2 expected counts.
@@ -220,7 +225,9 @@ def compute_expected_counts(ser_meas, freq):
     on high waters only since these have a more stable period than alternating high/low
     waters. Even then, the expected counts are an indication for extremes.
     """
-    # TODO: beware of series with e.g. only first and last value of month/year, this will result in freq=30days and then expected count of 2, it will pass even if there is almost no data
+    # TODO: beware of series with e.g. only first and last value of month/year, this
+    # will result in freq=30days and then expected count of 2, it will pass even if
+    # there is almost no data
     df_meas = pd.DataFrame(ser_meas)
     df_meas["timediff"] = df_meas.index.diff()
     period_index = pd.PeriodIndex(df_meas.index, freq=freq)
@@ -281,7 +288,8 @@ def plot_tidalindicators(dict_indicators: dict):
     Parameters
     ----------
     dict_indicators : dict, optional
-        Dictionary as returned from `kw.calc_wltidalindicators()` and/or `kw.calc_HWLWtidalindicators()`. The default is None.
+        Dictionary as returned from `kw.calc_wltidalindicators()` and/or
+        `kw.calc_HWLWtidalindicators()`. The default is None.
 
     Returns
     -------

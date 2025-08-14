@@ -139,7 +139,8 @@ def test_plot_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     kw.plot_slotgemiddelden(slotgemiddelden_dict_noext)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext, slotgemiddelden_dict_inclext)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_noext, slotgemiddelden_dict_noext)
-    # assert dtypes of dictionary index, to check if plot_slotgemiddelden made a proper copy before converting the index to datetimes
+    # assert dtypes of dictionary index, to check if plot_slotgemiddelden made a proper
+    # copy before converting the index to datetimes
     for key in slotgemiddelden_dict_inclext.keys():
         assert isinstance(slotgemiddelden_dict_inclext[key].index, pd.PeriodIndex)
 
@@ -156,7 +157,8 @@ def test_calc_slotgemiddelden_correct_tstop(df_meas_2010_2014):
         df_meas=df_meas_incl_2014, df_ext=None
     )
 
-    # check if we get 2021 as tstop if we supply up to 2020-12-31 23:50:00 and also if we supply up to 2021-01-01 00:00:00
+    # check if we get 2021 as tstop if we supply up to 2020-12-31 23:50:00 and also if
+    # we supply up to 2021-01-01 00:00:00
     assert slotgemiddelden_upto_2013["wl_model_fit"].index[-1] == pd.Period("2014")
     assert slotgemiddelden_incl_2014["wl_model_fit"].index[-1] == pd.Period("2014")
 
@@ -188,7 +190,8 @@ def test_calc_slotgemiddelden_physical_break(df_meas_2010_2014, df_ext_12_2010_2
         df_meas=df_meas_1931_1935, df_ext=df_ext_12_1931_1935, clip_physical_break=True
     )
 
-    # assert if yearly means are original lengths and modelfits are shorter with clip_physical_break=True
+    # assert if yearly means are original lengths and modelfits are shorter with
+    # clip_physical_break=True
     assert len(slotgemiddelden_no_clip["wl_mean_peryear"]) == 5
     assert len(slotgemiddelden_with_clip["wl_mean_peryear"]) == 5
     assert len(slotgemiddelden_no_clip["wl_model_fit"]) == 6
