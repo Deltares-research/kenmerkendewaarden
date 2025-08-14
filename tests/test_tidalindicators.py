@@ -301,11 +301,22 @@ def test_calc_getijcomponenten(df_meas_2010_2014):
     assert comp_av.shape == (95, 2)
     assert comp_all.shape == (95, 10)
     m2_av = comp_av.loc["M2"].values
-    m2_av_expected = np.array([ 0.7842112 , 86.07279444])
+    m2_av_expected = np.array([0.7842112, 86.07279444])
     m2_all = comp_all.loc["M2"].values
-    m2_all_expected = np.array([0.79855603,  0.78044153,  0.78365574, 0.77764858,
-                                0.78078641, 85.91979015, 86.36060506, 85.71167985,
-                                86.24874909, 86.12879046])
+    m2_all_expected = np.array(
+        [
+            0.79855603,
+            0.78044153,
+            0.78365574,
+            0.77764858,
+            0.78078641,
+            85.91979015,
+            86.36060506,
+            85.71167985,
+            86.24874909,
+            86.12879046,
+        ]
+    )
     assert np.allclose(m2_av, m2_av_expected)
     assert np.allclose(m2_all, m2_all_expected)
 
@@ -322,3 +333,78 @@ def test_calc_HWLWtidalindicators_aggers_input(df_ext_2010):
     with pytest.raises(ValueError) as e:
         kw.calc_HWLWtidalindicators(df_ext=df_ext_2010)
     assert "contains aggers" in str(e.value)
+
+
+# from kenmerkendewaarden.tidalindicators_springneap
+@pytest.mark.unittest
+def test_calc_HWLW_springneap(df_ext_12_2010_2014):
+    dict_spnp = kw.calc_HWLW_springneap(df_ext_12_2010_2014)
+    df_columns = [
+        "HW_spring_mean_peryear",
+        "LW_spring_mean_peryear",
+        "HW_neap_mean_peryear",
+        "LW_neap_mean_peryear",
+    ]
+    assert set(dict_spnp.keys()) == set(df_columns)
+
+    for key in df_columns:
+        years_act = dict_spnp[key].index.year.tolist()
+        years_exp = [2010, 2011, 2012, 2013, 2014]
+        assert years_act == years_exp
+
+    vals_act = dict_spnp["HW_spring_mean_peryear"].values
+    vals_exp = np.array([1.33551724, 1.28111111, 1.29563636, 1.33185185, 1.37745455])
+    assert np.allclose(vals_act, vals_exp)
+
+    vals_act = dict_spnp["LW_spring_mean_peryear"].values
+    vals_exp = np.array(
+        [-0.59724138, -0.6212963, -0.61872727, -0.60407407, -0.60145455]
+    )
+    assert np.allclose(vals_act, vals_exp)
+
+    vals_act = dict_spnp["HW_neap_mean_peryear"].values
+    vals_exp = np.array([0.83887097, 0.95854839, 0.86225806, 0.87903226, 0.9696875])
+    assert np.allclose(vals_act, vals_exp)
+
+    vals_act = dict_spnp["LW_neap_mean_peryear"].values
+    vals_exp = np.array(
+        [-0.62919355, -0.46758065, -0.5633871, -0.60193548, -0.51421875]
+    )
+    assert np.allclose(vals_act, vals_exp)
+
+
+@pytest.mark.unittest
+def test_calc_HWLW_springneap_min_coverage(df_ext_12_2010_2014):
+    # create df_ext with a large gap, deliberately including 2011-01-01 to 2011-01-10
+    # since this causes the indexes between the dicts to be different (which is
+    # accounted for in calc_HWLW_springneap since years_invalid is filtered per df)
+    pre2011 = df_ext_12_2010_2014.index < pd.Timestamp("2011-01-10 00:00:00 +01:00")
+    post2011 = df_ext_12_2010_2014.index > pd.Timestamp("2012-01-01 00:00:00 +01:00")
+    df_ext = df_ext_12_2010_2014.loc[pre2011 | post2011]
+
+    dict_spnp = kw.calc_HWLW_springneap(df_ext, min_coverage=0.9)
+
+    years_act = dict_spnp["HW_spring_mean_peryear"].index.year.tolist()
+    assert years_act == [2010, 2011, 2012, 2013, 2014]
+    years_act = dict_spnp["LW_spring_mean_peryear"].index.year.tolist()
+    assert years_act == [2010, 2011, 2012, 2013, 2014]
+    years_act = dict_spnp["HW_neap_mean_peryear"].index.year.tolist()
+    assert years_act == [2010, 2012, 2013, 2014]
+    years_act = dict_spnp["LW_neap_mean_peryear"].index.year.tolist()
+    assert years_act == [2010, 2012, 2013, 2014]
+
+    vals_act = dict_spnp["HW_spring_mean_peryear"].values
+    vals_exp = np.array([1.33551724, np.nan, 1.29563636, 1.33185185, 1.37745455])
+    assert np.allclose(vals_act, vals_exp, equal_nan=True)
+
+    vals_act = dict_spnp["LW_spring_mean_peryear"].values
+    vals_exp = np.array([-0.59724138, np.nan, -0.61872727, -0.60407407, -0.60145455])
+    assert np.allclose(vals_act, vals_exp, equal_nan=True)
+
+    vals_act = dict_spnp["HW_neap_mean_peryear"].values
+    vals_exp = np.array([0.83887097, 0.86225806, 0.87903226, 0.9696875])
+    assert np.allclose(vals_act, vals_exp)
+
+    vals_act = dict_spnp["LW_neap_mean_peryear"].values
+    vals_exp = np.array([-0.62919355, -0.5633871, -0.60193548, -0.51421875])
+    assert np.allclose(vals_act, vals_exp)

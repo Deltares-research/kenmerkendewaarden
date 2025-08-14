@@ -23,6 +23,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
+# separate module, placing this in tidalindicators results in a circular import
 def calc_HWLW_springneap(
     df_ext: pd.DataFrame, min_coverage: float = None, moonculm_offset: int = 4
 ):
