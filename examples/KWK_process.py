@@ -230,7 +230,6 @@ for current_station in station_list:
         fig.savefig(os.path.join(dir_gemgetij,f'kw{year_slotgem}-gemiddeldgetij-{current_station}.png'))
         
         # write corrected timeseries to csv files
-        # TODO: better representation of negative timedeltas requested in https://github.com/pandas-dev/pandas/issues/17232#issuecomment-2205579156, maybe convert timedeltaIndex to minutes instead?
         for key in ['mean', 'spring', 'neap']:
             file_csv = os.path.join(dir_gemgetij, f'kw{year_slotgem}-gemiddeldgetij_{key}-{current_station}.csv')
             gemgetij_corr[key].to_csv(file_csv, float_format='%.3f')
