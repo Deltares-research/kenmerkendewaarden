@@ -52,7 +52,6 @@ def calc_HWLW_springneap(
         Dictionary with Dataframes with yearly means of high and low waters for spring and neap tide.
 
     """
-    # fits better in tidalindicators, but that results in a circular import
 
     raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)

@@ -30,6 +30,12 @@ kenmerkendewaarden.tidalindicators
    :show-inheritance:
    :member-order: bysource
 
+.. automodule:: kenmerkendewaarden.tidalindicators_springneap
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :member-order: bysource
+
 kenmerkendewaarden.tidalextremes
 --------------------------------
 
