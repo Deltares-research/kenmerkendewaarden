@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun  9 20:15:54 2025
-
-@author: veenstra
+Computation of tidal extremes (HAT and LAT)
 """
 
 import pandas as pd
