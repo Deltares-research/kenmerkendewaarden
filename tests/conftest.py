@@ -80,7 +80,8 @@ def df_components_2010(df_meas_2010):
     return df_components_2010
 
 
-# adding scope will raise "Failed: ScopeMismatch: You tried to access the function scoped fixture tmp_path with a session scoped request objec"
+# adding scope will raise "Failed: ScopeMismatch: You tried to access the function
+# scoped fixture tmp_path with a session scoped request object"
 @pytest.fixture
 def dir_meas(tmp_path):
     dir_meas = tmp_path
@@ -106,7 +107,8 @@ def dir_meas(tmp_path):
     return dir_meas
 
 
-# adding scope will raise "Failed: ScopeMismatch: You tried to access the function scoped fixture tmp_path with a session scoped request objec"
+# adding scope will raise "Failed: ScopeMismatch: You tried to access the function
+# scoped fixture tmp_path with a session scoped request object"
 @pytest.fixture
 def dir_meas_amount(tmp_path):
     dir_meas_amount = tmp_path

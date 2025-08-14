@@ -1,0 +1,10 @@
+[flake8]
+# ignore star import (F401+F403).
+# ignore whitespace before ':' (E203)
+# ignore line too long (E501), necessary for docstrings
+extend-ignore = F401,F403,E203,E501
+# same maxlinelenght as black.
+max-line-length = 88
+exclude = docs,examples
+max-complexity = 10
+statistics = True

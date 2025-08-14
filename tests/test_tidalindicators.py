@@ -94,17 +94,17 @@ def test_calc_wltidalindicators(df_meas_2010_2014):
     # fmt: off
     wl_mean_permonth_expected = np.array([
         -0.00227151,  0.089313  ,  0.04443996, -0.03440509, -0.00206317,
-         0.04431481,  0.03877688,  0.18267697,  0.13494907,  0.18367832,
-         0.15928009,  0.11707661,  0.1087836 ,  0.02535962, -0.09558468,
+        0.04431481,  0.03877688,  0.18267697,  0.13494907,  0.18367832,
+        0.15928009,  0.11707661,  0.1087836 ,  0.02535962, -0.09558468,
         -0.0255162 , -0.00076165,  0.05667361,  0.11056228,  0.13890681,
-         0.1495    ,  0.11866711,  0.07253009,  0.36550851,  0.22046819,
+        0.1495    ,  0.11866711,  0.07253009,  0.36550851,  0.22046819,
         -0.10208094, -0.07221102,  0.02279167,  0.02424507,  0.05409954,
-         0.09238127,  0.08972894,  0.15472222,  0.16913082,  0.19712963,
-         0.1639897 ,  0.05744176, -0.0134375 , -0.10685036, -0.00822222,
-         0.05911066,  0.019875  ,  0.02540995,  0.07570565,  0.12776389,
-         0.17321909,  0.23108102,  0.19502688,  0.06281138,  0.08588046,
+        0.09238127,  0.08972894,  0.15472222,  0.16913082,  0.19712963,
+        0.1639897 ,  0.05744176, -0.0134375 , -0.10685036, -0.00822222,
+        0.05911066,  0.019875  ,  0.02540995,  0.07570565,  0.12776389,
+        0.17321909,  0.23108102,  0.19502688,  0.06281138,  0.08588046,
         -0.00553763,  0.03490278,  0.03113575,  0.03134954,  0.10553763,
-         0.16540771,  0.12535648,  0.20802195,  0.10014352,  0.25624552])
+        0.16540771,  0.12535648,  0.20802195,  0.10014352,  0.25624552])
     # fmt: on
     assert np.allclose(wl_stats["wl_mean_peryear"].values, wl_mean_peryear_expected)
     assert np.allclose(wl_stats["wl_mean_permonth"].values, wl_mean_permonth_expected)
@@ -165,10 +165,11 @@ def test_compute_expected_actual_counts_samelenght(df_meas_2010_2014):
 @pytest.mark.unittest
 def test_compute_expected_counts_twotimesteps(df_meas_2010_2014):
     """
-    this testcase shows that compute_expected_counts succeeds for a year with only three timesteps
-    and it fails for a year with two timesteps.
+    this testcase shows that compute_expected_counts succeeds for a year with only three
+    timesteps and it fails for a year with two timesteps.
     """
-    # TODO: the expected count for a year with three timesteps is incorrect. How to catch this?
+    # TODO: the expected count for a year with three timesteps is incorrect.
+    # How to catch this?
 
     # create datasets with a gap
     df_meas_withgap_success = pd.concat(
@@ -239,7 +240,7 @@ def test_calc_wltidalindicators_ext(df_ext_12_2010_2014):
 
     # fmt: off
     hw_monthmax_permonth_expected = np.array([
-        1.94, 1.89, 1.86, 1.55, 1.74, 1.58, 1.54, 2.07, 2.11, 2.06, 1.9 ,
+        1.94, 1.89, 1.86, 1.55, 1.74, 1.58, 1.54, 2.07, 2.11, 2.06, 1.9,
         1.75, 1.69, 1.82, 1.49, 1.39, 1.4 , 1.71, 1.72, 1.66, 1.69, 1.59,
         2.03, 2.47, 2.31, 1.63, 1.64, 1.61, 1.44, 1.51, 1.52, 1.87, 1.71,
         1.72, 1.86, 2.07, 1.87, 1.83, 1.53, 1.51, 1.62, 1.53, 1.52, 1.41,
@@ -252,7 +253,7 @@ def test_calc_wltidalindicators_ext(df_ext_12_2010_2014):
         -1.04, -1.18, -0.95, -1.05, -1.  , -0.9 , -0.81, -1.03, -1.21,
         -1.11, -1.65, -1.37, -1.11, -1.11, -1.05, -0.98, -1.07, -0.88,
         -1.05, -1.15, -1.07, -1.32, -1.31, -1.21, -1.08, -1.  , -1.03,
-        -1.07, -0.83, -0.98, -0.97, -0.99, -1.3 ])
+        -1.07, -0.83, -0.98, -0.97, -0.99, -1.3])
     # fmt: on
     assert np.allclose(
         ext_stats["HW_monthmax_permonth"].values, hw_monthmax_permonth_expected

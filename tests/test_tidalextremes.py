@@ -24,5 +24,3 @@ def test_calc_hat_lat_frommeasurements_tooshortperiod(df_meas_2010_2014, caplog)
     with caplog.at_level(logging.WARNING):
         kw.calc_highest_lowest_astronomical_tide(df_meas_2010_2014)
     assert "requested 19 years but resulted in 5" in caplog.text
-
-

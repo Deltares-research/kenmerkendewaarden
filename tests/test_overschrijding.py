@@ -292,13 +292,15 @@ def test_calc_highest_extremes_aggers(df_ext_2010_2014):
 @pytest.mark.unittest
 def test_calc_highest_extremes(df_ext_12_2010_2014):
     df_ext_highest = kw.calc_highest_extremes(df_ext=df_ext_12_2010_2014)
-    expected_times = pd.DatetimeIndex([
-        '2013-12-06 04:55:00+01:00',
-        '2014-10-22 01:58:00+01:00',
-        '2011-12-09 14:02:00+01:00',
-        '2013-12-06 17:21:00+01:00',
-        '2012-01-06 00:29:00+01:00',
-        ])
+    expected_times = pd.DatetimeIndex(
+        [
+            "2013-12-06 04:55:00+01:00",
+            "2014-10-22 01:58:00+01:00",
+            "2011-12-09 14:02:00+01:00",
+            "2013-12-06 17:21:00+01:00",
+            "2012-01-06 00:29:00+01:00",
+        ]
+    )
     expected_values = np.array([3.03, 2.77, 2.47, 2.44, 2.31])
     assert (df_ext_highest.index == expected_times).all()
     assert np.allclose(df_ext_highest.values, expected_values)
