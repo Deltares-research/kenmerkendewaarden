@@ -94,7 +94,7 @@ def calc_overschrijding(
         df_ext = clip_timeseries_physical_break(df_ext)
     
     if correct_trend:
-        df_ext = correct_linear_trend(df_ext, min_coverage, clip_physical_break)
+        df_ext = correct_linear_trend(df_ext, min_coverage, clip_physical_break, inverse)
 
     # take only high or low extremes
     # TODO: this might not be useful in case of river discharge influenced stations where a filter is needed
@@ -164,7 +164,7 @@ def calc_overschrijding(
     return dist
 
 
-def correct_linear_trend(df_ext, min_coverage, clip_physical_break):
+def correct_linear_trend(df_ext, min_coverage=None, clip_physical_break=False, inverse=False):
     if min_coverage is not None:
         assert 0 <= min_coverage <= 1
     slotgemiddelden_valid = calc_slotgemiddelden(
@@ -175,8 +175,12 @@ def correct_linear_trend(df_ext, min_coverage, clip_physical_break):
     
     # correct all years with delta-trend: slotgemiddelde minus yearly mean of linear
     # trend. Chapter 6.3 of kenmerkende_waarden_kustwateren_en_grote_rivieren.pdf
-    slotgem_last = slotgemiddelden_valid["HW_model_fit"].iloc[-1]
-    slotgem_notlast = slotgemiddelden_valid["HW_model_fit"].iloc[:-1]
+    if inverse:
+        key = "LW_model_fit"
+    else:
+        key = "HW_model_fit"
+    slotgem_last = slotgemiddelden_valid[key].iloc[-1]
+    slotgem_notlast = slotgemiddelden_valid[key].iloc[:-1]
     slotgem_corr = slotgem_last - slotgem_notlast
     
     # correct extremes with linear trend
