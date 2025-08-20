@@ -13,6 +13,7 @@ from typing import Union, List
 import logging
 from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
 from kenmerkendewaarden.utils import raise_extremes_with_aggers, raise_empty_df
+from kenmerkendewaarden.slotgemiddelden import calc_slotgemiddelden
 
 __all__ = [
     "calc_overschrijding",
@@ -42,10 +43,13 @@ def calc_overschrijding(
     dist: dict = None,
     inverse: bool = False,
     clip_physical_break: bool = False,
+    correct_trend: bool = False,
+    min_coverage: float = None,
     rule_type: str = None,
     rule_value: (pd.Timestamp, float) = None,
     interp_freqs: list = None,
 ):
+
     """
     Compute exceedance/deceedance frequencies based on measured extreme waterlevels.
 
@@ -59,6 +63,14 @@ def calc_overschrijding(
         Whether to compute deceedance instead of exceedance frequencies. The default is False.
     clip_physical_break : bool, optional
         Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
+    correct_trend : bool, optional
+        Correct the linear trend as computed by the slotgemiddelden linear model fit.
+        All data is corrected with the slotgemiddelde (at the end of the period) minus
+        the yearly mean according to the linear fit used to compute the slotgemiddelde.
+        The default is False.
+    min_coverage : float, optional
+        Set yearly means to nans for years that do not have sufficient data coverage.
+        The default is None.
     rule_type : str, optional
         break/linear/None, passed on to apply_trendanalysis(). The default is None.
     rule_value : (pd.Timestamp, float), optional
@@ -77,6 +89,13 @@ def calc_overschrijding(
 
     raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)
+
+    if clip_physical_break:
+        df_ext = clip_timeseries_physical_break(df_ext)
+    
+    if correct_trend:
+        df_ext = correct_linear_trend(df_ext, min_coverage, clip_physical_break)
+
     # take only high or low extremes
     # TODO: this might not be useful in case of river discharge influenced stations where a filter is needed
     if inverse:
@@ -84,8 +103,6 @@ def calc_overschrijding(
     else:
         df_extrema = df_ext.loc[df_ext["HWLWcode"] == 1]
 
-    if clip_physical_break:
-        df_extrema = clip_timeseries_physical_break(df_extrema)
     # drop all info but the values (times-idx, HWLWcode etc)
     ser_extrema = df_extrema.copy()["values"]
 
@@ -145,6 +162,30 @@ def calc_overschrijding(
         )
 
     return dist
+
+
+def correct_linear_trend(df_ext, min_coverage, clip_physical_break):
+    if min_coverage is not None:
+        assert 0 <= min_coverage <= 1
+    slotgemiddelden_valid = calc_slotgemiddelden(
+        df_meas=df_ext,  # TODO: provide df_ext as df_meas to avoid error
+        df_ext=df_ext,
+        min_coverage=min_coverage,
+        clip_physical_break=True)
+    
+    # correct all years with delta-trend: slotgemiddelde minus yearly mean of linear
+    # trend. Chapter 6.3 of kenmerkende_waarden_kustwateren_en_grote_rivieren.pdf
+    slotgem_last = slotgemiddelden_valid["HW_model_fit"].iloc[-1]
+    slotgem_notlast = slotgemiddelden_valid["HW_model_fit"].iloc[:-1]
+    slotgem_corr = slotgem_last - slotgem_notlast
+    
+    # correct extremes with linear trend
+    df_ext = df_ext.copy()
+    for year, corr_val in slotgem_corr.items():
+        if np.isnan(corr_val):
+            continue
+        df_ext.loc[str(year), "values"] += corr_val
+    return df_ext
 
 
 def delete_values_between_peak_trough(times_to_delete, times, values):
