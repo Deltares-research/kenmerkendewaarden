@@ -42,7 +42,7 @@ station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUW
 # subset of 11 stations along the coast
 station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
 # short list for testing
-station_list = ["DENHDR"]
+station_list = ["HOEKVHLD"]
 
 stations_skip = []
 # skip duplicate code stations from station_list_tk (hist/realtime)
