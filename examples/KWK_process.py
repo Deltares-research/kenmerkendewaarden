@@ -42,7 +42,7 @@ station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUW
 # subset of 11 stations along the coast
 station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
 # short list for testing
-station_list = ["HOEKVHLD"]
+station_list = ["DENHDR"]
 
 stations_skip = []
 # skip duplicate code stations from station_list_tk (hist/realtime)
@@ -292,7 +292,9 @@ for current_station in station_list:
         # 1. Exceedance
         dist_exc_hydra = initiate_dist_with_hydra_nl(station=current_station)
         dist_exc = kw.calc_overschrijding(df_ext=df_ext_todate, rule_type=None, rule_value=None, 
-                                          clip_physical_break=True, dist=dist_exc_hydra,
+                                          clip_physical_break=True,
+                                          correct_trend=True, min_coverage=0.9,
+                                          dist=dist_exc_hydra,
                                           interp_freqs=freqs_interested)
         add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
         dist_exc['geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'kw{year_slotgem}-exceedance-{current_station}.csv'))
@@ -303,7 +305,9 @@ for current_station in station_list:
         
         # 2. Deceedance
         dist_dec = kw.calc_overschrijding(df_ext=df_ext_todate, rule_type=None, rule_value=None, 
-                                          clip_physical_break=True, inverse=True,
+                                          clip_physical_break=True,
+                                          correct_trend=True, min_coverage=0.9,
+                                          inverse=True,
                                           interp_freqs=freqs_interested)
         add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)
         dist_dec['geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'kw{year_slotgem}-deceedance-{current_station}.csv'))
