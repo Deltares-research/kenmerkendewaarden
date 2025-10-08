@@ -5,5 +5,6 @@
    :hidden:
 
    whats-new.md
+   example.md
    modules
    CONTRIBUTING.md
