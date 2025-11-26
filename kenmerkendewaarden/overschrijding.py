@@ -489,17 +489,11 @@ def apply_trendanalysis(
     if rule_type == "break":
         ser_out = ser[rule_value:].copy()
     elif rule_type == "linear":
-        # TODO: similar to compute_linear_trend(), but that uses df instead of ser
-        rule_value = float(rule_value)
-        ser = ser.copy()
-        dx = np.array(
-            [
-                rule_value * x.total_seconds() / (365 * 24 * 3600)
-                for x in (ser.index.max() - ser.index)
-            ]
-        )
-        ser = ser + dx
-        ser_out = ser
+        df = pd.DataFrame({"values":ser})
+        df.attrs = ser.attrs
+        df = correct_linear_trend(df=df, trend_py=rule_value)
+        ser_out = df["values"]
+        ser_out.attrs = df.attrs
     elif rule_type is None:
         ser_out = ser.copy()
     else:
