@@ -166,7 +166,6 @@ def calc_overschrijding(
 
 def correct_linear_trend(df_ext, min_coverage=None, clip_physical_break=False, inverse=False):
     slotgemiddelden_valid = calc_slotgemiddelden(
-        df_meas=df_ext,  # TODO: provide df_ext as df_meas to avoid error
         df_ext=df_ext,
         min_coverage=min_coverage,
         clip_physical_break=True)
