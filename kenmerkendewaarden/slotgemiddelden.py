@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def calc_slotgemiddelden(
-    df_meas: pd.DataFrame,
+    df_meas: pd.DataFrame = None,
     df_ext: pd.DataFrame = None,
     min_coverage: float = None,
     clip_physical_break: bool = False,
@@ -39,8 +39,8 @@ def calc_slotgemiddelden(
 
     Parameters
     ----------
-    df_meas : pd.DataFrame
-        the timeseries of measured waterlevels.
+    df_meas : pd.DataFrame, optional
+        the timeseries of measured waterlevels. The default is None.
     df_ext : pd.DataFrame, optional
         the timeseries of extremes (high and low waters). The default is None.
     min_coverage : float, optional
@@ -57,29 +57,31 @@ def calc_slotgemiddelden(
         and corresponding tidal range.
 
     """
-    raise_empty_df(df_meas)
-    if df_ext is not None:
-        raise_empty_df(df_ext)
     # initialize dict
     slotgemiddelden_dict = {}
 
-    # clip last value of the timeseries if this is exactly newyearsday
-    df_meas = clip_timeseries_last_newyearsday(df_meas)
-
-    # calculate yearly means
-    dict_wltidalindicators = calc_wltidalindicators(df_meas, min_coverage=min_coverage)
-    wl_mean_peryear = dict_wltidalindicators["wl_mean_peryear"]
-    slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
-
-    # clip part of mean timeseries before physical break to supply to model
-    if clip_physical_break:
-        wl_mean_peryear = clip_timeseries_physical_break(wl_mean_peryear)
-
-    # fit linear models over yearly mean values
-    pred_pd_wl = predict_linear_model(wl_mean_peryear)
-    slotgemiddelden_dict["wl_model_fit"] = pred_pd_wl
+    if df_meas is not None:
+        raise_empty_df(df_meas)
+    
+        # clip last value of the timeseries if this is exactly newyearsday
+        df_meas = clip_timeseries_last_newyearsday(df_meas)
+    
+        # calculate yearly means
+        dict_wltidalindicators = calc_wltidalindicators(df_meas, min_coverage=min_coverage)
+        wl_mean_peryear = dict_wltidalindicators["wl_mean_peryear"]
+        slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
+    
+        # clip part of mean timeseries before physical break to supply to model
+        if clip_physical_break:
+            wl_mean_peryear = clip_timeseries_physical_break(wl_mean_peryear)
+    
+        # fit linear models over yearly mean values
+        pred_pd_wl = predict_linear_model(wl_mean_peryear)
+        slotgemiddelden_dict["wl_model_fit"] = pred_pd_wl
 
     if df_ext is not None:
+        raise_empty_df(df_ext)
+        
         # compare station attributes
         station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
         assert all(x == station_attrs[0] for x in station_attrs)

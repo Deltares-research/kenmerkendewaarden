@@ -45,6 +45,12 @@ def test_predict_linear_model(df_meas_2010_2014):
 
 
 @pytest.mark.unittest
+def test_calc_slotgemiddelden_none_none():
+    emtpy_dict = kw.calc_slotgemiddelden()
+    assert emtpy_dict == {}
+
+
+@pytest.mark.unittest
 def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_inclext = kw.calc_slotgemiddelden(
         df_meas=df_meas_2010_2014, df_ext=df_ext_12_2010_2014
