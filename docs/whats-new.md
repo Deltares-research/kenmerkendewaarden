@@ -2,6 +2,9 @@
 
 ## UNRELEASED
 
+### Feat
+- automatic linear trend correction in `kw.calc_overschrijding()` in [#253](https://github.com/Deltares-research/kenmerkendewaarden/pull/253)
+
 
 ## 0.4.0 (2025-08-13)
 
