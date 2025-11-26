@@ -265,6 +265,7 @@ def predict_linear_model(ser: pd.Series, with_nodal=False) -> pd.DataFrame:
     pred_arr = fit.predict(X)
     pred_pd = pd.Series(pred_arr, index=allyears_dt, name="values")
     pred_pd.index.name = ser.index.name
+    pred_pd.attrs = ser.attrs
     return pred_pd
 
 

@@ -52,6 +52,9 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_noext = kw.calc_slotgemiddelden(
         df_meas=df_meas_2010_2014, df_ext=None
     )
+    slotgemiddelden_dict_nomeas = kw.calc_slotgemiddelden(
+        df_meas=None, df_ext=df_ext_12_2010_2014
+    )
 
     # assert present keys
     expected_keys_inclext = [
@@ -65,9 +68,26 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
         "tidalrange_model_fit",
     ]
     expected_keys_noext = ["wl_mean_peryear", "wl_model_fit"]
+    expected_keys_nomeas = [
+        "HW_mean_peryear",
+        "LW_mean_peryear",
+        "HW_model_fit",
+        "LW_model_fit",
+        "tidalrange_mean_peryear",
+        "tidalrange_model_fit",
+    ]
     assert set(slotgemiddelden_dict_inclext.keys()) == set(expected_keys_inclext)
     assert set(slotgemiddelden_dict_noext.keys()) == set(expected_keys_noext)
+    assert set(slotgemiddelden_dict_nomeas.keys()) == set(expected_keys_nomeas)
 
+    # assertion of passing of attrs
+    for k,v in slotgemiddelden_dict_inclext.items():
+        assert "station" in v.attrs.keys()
+    for k,v in slotgemiddelden_dict_noext.items():
+        assert "station" in v.attrs.keys()
+    for k,v in slotgemiddelden_dict_nomeas.items():
+        assert "station" in v.attrs.keys()
+    
     # assertion of values
     # fmt: off
     wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051,
@@ -153,10 +173,15 @@ def test_plot_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_noext = kw.calc_slotgemiddelden(
         df_meas=df_meas_2010_2014, df_ext=None
     )
+    # slotgemiddelden_dict_nomeas = kw.calc_slotgemiddelden(
+    #     df_meas=None, df_ext=df_ext_12_2010_2014
+    # )
     kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_noext)
+    # kw.plot_slotgemiddelden(slotgemiddelden_dict_nomeas)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext, slotgemiddelden_dict_inclext)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_noext, slotgemiddelden_dict_noext)
+    # kw.plot_slotgemiddelden(slotgemiddelden_dict_nomeas, slotgemiddelden_dict_nomeas)
     # assert dtypes of dictionary index, to check if plot_slotgemiddelden made a proper
     # copy before converting the index to datetimes
     for key in slotgemiddelden_dict_inclext.keys():
