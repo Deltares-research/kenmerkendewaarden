@@ -164,6 +164,20 @@ def calc_overschrijding(
     return dist
 
 
+def compute_trend_peryear(modelfit):
+    # TODO: this check for nans might not be necessary since it is a model fit
+    if modelfit.isnull().any():
+        raise ValueError("nans encountered in model fit")
+    yearmin = modelfit.index[0].year
+    yearmax = modelfit.index[-1].year
+    valmin = modelfit.iloc[0]
+    valmax = modelfit.iloc[-1]
+    delta_year = yearmax - yearmin
+    delta_val = valmax - valmin
+    trend_py = delta_val / delta_year
+    return trend_py
+    
+
 def correct_linear_trend(df_ext, min_coverage=None, clip_physical_break=False):
     slotgemiddelden_valid = calc_slotgemiddelden(
         df_ext=df_ext,
@@ -173,22 +187,32 @@ def correct_linear_trend(df_ext, min_coverage=None, clip_physical_break=False):
     # correct all years with delta-trend: slotgemiddelde minus yearly mean of linear
     # trend. Chapter 6.3 of kenmerkende_waarden_kustwateren_en_grote_rivieren.pdf
     # use average of HW and LW model fits to correct df_ext
-    slotgem_avg = (slotgemiddelden_valid["HW_model_fit"] +
-                   slotgemiddelden_valid["LW_model_fit"]
-                   ) / 2
-    slotgem_last = slotgem_avg.iloc[-1]
-    slotgem_notlast = slotgem_avg.iloc[:-1]
-    slotgem_corr = slotgem_last - slotgem_notlast
+    # slotgem_avg = (slotgemiddelden_valid["HW_model_fit"] +
+    #                slotgemiddelden_valid["LW_model_fit"]
+    #                ) / 2
+    # slotgem_last = slotgem_avg.iloc[-1]
+    # slotgem_notlast = slotgem_avg.iloc[:-1]
+    # slotgem_corr = slotgem_last - slotgem_notlast
+    trend_py_HW = compute_trend_peryear(slotgemiddelden_valid["HW_model_fit"])
+    trend_py_LW = compute_trend_peryear(slotgemiddelden_valid["LW_model_fit"])
+    trend_py = (trend_py_HW + trend_py_LW) / 2
+    logging.info(f"average HW/LW linear trend correction applied to df_ext: {trend_py:.2f} m p/y")
     
-    # TODO: this check for nans might not be necessary since it is a model fit
-    # might occur if LW and HW array are not of equal lengths, if that is possible
-    if slotgem_corr.isnull().any():
-        raise ValueError("nans encountered in correction array")
     
-    # correct extremes with linear trend
+    dx = np.array(
+        [
+            trend_py * x.total_seconds() / (365 * 24 * 3600)
+            for x in (df_ext.index.max() - df_ext.index)
+        ]
+    )
     df_ext = df_ext.copy()
-    for year, corr_val in slotgem_corr.items():
-        df_ext.loc[str(year), "values"] += corr_val
+    df_ext["values"] += dx
+    
+    
+    # # correct extremes with linear trend
+    # df_ext = df_ext.copy()
+    # for year, corr_val in slotgem_corr.items():
+    #     df_ext.loc[str(year), "values"] += corr_val
     return df_ext
 
 
