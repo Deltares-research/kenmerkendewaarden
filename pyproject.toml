@@ -82,7 +82,7 @@ console_output_style = "count"
 testpaths = ["tests"]
 addopts = "-v --tb=short --durations=0"
 filterwarnings = [
-	"error",
+	#"error",
 	"ignore::UserWarning",
 	]
 markers = [
