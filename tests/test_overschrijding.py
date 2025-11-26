@@ -196,6 +196,53 @@ def test_calc_overschrijding_rule_type_break(df_ext_12_2010_2014):
 
 
 @pytest.mark.unittest
+def test_calc_overschrijding_rule_type_linear(df_ext_12_2010_2014):
+    Tfreqs_interested = [
+        5,
+        2,
+        1,
+        1 / 2,
+        1 / 5,
+        1 / 10,
+        1 / 20,
+        1 / 50,
+        1 / 100,
+        1 / 200,
+    ]
+    dist = kw.calc_overschrijding(
+        df_ext=df_ext_12_2010_2014,
+        interp_freqs=Tfreqs_interested,
+        rule_type="linear",
+        rule_value=0.3,
+    )
+
+    expected_keys = [
+        "ongefilterd",
+        "trendanalyse",
+        "weibull",
+        "gecombineerd",
+        "geinterpoleerd",
+    ]
+    assert set(dist.keys()) == set(expected_keys)
+    assert np.allclose(dist["geinterpoleerd"].index, Tfreqs_interested)
+    expected_values = np.array(
+        [
+            3.06093932,
+            3.28266798,
+            3.34741037,
+            3.37832502,
+            3.40432164,
+            3.4186648,
+            3.43034871,
+            3.44308765,
+            3.4512723,
+            3.45852601,
+        ]
+    )
+    assert np.allclose(dist["geinterpoleerd"].values, expected_values)
+
+
+@pytest.mark.unittest
 def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
     # construct fake timeseries for HARLGN around physical break 1933
     tstart_2010 = df_ext_12_2010_2014.index[0]

@@ -94,7 +94,8 @@ def calc_overschrijding(
         df_ext = clip_timeseries_physical_break(df_ext)
     
     if correct_trend:
-        df_ext = correct_linear_trend(df_ext, min_coverage, clip_physical_break)
+        trend_py = compute_linear_trend(df_ext=df_ext, min_coverage=min_coverage, clip_physical_break=clip_physical_break)
+        df_ext = correct_linear_trend(df=df_ext, trend_py=trend_py)
 
     # take only high or low extremes
     # TODO: this might not be useful in case of river discharge influenced stations where a filter is needed
@@ -176,9 +177,12 @@ def compute_trend_peryear(modelfit):
     delta_val = valmax - valmin
     trend_py = delta_val / delta_year
     return trend_py
-    
 
-def correct_linear_trend(df_ext, min_coverage=None, clip_physical_break=False):
+
+def compute_linear_trend(df_ext, min_coverage=None, clip_physical_break=False):
+    """
+    compute linear yearly trend from df_ext with modelfit from slotgemiddelden
+    """
     slotgemiddelden_valid = calc_slotgemiddelden(
         df_ext=df_ext,
         min_coverage=min_coverage,
@@ -186,34 +190,30 @@ def correct_linear_trend(df_ext, min_coverage=None, clip_physical_break=False):
     
     # correct all years with delta-trend: slotgemiddelde minus yearly mean of linear
     # trend. Chapter 6.3 of kenmerkende_waarden_kustwateren_en_grote_rivieren.pdf
+    # now first compute trend per year and apply linear instead of year-blocks
     # use average of HW and LW model fits to correct df_ext
-    # slotgem_avg = (slotgemiddelden_valid["HW_model_fit"] +
-    #                slotgemiddelden_valid["LW_model_fit"]
-    #                ) / 2
-    # slotgem_last = slotgem_avg.iloc[-1]
-    # slotgem_notlast = slotgem_avg.iloc[:-1]
-    # slotgem_corr = slotgem_last - slotgem_notlast
     trend_py_HW = compute_trend_peryear(slotgemiddelden_valid["HW_model_fit"])
     trend_py_LW = compute_trend_peryear(slotgemiddelden_valid["LW_model_fit"])
     trend_py = (trend_py_HW + trend_py_LW) / 2
-    logging.info(f"average HW/LW linear trend correction applied to df_ext: {trend_py:.2f} m p/y")
-    
-    
+    logger.info(f"average HW/LW linear trend correction computed from df_ext: {trend_py:.2f} m p/y")
+    return trend_py
+
+
+def correct_linear_trend(df, trend_py):
+    """
+    apply linear yearly trend such that the last value is unchanged and all other values
+    are linearly increased in case of a positive trend_py
+    """
+    df = df.copy()
     dx = np.array(
         [
             trend_py * x.total_seconds() / (365 * 24 * 3600)
-            for x in (df_ext.index.max() - df_ext.index)
+            for x in (df.index.max() - df.index)
         ]
     )
-    df_ext = df_ext.copy()
-    df_ext["values"] += dx
-    
-    
-    # # correct extremes with linear trend
-    # df_ext = df_ext.copy()
-    # for year, corr_val in slotgem_corr.items():
-    #     df_ext.loc[str(year), "values"] += corr_val
-    return df_ext
+    df["values"] += dx
+    logger.info(f"dataframe was corrected with linear trend: {trend_py:.2f} m p/y")
+    return df
 
 
 def delete_values_between_peak_trough(times_to_delete, times, values):
@@ -489,6 +489,7 @@ def apply_trendanalysis(
     if rule_type == "break":
         ser_out = ser[rule_value:].copy()
     elif rule_type == "linear":
+        # TODO: similar to compute_linear_trend(), but that uses df instead of ser
         rule_value = float(rule_value)
         ser = ser.copy()
         dx = np.array(
