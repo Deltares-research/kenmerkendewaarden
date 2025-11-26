@@ -213,7 +213,7 @@ def test_calc_overschrijding_rule_type_linear(df_ext_12_2010_2014):
         df_ext=df_ext_12_2010_2014,
         interp_freqs=Tfreqs_interested,
         rule_type="linear",
-        rule_value=0.3,
+        rule_value=0.1,
     )
 
     expected_keys = [
@@ -227,16 +227,16 @@ def test_calc_overschrijding_rule_type_linear(df_ext_12_2010_2014):
     assert np.allclose(dist["geinterpoleerd"].index, Tfreqs_interested)
     expected_values = np.array(
         [
-            3.06093932,
-            3.28266798,
-            3.34741037,
-            3.37832502,
-            3.40432164,
-            3.4186648,
-            3.43034871,
-            3.44308765,
-            3.4512723,
-            3.45852601,
+            2.27313098,
+            2.41390505,
+            2.57067783,
+            2.71913355,
+            2.90466579,
+            3.03809022,
+            3.16634425,
+            3.32891175,
+            3.44720578,
+            3.56188845,
         ]
     )
     assert np.allclose(dist["geinterpoleerd"].values, expected_values)
