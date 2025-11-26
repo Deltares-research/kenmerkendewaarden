@@ -94,7 +94,7 @@ def calc_overschrijding(
         df_ext = clip_timeseries_physical_break(df_ext)
     
     if correct_trend:
-        df_ext = correct_linear_trend(df_ext, min_coverage, clip_physical_break, inverse)
+        df_ext = correct_linear_trend(df_ext, min_coverage, clip_physical_break)
 
     # take only high or low extremes
     # TODO: this might not be useful in case of river discharge influenced stations where a filter is needed
@@ -164,23 +164,24 @@ def calc_overschrijding(
     return dist
 
 
-def correct_linear_trend(df_ext, min_coverage=None, clip_physical_break=False, inverse=False):
+def correct_linear_trend(df_ext, min_coverage=None, clip_physical_break=False):
     slotgemiddelden_valid = calc_slotgemiddelden(
         df_ext=df_ext,
         min_coverage=min_coverage,
-        clip_physical_break=True)
+        clip_physical_break=clip_physical_break)
     
     # correct all years with delta-trend: slotgemiddelde minus yearly mean of linear
     # trend. Chapter 6.3 of kenmerkende_waarden_kustwateren_en_grote_rivieren.pdf
-    if inverse:
-        key = "LW_model_fit"
-    else:
-        key = "HW_model_fit"
-    slotgem_last = slotgemiddelden_valid[key].iloc[-1]
-    slotgem_notlast = slotgemiddelden_valid[key].iloc[:-1]
+    # use average of HW and LW model fits to correct df_ext
+    slotgem_avg = (slotgemiddelden_valid["HW_model_fit"] +
+                   slotgemiddelden_valid["LW_model_fit"]
+                   ) / 2
+    slotgem_last = slotgem_avg.iloc[-1]
+    slotgem_notlast = slotgem_avg.iloc[:-1]
     slotgem_corr = slotgem_last - slotgem_notlast
     
     # TODO: this check for nans might not be necessary since it is a model fit
+    # might occur if LW and HW array are not of equal lengths, if that is possible
     if slotgem_corr.isnull().any():
         raise ValueError("nans encountered in correction array")
     
