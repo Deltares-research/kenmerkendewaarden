@@ -180,11 +180,13 @@ def correct_linear_trend(df_ext, min_coverage=None, clip_physical_break=False, i
     slotgem_notlast = slotgemiddelden_valid[key].iloc[:-1]
     slotgem_corr = slotgem_last - slotgem_notlast
     
+    # TODO: this check for nans might not be necessary since it is a model fit
+    if slotgem_corr.isnull().any():
+        raise ValueError("nans encountered in correction array")
+    
     # correct extremes with linear trend
     df_ext = df_ext.copy()
     for year, corr_val in slotgem_corr.items():
-        if np.isnan(corr_val):
-            continue
         df_ext.loc[str(year), "values"] += corr_val
     return df_ext
 
