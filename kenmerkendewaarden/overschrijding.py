@@ -49,7 +49,6 @@ def calc_overschrijding(
     rule_value: (pd.Timestamp, float) = None,
     interp_freqs: list = None,
 ):
-
     """
     Compute exceedance/deceedance frequencies based on measured extreme waterlevels.
 
@@ -92,9 +91,13 @@ def calc_overschrijding(
 
     if clip_physical_break:
         df_ext = clip_timeseries_physical_break(df_ext)
-    
+
     if correct_trend:
-        trend_py = compute_linear_trend(df_ext=df_ext, min_coverage=min_coverage, clip_physical_break=clip_physical_break)
+        trend_py = compute_linear_trend(
+            df_ext=df_ext,
+            min_coverage=min_coverage,
+            clip_physical_break=clip_physical_break,
+        )
         df_ext = correct_linear_trend(df=df_ext, trend_py=trend_py)
 
     # take only high or low extremes
@@ -186,8 +189,9 @@ def compute_linear_trend(df_ext, min_coverage=None, clip_physical_break=False):
     slotgemiddelden_valid = calc_slotgemiddelden(
         df_ext=df_ext,
         min_coverage=min_coverage,
-        clip_physical_break=clip_physical_break)
-    
+        clip_physical_break=clip_physical_break,
+    )
+
     # correct all years with delta-trend: slotgemiddelde minus yearly mean of linear
     # trend. Chapter 6.3 of kenmerkende_waarden_kustwateren_en_grote_rivieren.pdf
     # now first compute trend per year and apply linear instead of year-blocks
@@ -195,7 +199,9 @@ def compute_linear_trend(df_ext, min_coverage=None, clip_physical_break=False):
     trend_py_HW = compute_trend_peryear(slotgemiddelden_valid["HW_model_fit"])
     trend_py_LW = compute_trend_peryear(slotgemiddelden_valid["LW_model_fit"])
     trend_py = (trend_py_HW + trend_py_LW) / 2
-    logger.info(f"average HW/LW linear trend correction computed from df_ext: {trend_py:.2f} m p/y")
+    logger.info(
+        f"average HW/LW linear trend correction computed from df_ext: {trend_py:.2f} m p/y"
+    )
     return trend_py
 
 
@@ -489,7 +495,7 @@ def apply_trendanalysis(
     if rule_type == "break":
         ser_out = ser[rule_value:].copy()
     elif rule_type == "linear":
-        df = pd.DataFrame({"values":ser})
+        df = pd.DataFrame({"values": ser})
         df.attrs = ser.attrs
         df = correct_linear_trend(df=df, trend_py=rule_value)
         ser_out = df["values"]

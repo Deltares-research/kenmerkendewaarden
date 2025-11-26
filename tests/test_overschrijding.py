@@ -287,7 +287,7 @@ def test_calc_overschrijding_rule_type_linear(df_ext_12_2010_2014):
         df_ext=df_ext_12_2010_2014,
         interp_freqs=Tfreqs_interested,
         rule_type="linear",
-        rule_value=0.00708459, # same value as the automatic linear trend detection
+        rule_value=0.00708459,  # same value as the automatic linear trend detection
     )
 
     expected_keys = [

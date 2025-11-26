@@ -81,13 +81,13 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     assert set(slotgemiddelden_dict_nomeas.keys()) == set(expected_keys_nomeas)
 
     # assertion of passing of attrs
-    for k,v in slotgemiddelden_dict_inclext.items():
+    for k, v in slotgemiddelden_dict_inclext.items():
         assert "station" in v.attrs.keys()
-    for k,v in slotgemiddelden_dict_noext.items():
+    for k, v in slotgemiddelden_dict_noext.items():
         assert "station" in v.attrs.keys()
-    for k,v in slotgemiddelden_dict_nomeas.items():
+    for k, v in slotgemiddelden_dict_nomeas.items():
         assert "station" in v.attrs.keys()
-    
+
     # assertion of values
     # fmt: off
     wl_mean_peryear_expected = np.array([0.07960731, 0.08612119, 0.0853051,

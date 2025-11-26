@@ -61,40 +61,40 @@ def calc_slotgemiddelden(
     slotgemiddelden_dict = {}
 
     if df_meas is None and df_ext is None:
-        raise ValueError(
-            "At least one of df_meas or df_ext should be provided"
-            )
-    
+        raise ValueError("At least one of df_meas or df_ext should be provided")
+
     if df_meas is not None and df_ext is not None:
         # compare station attributes
         station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
         if len(set(station_attrs)) != 1:
             raise ValueError(
                 f"stations from df_meas and df_ext are not unique: {station_attrs}"
-                )
-    
+            )
+
     if df_meas is not None:
         raise_empty_df(df_meas)
-    
+
         # clip last value of the timeseries if this is exactly newyearsday
         df_meas = clip_timeseries_last_newyearsday(df_meas)
-    
+
         # calculate yearly means
-        dict_wltidalindicators = calc_wltidalindicators(df_meas, min_coverage=min_coverage)
+        dict_wltidalindicators = calc_wltidalindicators(
+            df_meas, min_coverage=min_coverage
+        )
         wl_mean_peryear = dict_wltidalindicators["wl_mean_peryear"]
         slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
-    
+
         # clip part of mean timeseries before physical break to supply to model
         if clip_physical_break:
             wl_mean_peryear = clip_timeseries_physical_break(wl_mean_peryear)
-    
+
         # fit linear models over yearly mean values
         pred_pd_wl = predict_linear_model(wl_mean_peryear)
         slotgemiddelden_dict["wl_model_fit"] = pred_pd_wl
 
     if df_ext is not None:
         raise_empty_df(df_ext)
-        
+
         # clip last value of the timeseries if this is exactly newyearsday
         df_ext = clip_timeseries_last_newyearsday(df_ext)
 
