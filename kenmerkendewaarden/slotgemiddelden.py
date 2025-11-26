@@ -60,6 +60,19 @@ def calc_slotgemiddelden(
     # initialize dict
     slotgemiddelden_dict = {}
 
+    if df_meas is None and df_ext is None:
+        raise ValueError(
+            "At least one of df_meas or df_ext should be provided"
+            )
+    
+    if df_meas is not None and df_ext is not None:
+        # compare station attributes
+        station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
+        if len(set(station_attrs)) != 1:
+            raise ValueError(
+                f"stations from df_meas and df_ext are not unique: {station_attrs}"
+                )
+    
     if df_meas is not None:
         raise_empty_df(df_meas)
     
@@ -82,10 +95,6 @@ def calc_slotgemiddelden(
     if df_ext is not None:
         raise_empty_df(df_ext)
         
-        # compare station attributes
-        station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
-        assert all(x == station_attrs[0] for x in station_attrs)
-
         # clip last value of the timeseries if this is exactly newyearsday
         df_ext = clip_timeseries_last_newyearsday(df_ext)
 

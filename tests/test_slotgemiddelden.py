@@ -45,12 +45,6 @@ def test_predict_linear_model(df_meas_2010_2014):
 
 
 @pytest.mark.unittest
-def test_calc_slotgemiddelden_none_none():
-    emtpy_dict = kw.calc_slotgemiddelden()
-    assert emtpy_dict == {}
-
-
-@pytest.mark.unittest
 def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_inclext = kw.calc_slotgemiddelden(
         df_meas=df_meas_2010_2014, df_ext=df_ext_12_2010_2014
@@ -131,6 +125,24 @@ def test_calc_slotgemiddelden_oneyear_fails(df_meas_2010_2014):
     with pytest.raises(ValueError) as e:
         kw.calc_slotgemiddelden(df_meas=df_meas_onevalidyear, df_ext=None)
     assert "nan-filtered timeseries has only one timestep" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_calc_slotgemiddelden_no_input():
+    with pytest.raises(ValueError) as e:
+        _ = kw.calc_slotgemiddelden()
+    assert "At least one of df_meas or df_ext should be provided" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_calc_slotgemiddelden_different_station(df_meas_2010_2014, df_ext_12_2010_2014):
+    df_meas_2010_2014_VLISSGN = df_meas_2010_2014.copy()
+    df_meas_2010_2014_VLISSGN.attrs["station"] = "VLISSGN"
+    with pytest.raises(ValueError) as e:
+        _ = kw.calc_slotgemiddelden(
+            df_meas=df_meas_2010_2014_VLISSGN, df_ext=df_ext_12_2010_2014
+        )
+    assert "stations from df_meas and df_ext are not unique" in str(e.value)
 
 
 @pytest.mark.unittest
