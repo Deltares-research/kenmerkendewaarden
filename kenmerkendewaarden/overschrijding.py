@@ -13,6 +13,7 @@ from typing import Union, List
 import logging
 from kenmerkendewaarden.data_retrieve import clip_timeseries_physical_break
 from kenmerkendewaarden.utils import raise_extremes_with_aggers, raise_empty_df
+from kenmerkendewaarden.slotgemiddelden import calc_slotgemiddelden
 
 __all__ = [
     "calc_overschrijding",
@@ -42,6 +43,8 @@ def calc_overschrijding(
     dist: dict = None,
     inverse: bool = False,
     clip_physical_break: bool = False,
+    correct_trend: bool = False,
+    min_coverage: float = None,
     rule_type: str = None,
     rule_value: (pd.Timestamp, float) = None,
     interp_freqs: list = None,
@@ -59,6 +62,13 @@ def calc_overschrijding(
         Whether to compute deceedance instead of exceedance frequencies. The default is False.
     clip_physical_break : bool, optional
         Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
+    correct_trend : bool, optional
+        Correct the linear trend as computed by the slotgemiddelden linear model fit.
+        A yearly trend is computed from the averages derived from the HW and LW model
+        fit and all data is corrected by adding trend x nyears. The default is False.
+    min_coverage : float, optional
+        Set yearly means to nans for years that do not have sufficient data coverage.
+        The default is None.
     rule_type : str, optional
         break/linear/None, passed on to apply_trendanalysis(). The default is None.
     rule_value : (pd.Timestamp, float), optional
@@ -77,6 +87,18 @@ def calc_overschrijding(
 
     raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)
+
+    if clip_physical_break:
+        df_ext = clip_timeseries_physical_break(df_ext)
+
+    if correct_trend:
+        trend_py = compute_linear_trend(
+            df_ext=df_ext,
+            min_coverage=min_coverage,
+            clip_physical_break=clip_physical_break,
+        )
+        df_ext = correct_linear_trend(df=df_ext, trend_py=trend_py)
+
     # take only high or low extremes
     # TODO: this might not be useful in case of river discharge influenced stations where a filter is needed
     if inverse:
@@ -84,8 +106,6 @@ def calc_overschrijding(
     else:
         df_extrema = df_ext.loc[df_ext["HWLWcode"] == 1]
 
-    if clip_physical_break:
-        df_extrema = clip_timeseries_physical_break(df_extrema)
     # drop all info but the values (times-idx, HWLWcode etc)
     ser_extrema = df_extrema.copy()["values"]
 
@@ -145,6 +165,57 @@ def calc_overschrijding(
         )
 
     return dist
+
+
+def compute_trend_peryear(modelfit):
+    yearmin = modelfit.index[0].year
+    yearmax = modelfit.index[-1].year
+    valmin = modelfit.iloc[0]
+    valmax = modelfit.iloc[-1]
+    delta_year = yearmax - yearmin
+    delta_val = valmax - valmin
+    trend_py = delta_val / delta_year
+    return trend_py
+
+
+def compute_linear_trend(df_ext, min_coverage=None, clip_physical_break=False):
+    """
+    compute linear yearly trend from df_ext with modelfit from slotgemiddelden
+    """
+    slotgemiddelden_valid = calc_slotgemiddelden(
+        df_ext=df_ext,
+        min_coverage=min_coverage,
+        clip_physical_break=clip_physical_break,
+    )
+
+    # correct all years with delta-trend: slotgemiddelde minus yearly mean of linear
+    # trend. Chapter 6.3 of kenmerkende_waarden_kustwateren_en_grote_rivieren.pdf
+    # now first compute trend per year and apply linear instead of year-blocks
+    # use average of HW and LW model fits to correct df_ext
+    trend_py_HW = compute_trend_peryear(slotgemiddelden_valid["HW_model_fit"])
+    trend_py_LW = compute_trend_peryear(slotgemiddelden_valid["LW_model_fit"])
+    trend_py = (trend_py_HW + trend_py_LW) / 2
+    logger.info(
+        f"average HW/LW linear trend correction computed from df_ext: {trend_py:.2f} m p/y"
+    )
+    return trend_py
+
+
+def correct_linear_trend(df, trend_py):
+    """
+    apply linear yearly trend such that the last value is unchanged and all other values
+    are linearly increased in case of a positive trend_py
+    """
+    df = df.copy()
+    dx = np.array(
+        [
+            trend_py * x.total_seconds() / (365 * 24 * 3600)
+            for x in (df.index.max() - df.index)
+        ]
+    )
+    df["values"] += dx
+    logger.info(f"dataframe was corrected with linear trend: {trend_py:.2f} m p/y")
+    return df
 
 
 def delete_values_between_peak_trough(times_to_delete, times, values):
@@ -420,16 +491,11 @@ def apply_trendanalysis(
     if rule_type == "break":
         ser_out = ser[rule_value:].copy()
     elif rule_type == "linear":
-        rule_value = float(rule_value)
-        ser = ser.copy()
-        dx = np.array(
-            [
-                rule_value * x.total_seconds() / (365 * 24 * 3600)
-                for x in (ser.index.max() - ser.index)
-            ]
-        )
-        ser = ser + dx
-        ser_out = ser
+        df = pd.DataFrame({"values": ser})
+        df.attrs = ser.attrs
+        df = correct_linear_trend(df=df, trend_py=rule_value)
+        ser_out = df["values"]
+        ser_out.attrs = df.attrs
     elif rule_type is None:
         ser_out = ser.copy()
     else:

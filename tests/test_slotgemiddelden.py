@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 import pandas as pd
 import kenmerkendewaarden as kw
+from kenmerkendewaarden.slotgemiddelden import compare_get_station_from_dataframes
 
 
 @pytest.mark.unittest
@@ -52,6 +53,9 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_noext = kw.calc_slotgemiddelden(
         df_meas=df_meas_2010_2014, df_ext=None
     )
+    slotgemiddelden_dict_nomeas = kw.calc_slotgemiddelden(
+        df_meas=None, df_ext=df_ext_12_2010_2014
+    )
 
     # assert present keys
     expected_keys_inclext = [
@@ -65,8 +69,25 @@ def test_calc_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
         "tidalrange_model_fit",
     ]
     expected_keys_noext = ["wl_mean_peryear", "wl_model_fit"]
+    expected_keys_nomeas = [
+        "HW_mean_peryear",
+        "LW_mean_peryear",
+        "HW_model_fit",
+        "LW_model_fit",
+        "tidalrange_mean_peryear",
+        "tidalrange_model_fit",
+    ]
     assert set(slotgemiddelden_dict_inclext.keys()) == set(expected_keys_inclext)
     assert set(slotgemiddelden_dict_noext.keys()) == set(expected_keys_noext)
+    assert set(slotgemiddelden_dict_nomeas.keys()) == set(expected_keys_nomeas)
+
+    # assertion of passing of attrs
+    for k, v in slotgemiddelden_dict_inclext.items():
+        assert "station" in v.attrs.keys()
+    for k, v in slotgemiddelden_dict_noext.items():
+        assert "station" in v.attrs.keys()
+    for k, v in slotgemiddelden_dict_nomeas.items():
+        assert "station" in v.attrs.keys()
 
     # assertion of values
     # fmt: off
@@ -128,6 +149,28 @@ def test_calc_slotgemiddelden_oneyear_fails(df_meas_2010_2014):
 
 
 @pytest.mark.unittest
+def test_calc_slotgemiddelden_no_input():
+    with pytest.raises(ValueError) as e:
+        _ = kw.calc_slotgemiddelden()
+    assert "At least one of df_meas or df_ext should be provided" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_calc_slotgemiddelden_different_station(df_meas_2010_2014, df_ext_12_2010_2014):
+    """
+    This is an indirect test that is also already covered by
+    test_compare_get_station_from_dataframes_different_stations()
+    """
+    df_meas_2010_2014_VLISSGN = df_meas_2010_2014.copy()
+    df_meas_2010_2014_VLISSGN.attrs["station"] = "VLISSGN"
+    with pytest.raises(ValueError) as e:
+        _ = kw.calc_slotgemiddelden(
+            df_meas=df_meas_2010_2014_VLISSGN, df_ext=df_ext_12_2010_2014
+        )
+    assert "station attributes are not equal for all dataframes" in str(e.value)
+
+
+@pytest.mark.unittest
 def test_plot_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_inclext = kw.calc_slotgemiddelden(
         df_meas=df_meas_2010_2014, df_ext=df_ext_12_2010_2014
@@ -135,10 +178,15 @@ def test_plot_slotgemiddelden(df_meas_2010_2014, df_ext_12_2010_2014):
     slotgemiddelden_dict_noext = kw.calc_slotgemiddelden(
         df_meas=df_meas_2010_2014, df_ext=None
     )
+    slotgemiddelden_dict_nomeas = kw.calc_slotgemiddelden(
+        df_meas=None, df_ext=df_ext_12_2010_2014
+    )
     kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_noext)
+    kw.plot_slotgemiddelden(slotgemiddelden_dict_nomeas)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_inclext, slotgemiddelden_dict_inclext)
     kw.plot_slotgemiddelden(slotgemiddelden_dict_noext, slotgemiddelden_dict_noext)
+    kw.plot_slotgemiddelden(slotgemiddelden_dict_nomeas, slotgemiddelden_dict_nomeas)
     # assert dtypes of dictionary index, to check if plot_slotgemiddelden made a proper
     # copy before converting the index to datetimes
     for key in slotgemiddelden_dict_inclext.keys():
@@ -235,3 +283,24 @@ def test_calc_slotgemiddelden_with_gap(df_meas_2010_2014):
         slotgemiddelden_dict_withgap_lower_threshold["wl_mean_peryear"].isnull().sum()
         == 0
     )
+
+
+@pytest.mark.unittest
+def test_compare_get_station_from_dataframes(df_meas_2010_2014, df_ext_12_2010_2014):
+    slotgemiddelden_dict = kw.calc_slotgemiddelden(
+        df_meas=df_meas_2010_2014, df_ext=df_ext_12_2010_2014
+    )
+    station = compare_get_station_from_dataframes(slotgemiddelden_dict.values())
+    assert station == "HOEKVHLD"
+
+
+@pytest.mark.unittest
+def test_compare_get_station_from_dataframes_different_stations(df_meas_2010_2014):
+    """
+    This test simulates the check done in calc_slotgemiddelden()
+    """
+    df_meas_vlis = df_meas_2010_2014.copy()
+    df_meas_vlis.attrs["station"] = "VLISSGN"
+    with pytest.raises(ValueError) as e:
+        _ = compare_get_station_from_dataframes([df_meas_vlis, df_meas_2010_2014])
+    assert "station attributes are not equal for all dataframes" in str(e.value)

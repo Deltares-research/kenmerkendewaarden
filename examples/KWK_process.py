@@ -247,7 +247,7 @@ for current_station in station_list:
     
     
     #### OVERSCHRIJDINGSFREQUENTIES
-    # TODO: resulting freqs seem to be shifted w.r.t. getijtafelboekje (mail PH 9-3-2022): https://github.com/Deltares-research/kenmerkendewaarden/issues/154
+    # TODO: simplify input: https://github.com/Deltares-research/kenmerkendewaarden/issues/252
     # plots beoordelen: rode lijn moet ongeveer verlengde zijn van groene, als die ineens 
     # omhoog piekt komt dat door hele extreme waardes die je dan vermoedelijk ook al ziet in je groene lijn
     
@@ -292,7 +292,9 @@ for current_station in station_list:
         # 1. Exceedance
         dist_exc_hydra = initiate_dist_with_hydra_nl(station=current_station)
         dist_exc = kw.calc_overschrijding(df_ext=df_ext_todate, rule_type=None, rule_value=None, 
-                                          clip_physical_break=True, dist=dist_exc_hydra,
+                                          clip_physical_break=True,
+                                          correct_trend=True, min_coverage=0.9,
+                                          dist=dist_exc_hydra,
                                           interp_freqs=freqs_interested)
         add_validation_dist(dist_exc, dist_type='exceedance', station=current_station)
         dist_exc['geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'kw{year_slotgem}-exceedance-{current_station}.csv'))
@@ -303,7 +305,9 @@ for current_station in station_list:
         
         # 2. Deceedance
         dist_dec = kw.calc_overschrijding(df_ext=df_ext_todate, rule_type=None, rule_value=None, 
-                                          clip_physical_break=True, inverse=True,
+                                          clip_physical_break=True,
+                                          correct_trend=True, min_coverage=0.9,
+                                          inverse=True,
                                           interp_freqs=freqs_interested)
         add_validation_dist(dist_dec, dist_type='deceedance', station=current_station)
         dist_dec['geinterpoleerd'].to_csv(os.path.join(dir_overschrijding, f'kw{year_slotgem}-deceedance-{current_station}.csv'))

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def calc_slotgemiddelden(
-    df_meas: pd.DataFrame,
+    df_meas: pd.DataFrame = None,
     df_ext: pd.DataFrame = None,
     min_coverage: float = None,
     clip_physical_break: bool = False,
@@ -39,8 +39,8 @@ def calc_slotgemiddelden(
 
     Parameters
     ----------
-    df_meas : pd.DataFrame
-        the timeseries of measured waterlevels.
+    df_meas : pd.DataFrame, optional
+        the timeseries of measured waterlevels. The default is None.
     df_ext : pd.DataFrame, optional
         the timeseries of extremes (high and low waters). The default is None.
     min_coverage : float, optional
@@ -57,32 +57,39 @@ def calc_slotgemiddelden(
         and corresponding tidal range.
 
     """
-    raise_empty_df(df_meas)
-    if df_ext is not None:
-        raise_empty_df(df_ext)
     # initialize dict
     slotgemiddelden_dict = {}
 
-    # clip last value of the timeseries if this is exactly newyearsday
-    df_meas = clip_timeseries_last_newyearsday(df_meas)
+    if df_meas is None and df_ext is None:
+        raise ValueError("At least one of df_meas or df_ext should be provided")
 
-    # calculate yearly means
-    dict_wltidalindicators = calc_wltidalindicators(df_meas, min_coverage=min_coverage)
-    wl_mean_peryear = dict_wltidalindicators["wl_mean_peryear"]
-    slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
+    if df_meas is not None and df_ext is not None:
+        # compare station attributes
+        _ = compare_get_station_from_dataframes([df_meas, df_ext])
 
-    # clip part of mean timeseries before physical break to supply to model
-    if clip_physical_break:
-        wl_mean_peryear = clip_timeseries_physical_break(wl_mean_peryear)
+    if df_meas is not None:
+        raise_empty_df(df_meas)
 
-    # fit linear models over yearly mean values
-    pred_pd_wl = predict_linear_model(wl_mean_peryear)
-    slotgemiddelden_dict["wl_model_fit"] = pred_pd_wl
+        # clip last value of the timeseries if this is exactly newyearsday
+        df_meas = clip_timeseries_last_newyearsday(df_meas)
+
+        # calculate yearly means
+        dict_wltidalindicators = calc_wltidalindicators(
+            df_meas, min_coverage=min_coverage
+        )
+        wl_mean_peryear = dict_wltidalindicators["wl_mean_peryear"]
+        slotgemiddelden_dict["wl_mean_peryear"] = wl_mean_peryear
+
+        # clip part of mean timeseries before physical break to supply to model
+        if clip_physical_break:
+            wl_mean_peryear = clip_timeseries_physical_break(wl_mean_peryear)
+
+        # fit linear models over yearly mean values
+        pred_pd_wl = predict_linear_model(wl_mean_peryear)
+        slotgemiddelden_dict["wl_model_fit"] = pred_pd_wl
 
     if df_ext is not None:
-        # compare station attributes
-        station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
-        assert all(x == station_attrs[0] for x in station_attrs)
+        raise_empty_df(df_ext)
 
         # clip last value of the timeseries if this is exactly newyearsday
         df_ext = clip_timeseries_last_newyearsday(df_ext)
@@ -140,50 +147,48 @@ def plot_slotgemiddelden(
         Figure axis handle.
 
     """
-    station = slotgemiddelden_dict["wl_mean_peryear"].attrs["station"]
+
+    # get station attribute
+    station = compare_get_station_from_dataframes(slotgemiddelden_dict.values())
 
     # convert to timeindex for plotting (first make deep copy)
-    slotgemiddelden_dict = {k: v.copy() for k, v in slotgemiddelden_dict.items()}
-    for k, v in slotgemiddelden_dict.items():
-        v.index = v.index.to_timestamp()
+    slotgemiddelden_dict = dict_indexes_to_timestamp(slotgemiddelden_dict)
     if slotgemiddelden_dict_all is not None:
-        slotgemiddelden_dict_all = {
-            k: v.copy() for k, v in slotgemiddelden_dict_all.items()
-        }
-        for k, v in slotgemiddelden_dict_all.items():
-            v.index = v.index.to_timestamp()
+        slotgemiddelden_dict_all = dict_indexes_to_timestamp(slotgemiddelden_dict_all)
 
     fig, ax = plt.subplots(figsize=(12, 6))
     cmap = plt.get_cmap("tab10")
 
     # plot timeseries of average waterlevels
     if slotgemiddelden_dict_all is not None:
-        wl_mean_peryear_all = slotgemiddelden_dict_all["wl_mean_peryear"]
-        ax.plot(
-            wl_mean_peryear_all, "x", color="grey", label="yearly means incl invalid"
-        )
-    wl_mean_peryear = slotgemiddelden_dict["wl_mean_peryear"]
-    ax.plot(wl_mean_peryear, "xr", label="yearly means")
+        if "wl_mean_peryear" in slotgemiddelden_dict_all.keys():
+            wl_mean_peryear_all = slotgemiddelden_dict_all["wl_mean_peryear"]
+            ax.plot(
+                wl_mean_peryear_all, "x", color="grey", label="yearly means incl invalid"
+            )
+    if "wl_mean_peryear" in slotgemiddelden_dict.keys():
+        wl_mean_peryear = slotgemiddelden_dict["wl_mean_peryear"]
+        ax.plot(wl_mean_peryear, "xr", label="yearly means")
 
-    # plot model fits of average waterlevels
-    wl_model_fit = slotgemiddelden_dict["wl_model_fit"]
-    ax.plot(wl_model_fit, ".-", color=cmap(0), label="model fit")
-    # add single dot for slotgemiddelde value
-    slotgem_time_value = slotgemiddelden_dict["wl_model_fit"].iloc[[-1]]
-    ax.plot(
-        slotgem_time_value,
-        ".k",
-        label=f"slotgemiddelde for {slotgem_time_value.index.year[0]}",
-    )
+    if "wl_model_fit" in slotgemiddelden_dict.keys():
+        # plot model fits of average waterlevels
+        wl_model_fit = slotgemiddelden_dict["wl_model_fit"]
+        ax.plot(wl_model_fit, ".-", color=cmap(0), label="model fit")
+        # add single dot for slotgemiddelde value
+        slotgem_time_value = slotgemiddelden_dict["wl_model_fit"].iloc[[-1]]
+        ax.plot(
+            slotgem_time_value,
+            ".k",
+            label=f"slotgemiddelde for {slotgem_time_value.index.year[0]}",
+        )
 
     # plot timeseries of average extremes
     if slotgemiddelden_dict_all is not None:
         # compare station attributes
-        station_attrs = [
-            dic["wl_mean_peryear"].attrs["station"]
-            for dic in [slotgemiddelden_dict, slotgemiddelden_dict_all]
-        ]
-        assert all(x == station_attrs[0] for x in station_attrs)
+        station_all = compare_get_station_from_dataframes(
+            slotgemiddelden_dict_all.values()
+            )
+        assert station == station_all
 
         if "HW_mean_peryear" in slotgemiddelden_dict_all.keys():
             HW_mean_peryear_all = slotgemiddelden_dict_all["HW_mean_peryear"]
@@ -212,6 +217,26 @@ def plot_slotgemiddelden(
     ax.legend(loc=2)
     fig.tight_layout()
     return fig, ax
+
+
+def compare_get_station_from_dataframes(df_list):
+    station_list = []
+    for df in df_list:
+        station_list.append(df.attrs["station"])
+    if len(set(station_list)) != 1:
+        raise ValueError(
+            f"station attributes are not equal for all dataframes: {station_list}"
+            )
+    station = station_list[0]
+    return station
+
+
+def dict_indexes_to_timestamp(dict_in):
+    # convert to timeindex for plotting (first make deep copy)
+    dict_out = {k: v.copy() for k, v in dict_in.items()}
+    for k, v in dict_out.items():
+        v.index = v.index.to_timestamp()
+    return dict_out
 
 
 def predict_linear_model(ser: pd.Series, with_nodal=False) -> pd.DataFrame:
@@ -254,6 +279,7 @@ def predict_linear_model(ser: pd.Series, with_nodal=False) -> pd.DataFrame:
     pred_arr = fit.predict(X)
     pred_pd = pd.Series(pred_arr, index=allyears_dt, name="values")
     pred_pd.index.name = ser.index.name
+    pred_pd.attrs = ser.attrs
     return pred_pd
 
 

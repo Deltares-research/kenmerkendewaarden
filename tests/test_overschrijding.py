@@ -270,6 +270,100 @@ def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
 
 
 @pytest.mark.unittest
+def test_calc_overschrijding_rule_type_linear(df_ext_12_2010_2014):
+    Tfreqs_interested = [
+        5,
+        2,
+        1,
+        1 / 2,
+        1 / 5,
+        1 / 10,
+        1 / 20,
+        1 / 50,
+        1 / 100,
+        1 / 200,
+    ]
+    dist = kw.calc_overschrijding(
+        df_ext=df_ext_12_2010_2014,
+        interp_freqs=Tfreqs_interested,
+        rule_type="linear",
+        rule_value=0.00708459,  # same value as the automatic linear trend detection
+    )
+
+    expected_keys = [
+        "ongefilterd",
+        "trendanalyse",
+        "weibull",
+        "gecombineerd",
+        "geinterpoleerd",
+    ]
+    assert set(dist.keys()) == set(expected_keys)
+    assert np.allclose(dist["geinterpoleerd"].index, Tfreqs_interested)
+    expected_values = np.array(
+        [
+            1.94463639,
+            2.11407511,
+            2.28284247,
+            2.46198465,
+            2.71549223,
+            2.9204936,
+            3.13742326,
+            3.4433362,
+            3.68988915,
+            3.95005982,
+        ]
+    )
+    assert np.allclose(dist["geinterpoleerd"].values, expected_values)
+
+
+@pytest.mark.unittest
+def test_calc_overschrijding_correct_trend(df_ext_12_2010_2014):
+    Tfreqs_interested = [
+        5,
+        2,
+        1,
+        1 / 2,
+        1 / 5,
+        1 / 10,
+        1 / 20,
+        1 / 50,
+        1 / 100,
+        1 / 200,
+    ]
+    dist = kw.calc_overschrijding(
+        df_ext=df_ext_12_2010_2014,
+        interp_freqs=Tfreqs_interested,
+        correct_trend=True,
+        min_coverage=0.9,
+    )
+
+    expected_keys = [
+        "ongefilterd",
+        "trendanalyse",
+        "weibull",
+        "gecombineerd",
+        "geinterpoleerd",
+    ]
+    assert set(dist.keys()) == set(expected_keys)
+    assert np.allclose(dist["geinterpoleerd"].index, Tfreqs_interested)
+    expected_values = np.array(
+        [
+            1.94463639,
+            2.11407512,
+            2.28284249,
+            2.4619847,
+            2.71549229,
+            2.92049369,
+            3.13742337,
+            3.44333634,
+            3.68988932,
+            3.95006002,
+        ]
+    )
+    assert np.allclose(dist["geinterpoleerd"].values, expected_values)
+
+
+@pytest.mark.unittest
 def test_calc_overschrijding_aggers(df_ext_2010_2014):
     with pytest.raises(ValueError) as e:
         kw.calc_overschrijding(df_ext=df_ext_2010_2014)
