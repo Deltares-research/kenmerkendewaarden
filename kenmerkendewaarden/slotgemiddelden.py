@@ -152,15 +152,9 @@ def plot_slotgemiddelden(
     station = compare_get_station_from_dataframes(slotgemiddelden_dict.values())
 
     # convert to timeindex for plotting (first make deep copy)
-    slotgemiddelden_dict = {k: v.copy() for k, v in slotgemiddelden_dict.items()}
-    for k, v in slotgemiddelden_dict.items():
-        v.index = v.index.to_timestamp()
+    slotgemiddelden_dict = dict_indexes_to_timestamp(slotgemiddelden_dict)
     if slotgemiddelden_dict_all is not None:
-        slotgemiddelden_dict_all = {
-            k: v.copy() for k, v in slotgemiddelden_dict_all.items()
-        }
-        for k, v in slotgemiddelden_dict_all.items():
-            v.index = v.index.to_timestamp()
+        slotgemiddelden_dict_all = dict_indexes_to_timestamp(slotgemiddelden_dict_all)
 
     fig, ax = plt.subplots(figsize=(12, 6))
     cmap = plt.get_cmap("tab10")
@@ -235,6 +229,14 @@ def compare_get_station_from_dataframes(df_list):
             )
     station = station_list[0]
     return station
+
+
+def dict_indexes_to_timestamp(dict_in):
+    # convert to timeindex for plotting (first make deep copy)
+    dict_out = {k: v.copy() for k, v in dict_in.items()}
+    for k, v in dict_out.items():
+        v.index = v.index.to_timestamp()
+    return dict_out
 
 
 def predict_linear_model(ser: pd.Series, with_nodal=False) -> pd.DataFrame:
