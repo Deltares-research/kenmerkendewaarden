@@ -169,9 +169,6 @@ def calc_overschrijding(
 
 
 def compute_trend_peryear(modelfit):
-    # TODO: this check for nans might not be necessary since it is a model fit
-    if modelfit.isnull().any():
-        raise ValueError("nans encountered in model fit")
     yearmin = modelfit.index[0].year
     yearmax = modelfit.index[-1].year
     valmin = modelfit.iloc[0]
