@@ -64,9 +64,8 @@ def calc_overschrijding(
         Whether to exclude the part of the timeseries before physical breaks like estuary closures. The default is False.
     correct_trend : bool, optional
         Correct the linear trend as computed by the slotgemiddelden linear model fit.
-        All data is corrected with the slotgemiddelde (at the end of the period) minus
-        the yearly mean according to the linear fit used to compute the slotgemiddelde.
-        The default is False.
+        A yearly trend is computed from the averages derived from the HW and LW model
+        fit and all data is corrected by adding trend x nyears. The default is False.
     min_coverage : float, optional
         Set yearly means to nans for years that do not have sufficient data coverage.
         The default is None.
