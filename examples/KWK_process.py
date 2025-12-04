@@ -247,7 +247,7 @@ for current_station in station_list:
     
     
     #### OVERSCHRIJDINGSFREQUENTIES
-    # TODO: resulting freqs seem to be shifted w.r.t. getijtafelboekje (mail PH 9-3-2022): https://github.com/Deltares-research/kenmerkendewaarden/issues/154
+    # TODO: simplify input: https://github.com/Deltares-research/kenmerkendewaarden/issues/252
     # plots beoordelen: rode lijn moet ongeveer verlengde zijn van groene, als die ineens 
     # omhoog piekt komt dat door hele extreme waardes die je dan vermoedelijk ook al ziet in je groene lijn
     
