@@ -119,7 +119,7 @@ def raise_incorrect_quantity(quantity):
     ]
     if quantity not in allowed_quantities:
         raise ValueError(
-            f"quantity {quantity} is not allowed, choose from {allowed_quantities}"
+            f"quantity '{quantity}' is not allowed, choose from {allowed_quantities}"
         )
 
 

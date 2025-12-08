@@ -4,7 +4,10 @@ import pytest
 import kenmerkendewaarden as kw
 import numpy as np
 import pandas as pd
-from kenmerkendewaarden.data_retrieve import drop_duplicate_times
+from kenmerkendewaarden.data_retrieve import (
+    drop_duplicate_times,
+    raise_incorrect_quantity,
+    )
 import logging
 
 
@@ -195,6 +198,13 @@ def test_raise_multiple_locations_toolittle():
     # this will silently continue the process, returing None
     returned_value = kw.data_retrieve.raise_multiple_locations(locs_sel)
     assert returned_value is None
+
+
+@pytest.mark.unittest
+def test_raise_incorrect_quantity():
+    with pytest.raises(ValueError) as e:
+        raise_incorrect_quantity("incorrect")
+    assert "quantity 'incorrect' is not allowed, choose from" in str(e.value)
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
