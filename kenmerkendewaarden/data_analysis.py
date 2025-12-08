@@ -152,15 +152,15 @@ def plot_stations(station_list: list, crs: int = None, add_labels: bool = False)
         Figure axis handle.
 
     """
-    locs_meas_ts_all, locs_meas_ext_all, _, locs_meas_q_all = retrieve_catalog(crs=crs)
-    locs_ts = locs_meas_ts_all.loc[locs_meas_ts_all.index.isin(station_list)]
+    locs_meas_wl_all, locs_meas_ext_all, _, locs_meas_q_all = retrieve_catalog(crs=crs)
+    locs_wl = locs_meas_wl_all.loc[locs_meas_wl_all.index.isin(station_list)]
     locs_ext = locs_meas_ext_all.loc[locs_meas_ext_all.index.isin(station_list)]
     locs_q = locs_meas_q_all.loc[locs_meas_q_all.index.isin(station_list)]
     if crs is None:
-        crs = int(locs_ts["Coordinatenstelsel"].iloc[0])
+        crs = int(locs_wl["Coordinatenstelsel"].iloc[0])
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.plot(locs_ts["X"], locs_ts["Y"], "xk", label="waterlevels")
+    ax.plot(locs_wl["X"], locs_wl["Y"], "xk", label="waterlevels")
     ax.plot(locs_ext["X"], locs_ext["Y"], "+r", label="extremes")
     ax.plot(locs_q["X"], locs_q["Y"], "+r", label="discharges")
     ax.legend()
@@ -190,7 +190,7 @@ def plot_stations(station_list: list, crs: int = None, add_labels: bool = False)
     fig.tight_layout()
 
     if add_labels:
-        for irow, row in locs_ts.iterrows():
+        for irow, row in locs_wl.iterrows():
             ax.text(row["X"], row["Y"], row.name)
 
     return fig, ax
@@ -300,8 +300,8 @@ def derive_statistics(dir_output: str, station_list: list, quantity: str):
             return_xarray=True,
         )
         if ds_meas is not None:
-            meta_dict_flat_ts = get_flat_meta_from_dataset(ds_meas)
-            data_summary_row.update(meta_dict_flat_ts)
+            meta_dict_flat = get_flat_meta_from_dataset(ds_meas)
+            data_summary_row.update(meta_dict_flat)
 
             df_meas = xarray_to_hatyan(ds_meas)
             df_stats = get_stats_from_dataframe(df_meas)

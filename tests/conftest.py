@@ -16,8 +16,8 @@ dir_testdata = os.path.join(dir_tests, "testdata")
 
 @pytest.fixture(scope="session")
 def df_meas():
-    file_dia_ts = os.path.join(dir_testdata, "HOEK_KW.dia")
-    df_meas = hatyan.read_dia(file_dia_ts)
+    file_dia_wl = os.path.join(dir_testdata, "HOEK_KW.dia")
+    df_meas = hatyan.read_dia(file_dia_wl)
     return df_meas
 
 

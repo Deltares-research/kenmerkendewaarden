@@ -26,7 +26,7 @@ DICT_FNAMES = {
     "meas_wl": "{station}_measwl.nc",
     "meas_ext": "{station}_measext.nc",
     "meas_q": "{station}_measq.nc",
-    "amount_wl": "data_amount_ts.csv",
+    "amount_wl": "data_amount_wl.csv",
     "amount_ext": "data_amount_ext.csv",
     "amount_q": "data_amount_q.csv",
 }
@@ -74,7 +74,7 @@ def retrieve_catalog(overwrite=False, crs: int = None):
         locations["Coordinatenstelsel"] = str(crs)
 
     bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
-    bool_groepering_ts = locations["Groepering.Code"].isin(["NVT"])
+    bool_groepering_wl = locations["Groepering.Code"].isin(["NVT"])
     bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2", "GETETMSL2"])
     # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
     # bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
@@ -88,11 +88,11 @@ def retrieve_catalog(overwrite=False, crs: int = None):
     bool_eenheid_q = locations["Eenheid.Code"].isin(["m3/s"])
     
     # select locations on grootheid/groepering/exttypes
-    locs_meas_ts = locations.loc[bool_grootheid & bool_groepering_ts]
+    locs_meas_wl = locations.loc[bool_grootheid & bool_groepering_wl]
     locs_meas_ext = locations.loc[bool_grootheid & bool_groepering_ext]
     locs_meas_exttype = locations.loc[bool_typering_exttypes & bool_groepering_ext]
     locs_meas_q = locations.loc[bool_grootheid_q & bool_eenheid_q]
-    return locs_meas_ts, locs_meas_ext, locs_meas_exttype, locs_meas_q
+    return locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q
 
 
 def raise_multiple_locations(locations):
@@ -152,12 +152,12 @@ def retrieve_measurements_amount(
     None
 
     """
-    locs_meas_ts, locs_meas_ext, locs_meas_exttype, locs_meas_q = retrieve_catalog()
+    locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q = retrieve_catalog()
     raise_incorrect_quantity(quantity)
     
     if quantity == "meas_wl":
         fname = DICT_FNAMES["amount_wl"]
-        locs_meas = locs_meas_ts
+        locs_meas = locs_meas_wl
     elif quantity == "meas_ext":
         fname = DICT_FNAMES["amount_ext"]
         locs_meas = locs_meas_ext
@@ -286,7 +286,7 @@ def retrieve_measurements(
 
     """
 
-    locs_meas_ts, locs_meas_ext, locs_meas_exttype, locs_meas_q = retrieve_catalog()
+    locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q = retrieve_catalog()
     raise_incorrect_quantity(quantity)
 
     if drop_if_constant is None:
@@ -305,18 +305,18 @@ def retrieve_measurements(
             "MeetApparaat.Code",
         ]
 
-    bool_station_ts = locs_meas_ts.index.isin([station])
+    bool_station_wl = locs_meas_wl.index.isin([station])
     bool_station_ext = locs_meas_ext.index.isin([station])
     bool_station_exttype = locs_meas_exttype.index.isin([station])
     bool_station_q = locs_meas_q.index.isin([station])
-    loc_meas_ts_one = locs_meas_ts.loc[bool_station_ts]
+    loc_meas_wl_one = locs_meas_wl.loc[bool_station_wl]
     loc_meas_ext_one = locs_meas_ext.loc[bool_station_ext]
     loc_meas_exttype_one = locs_meas_exttype.loc[bool_station_exttype]
     loc_meas_q_one = locs_meas_q.loc[bool_station_q]
 
     if quantity == "meas_wl":
         fname = DICT_FNAMES["meas_wl"].format(station=station)
-        loc_meas_one = loc_meas_ts_one
+        loc_meas_one = loc_meas_wl_one
         freq = dateutil.rrule.MONTHLY
     elif quantity == "meas_ext":
         fname = DICT_FNAMES["meas_ext"].format(station=station)

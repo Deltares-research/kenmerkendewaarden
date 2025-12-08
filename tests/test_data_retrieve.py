@@ -12,10 +12,10 @@ import logging
 @pytest.mark.unittest
 def test_retrieve_catalog():
     crs = 28992
-    locs_meas_ts, locs_meas_ext, _, locs_meas_q = kw.data_retrieve.retrieve_catalog(crs=crs)
+    locs_meas_wl, locs_meas_ext, _, locs_meas_q = kw.data_retrieve.retrieve_catalog(crs=crs)
 
-    assert np.isclose(locs_meas_ts.loc["HOEKVHLD"]["X"], 67930.00003341127)
-    assert np.isclose(locs_meas_ts.loc["HOEKVHLD"]["Y"], 444000.0027572268)
+    assert np.isclose(locs_meas_wl.loc["HOEKVHLD"]["X"], 67930.00003341127)
+    assert np.isclose(locs_meas_wl.loc["HOEKVHLD"]["Y"], 444000.0027572268)
     assert np.isclose(locs_meas_ext.loc["HOEKVHLD"]["X"], 67930.00003341127)
     assert np.isclose(locs_meas_ext.loc["HOEKVHLD"]["Y"], 444000.0027572268)
     assert np.isclose(locs_meas_q.loc["SCHIJNDLKLPL"]["X"], 158894.1045765158)
@@ -94,7 +94,7 @@ def test_retrieve_read_measurements(dir_meas):
 def test_read_measurements_amount_notfound(tmp_path):
     with pytest.raises(FileNotFoundError) as e:
         kw.read_measurements_amount(dir_output=tmp_path, quantity="meas_wl")
-    assert "data_amount_ts.csv does not exist" in str(e.value)
+    assert "data_amount_wl.csv does not exist" in str(e.value)
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
@@ -170,9 +170,9 @@ def test_retrieve_measurements_amount_emptylocslist(tmp_path, caplog):
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_raise_multiple_locations_toomuch():
-    locs_meas_ts, _, _, _ = kw.data_retrieve.retrieve_catalog()
-    bool_stations = locs_meas_ts.index.isin(["BATH"])
-    locs_sel = locs_meas_ts.loc[bool_stations]
+    locs_meas_wl, _, _, _ = kw.data_retrieve.retrieve_catalog()
+    bool_stations = locs_meas_wl.index.isin(["BATH"])
+    locs_sel = locs_meas_wl.loc[bool_stations]
     with pytest.raises(ValueError) as e:
         kw.data_retrieve.raise_multiple_locations(locs_sel)
     assert "multiple stations present after station subsetting" in str(e.value)
@@ -181,9 +181,9 @@ def test_raise_multiple_locations_toomuch():
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_raise_multiple_locations_toolittle():
-    locs_meas_ts, _, _, _ = kw.data_retrieve.retrieve_catalog()
-    bool_stations = locs_meas_ts.index.isin(["NONEXISTENTSTATION"])
-    locs_sel = locs_meas_ts.loc[bool_stations]
+    locs_meas_wl, _, _, _ = kw.data_retrieve.retrieve_catalog()
+    bool_stations = locs_meas_wl.index.isin(["NONEXISTENTSTATION"])
+    locs_sel = locs_meas_wl.loc[bool_stations]
     # this will silently continue the process, returing None
     returned_value = kw.data_retrieve.raise_multiple_locations(locs_sel)
     assert returned_value is None

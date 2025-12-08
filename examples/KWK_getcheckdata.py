@@ -68,21 +68,21 @@ for stat_remove in stations_skip:
 if retrieve_meas_amount:
     kw.retrieve_measurements_amount(dir_output=dir_meas_amount, station_list=station_list, 
                                     start_date=start_date, end_date=end_date,
-                                    extremes=False)
+                                    quantity="meas_wl")
     kw.retrieve_measurements_amount(dir_output=dir_meas_amount, station_list=station_list, 
                                     start_date=start_date, end_date=end_date,
-                                    extremes=True)
+                                    quantity="meas_ext")
 
 
 ### PLOT MEASUREMENTS AMOUNT
 if plot_meas_amount:
-    df_amount_ts = kw.read_measurements_amount(dir_output=dir_meas_amount, extremes=False)
-    df_amount_ext = kw.read_measurements_amount(dir_output=dir_meas_amount, extremes=True)
+    df_amount_wl = kw.read_measurements_amount(dir_output=dir_meas_amount, quantity="meas_wl")
+    df_amount_ext = kw.read_measurements_amount(dir_output=dir_meas_amount, quantity="meas_ext")
     
     file_plot = os.path.join(dir_meas_amount, "data_amount")
     
-    fig, ax = kw.plot_measurements_amount(df_amount_ts, relative=True)
-    fig.savefig(file_plot + "_ts_pcolormesh_relative", dpi=200)
+    fig, ax = kw.plot_measurements_amount(df_amount_wl, relative=True)
+    fig.savefig(file_plot + "_wl_pcolormesh_relative", dpi=200)
     fig, ax = kw.plot_measurements_amount(df_amount_ext, relative=True)
     fig.savefig(file_plot + "_ext_pcolormesh_relative", dpi=200)
     
@@ -93,18 +93,18 @@ for current_station in station_list:
     if not retrieve_meas:
         continue
     
-    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=False,
+    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, quantity="meas_wl",
                              start_date=start_date, end_date=end_date)
-    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, extremes=True,
+    kw.retrieve_measurements(dir_output=dir_meas, station=current_station, quantity="meas_ext",
                              start_date=start_date, end_date=end_date)
 
 
 
 ### CREATE SUMMARY
 if derive_stats:
-    stats_ts = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, extremes=False)
-    stats_ext = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, extremes=True)
-    stats_ts.to_csv(os.path.join(dir_meas,'data_summary_ts.csv'))
+    stats_wl = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, quantity="meas_wl")
+    stats_ext = kw.derive_statistics(dir_output=dir_meas, station_list=station_list, quantity="meas_ext")
+    stats_wl.to_csv(os.path.join(dir_meas,'data_summary_wl.csv'))
     stats_ext.to_csv(os.path.join(dir_meas,'data_summary_ext.csv'))
 
 
@@ -117,8 +117,8 @@ for current_station in station_list:
     print(f'plotting timeseries data for {current_station}')
     
     # load data
-    df_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False)
-    df_ext = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True)
+    df_meas = kw.read_measurements(dir_output=dir_meas, station=current_station, quantity="meas_wl")
+    df_ext = kw.read_measurements(dir_output=dir_meas, station=current_station, quantity="meas_ext")
     
     # create and save figure
     fig,(ax1, ax2) = kw.plot_measurements(df_meas=df_meas, df_ext=df_ext)
@@ -147,7 +147,7 @@ if plot_stations:
 if write_stations_table:
     # TODO: consider making retrieve_catalog public
     from kenmerkendewaarden.data_retrieve import retrieve_catalog
-    locs_meas_ts_all, _, _ = retrieve_catalog(crs=4326)
-    locs_ts = locs_meas_ts_all.loc[locs_meas_ts_all.index.isin(station_list)]
+    locs_meas_wl_all, _, _ = retrieve_catalog(crs=4326)
+    locs_wl = locs_meas_wl_all.loc[locs_meas_wl_all.index.isin(station_list)]
     file_csv = os.path.join(dir_base, "station_locations.csv")
-    locs_ts[["Locatie_MessageID","X","Y","Coordinatenstelsel","Naam"]].to_csv(file_csv)
+    locs_wl[["Locatie_MessageID","X","Y","Coordinatenstelsel","Naam"]].to_csv(file_csv)

@@ -88,10 +88,10 @@ for current_station in station_list:
     plt.close('all')
     
     # timeseries are used for slotgemiddelden, gemgetijkrommen (needs slotgem+havget)
-    df_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False, 
+    df_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, quantity="meas_wl", 
                                        nap_correction=nap_correction, drop_duplicates=drop_duplicates)
     # extremes are used for slotgemiddelden, havengetallen, overschrijding
-    df_ext_12345_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True,
+    df_ext_12345_all = kw.read_measurements(dir_output=dir_meas, station=current_station, quantity="meas_ext",
                                       nap_correction=nap_correction, drop_duplicates=drop_duplicates)
     if df_meas_all is None or df_ext_12345_all is None:
         raise ValueError(f"missing data for {current_station}")
@@ -215,15 +215,15 @@ for current_station in station_list:
         # derive getijkrommes: raw, scaled to havengetallen, scaled to havengetallen and 12h25min period
         gemgetij_raw = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=None,
                                               freq=pred_freq, nb=0, nf=0, 
-                                              scale_extremes=False, scale_period=False,
+                                              scale_quantity="meas_wl", scale_period=False,
                                               min_coverage=min_coverage)
         gemgetij_corr = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=df_ext_todate,
                                                freq=pred_freq, nb=1, nf=1, 
-                                               scale_extremes=True, scale_period=False,
+                                               scale_quantity="meas_ext", scale_period=False,
                                                min_coverage=min_coverage)
         gemgetij_corr_boi = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=df_ext_todate,
                                                    freq=pred_freq, nb=0, nf=4, 
-                                                   scale_extremes=True, scale_period=True,
+                                                   scale_quantity="meas_ext", scale_period=True,
                                                    min_coverage=min_coverage)
 
         fig, ax = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)
