@@ -86,7 +86,7 @@ def retrieve_catalog(overwrite=False, crs: int = None):
     # filtering locations dataframe on discharge/Q
     bool_grootheid_q = locations["Grootheid.Code"].isin(["Q"])
     bool_eenheid_q = locations["Eenheid.Code"].isin(["m3/s"])
-    
+
     # select locations on grootheid/groepering/exttypes
     locs_meas_wl = locations.loc[bool_grootheid & bool_groepering_wl]
     locs_meas_ext = locations.loc[bool_grootheid & bool_groepering_ext]
@@ -113,14 +113,14 @@ def raise_incorrect_quantity(quantity):
     checks whether the requested quantity is in the set of allowed quantities
     """
     allowed_quantities = [
-        "meas_wl", # measured waterlevel timeseries [cm]
-        "meas_ext", # measured waterlevel extremes [cm]
-        "meas_q" # measured discharge Q [m3/s]
-        ]
+        "meas_wl",  # measured waterlevel timeseries [cm]
+        "meas_ext",  # measured waterlevel extremes [cm]
+        "meas_q",  # measured discharge Q [m3/s]
+    ]
     if quantity not in allowed_quantities:
         raise ValueError(
             f"quantity {quantity} is not allowed, choose from {allowed_quantities}"
-            )
+        )
 
 
 def retrieve_measurements_amount(
@@ -154,7 +154,7 @@ def retrieve_measurements_amount(
     """
     locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q = retrieve_catalog()
     raise_incorrect_quantity(quantity)
-    
+
     if quantity == "meas_wl":
         fname = DICT_FNAMES["amount_wl"]
         locs_meas = locs_meas_wl
@@ -326,7 +326,7 @@ def retrieve_measurements(
         fname = DICT_FNAMES["meas_ext"].format(station=station)
         loc_meas_one = loc_meas_q_one
         freq = dateutil.rrule.MONTHLY
-        
+
     file_nc = os.path.join(dir_output, fname)
 
     # retrieving waterlevel extremes or timeseries

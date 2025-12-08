@@ -12,7 +12,9 @@ import logging
 @pytest.mark.unittest
 def test_retrieve_catalog():
     crs = 28992
-    locs_meas_wl, locs_meas_ext, _, locs_meas_q = kw.data_retrieve.retrieve_catalog(crs=crs)
+    locs_meas_wl, locs_meas_ext, _, locs_meas_q = kw.data_retrieve.retrieve_catalog(
+        crs=crs
+    )
 
     assert np.isclose(locs_meas_wl.loc["HOEKVHLD"]["X"], 67930.00003341127)
     assert np.isclose(locs_meas_wl.loc["HOEKVHLD"]["Y"], 444000.0027572268)
@@ -76,10 +78,14 @@ def test_retrieve_read_measurements_amount(dir_meas_amount, quantity):
 @pytest.mark.unittest
 def test_retrieve_read_measurements(dir_meas):
     df_meas = kw.read_measurements(
-        dir_output=dir_meas, station="HOEKVHLD", quantity="meas_wl",
+        dir_output=dir_meas,
+        station="HOEKVHLD",
+        quantity="meas_wl",
     )
     df_ext = kw.read_measurements(
-        dir_output=dir_meas, station="HOEKVHLD", quantity="meas_ext",
+        dir_output=dir_meas,
+        station="HOEKVHLD",
+        quantity="meas_ext",
     )
     assert df_meas.index.tz.zone == "Etc/GMT-1"
     assert df_ext.index.tz.zone == "Etc/GMT-1"
@@ -102,7 +108,9 @@ def test_read_measurements_amount_notfound(tmp_path):
 def test_read_measurements_notfound(tmp_path):
     # this will silently continue the process, returing None
     df_meas = kw.read_measurements(
-        dir_output=tmp_path, station="HOEKVHLD", quantity="meas_wl",
+        dir_output=tmp_path,
+        station="HOEKVHLD",
+        quantity="meas_wl",
     )
     assert df_meas is None
 
@@ -199,7 +207,7 @@ def test_read_measurements_napcorrection(dir_meas):
         dir_output=dir_meas,
         station="HOEKVHLD",
         quantity="meas_ext",
-        nap_correction=True
+        nap_correction=True,
     )
 
 

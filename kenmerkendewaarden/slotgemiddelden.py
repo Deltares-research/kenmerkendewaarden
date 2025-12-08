@@ -164,7 +164,10 @@ def plot_slotgemiddelden(
         if "wl_mean_peryear" in slotgemiddelden_dict_all.keys():
             wl_mean_peryear_all = slotgemiddelden_dict_all["wl_mean_peryear"]
             ax.plot(
-                wl_mean_peryear_all, "x", color="grey", label="yearly means incl invalid"
+                wl_mean_peryear_all,
+                "x",
+                color="grey",
+                label="yearly means incl invalid",
             )
     if "wl_mean_peryear" in slotgemiddelden_dict.keys():
         wl_mean_peryear = slotgemiddelden_dict["wl_mean_peryear"]
@@ -187,7 +190,7 @@ def plot_slotgemiddelden(
         # compare station attributes
         station_all = compare_get_station_from_dataframes(
             slotgemiddelden_dict_all.values()
-            )
+        )
         assert station == station_all
 
         if "HW_mean_peryear" in slotgemiddelden_dict_all.keys():
@@ -226,7 +229,7 @@ def compare_get_station_from_dataframes(df_list):
     if len(set(station_list)) != 1:
         raise ValueError(
             f"station attributes are not equal for all dataframes: {station_list}"
-            )
+        )
     station = station_list[0]
     return station
 
