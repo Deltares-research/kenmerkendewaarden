@@ -7,7 +7,7 @@ import pandas as pd
 from kenmerkendewaarden.data_retrieve import (
     drop_duplicate_times,
     raise_incorrect_quantity,
-    )
+)
 import logging
 
 
