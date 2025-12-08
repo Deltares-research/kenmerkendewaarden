@@ -12,12 +12,14 @@ import logging
 @pytest.mark.unittest
 def test_retrieve_catalog():
     crs = 28992
-    locs_meas_ts, locs_meas_ext, _ = kw.data_retrieve.retrieve_catalog(crs=crs)
+    locs_meas_ts, locs_meas_ext, _, locs_meas_q = kw.data_retrieve.retrieve_catalog(crs=crs)
 
     assert np.isclose(locs_meas_ts.loc["HOEKVHLD"]["X"], 67930.00003341127)
     assert np.isclose(locs_meas_ts.loc["HOEKVHLD"]["Y"], 444000.0027572268)
     assert np.isclose(locs_meas_ext.loc["HOEKVHLD"]["X"], 67930.00003341127)
     assert np.isclose(locs_meas_ext.loc["HOEKVHLD"]["Y"], 444000.0027572268)
+    assert np.isclose(locs_meas_q.loc["SCHIJNDLKLPL"]["X"], 158894.1045765158)
+    assert np.isclose(locs_meas_q.loc["SCHIJNDLKLPL"]["Y"], 406610.02905768325)
     df_crs = locs_meas_ext["Coordinatenstelsel"].drop_duplicates().tolist()
     assert len(df_crs) == 1
     assert isinstance(df_crs[0], str)
@@ -53,19 +55,19 @@ def test_drop_duplicate_times_noaction(df_meas_2010, caplog):
 
 @pytest.mark.timeout(120)  # useful in case of ddl failure
 @pytest.mark.systemtest
-@pytest.mark.parametrize("extremes", [False, True], ids=["timeseries", "extremes"])
-def test_retrieve_read_measurements_amount(dir_meas_amount, extremes):
+@pytest.mark.parametrize("quantity", ["meas_wl", "meas_ext"])
+def test_retrieve_read_measurements_amount(dir_meas_amount, quantity):
     df_amount = kw.read_measurements_amount(
-        dir_output=dir_meas_amount, extremes=extremes
+        dir_output=dir_meas_amount, quantity=quantity
     )
 
     # assert amounts, this might change if ddl data is updated
     assert df_amount.columns.tolist() == ["HOEKVHLD"]
     assert df_amount.index.tolist() == [2010, 2011]
-    if extremes:
-        df_vals = np.array([312, 157])
-    else:
+    if quantity == "meas_wl":
         df_vals = np.array([8784, 4465])
+    elif quantity == "meas_ext":
+        df_vals = np.array([312, 157])
     assert len(df_amount) == 2
     assert np.allclose(df_amount["HOEKVHLD"].values, df_vals)
 
@@ -74,10 +76,10 @@ def test_retrieve_read_measurements_amount(dir_meas_amount, extremes):
 @pytest.mark.unittest
 def test_retrieve_read_measurements(dir_meas):
     df_meas = kw.read_measurements(
-        dir_output=dir_meas, station="HOEKVHLD", extremes=False
+        dir_output=dir_meas, station="HOEKVHLD", quantity="meas_wl",
     )
     df_ext = kw.read_measurements(
-        dir_output=dir_meas, station="HOEKVHLD", extremes=True
+        dir_output=dir_meas, station="HOEKVHLD", quantity="meas_ext",
     )
     assert df_meas.index.tz.zone == "Etc/GMT-1"
     assert df_ext.index.tz.zone == "Etc/GMT-1"
@@ -91,7 +93,7 @@ def test_retrieve_read_measurements(dir_meas):
 @pytest.mark.unittest
 def test_read_measurements_amount_notfound(tmp_path):
     with pytest.raises(FileNotFoundError) as e:
-        kw.read_measurements_amount(dir_output=tmp_path, extremes=False)
+        kw.read_measurements_amount(dir_output=tmp_path, quantity="meas_wl")
     assert "data_amount_ts.csv does not exist" in str(e.value)
 
 
@@ -100,7 +102,7 @@ def test_read_measurements_amount_notfound(tmp_path):
 def test_read_measurements_notfound(tmp_path):
     # this will silently continue the process, returing None
     df_meas = kw.read_measurements(
-        dir_output=tmp_path, station="HOEKVHLD", extremes=False
+        dir_output=tmp_path, station="HOEKVHLD", quantity="meas_wl",
     )
     assert df_meas is None
 
@@ -118,7 +120,7 @@ def test_retrieve_measurements_wrongperiod(caplog):
         kw.retrieve_measurements(
             dir_output=dir_meas,
             station=current_station,
-            extremes=False,
+            quantity="meas_wl",
             start_date=start_date,
             end_date=end_date,
         )
@@ -138,7 +140,7 @@ def test_retrieve_measurements_amount_periodwithoutdata(tmp_path, caplog):
         kw.retrieve_measurements_amount(
             dir_output=dir_meas,
             station_list=[current_station],
-            extremes=True,
+            quantity="meas_ext",
             start_date=start_date,
             end_date=end_date,
         )
@@ -158,7 +160,7 @@ def test_retrieve_measurements_amount_emptylocslist(tmp_path, caplog):
         kw.retrieve_measurements_amount(
             dir_output=dir_meas,
             station_list=[current_station],
-            extremes=True,
+            quantity="meas_ext",
             start_date=start_date,
             end_date=end_date,
         )
@@ -168,7 +170,7 @@ def test_retrieve_measurements_amount_emptylocslist(tmp_path, caplog):
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_raise_multiple_locations_toomuch():
-    locs_meas_ts, _, _ = kw.data_retrieve.retrieve_catalog()
+    locs_meas_ts, _, _, _ = kw.data_retrieve.retrieve_catalog()
     bool_stations = locs_meas_ts.index.isin(["BATH"])
     locs_sel = locs_meas_ts.loc[bool_stations]
     with pytest.raises(ValueError) as e:
@@ -179,7 +181,7 @@ def test_raise_multiple_locations_toomuch():
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_raise_multiple_locations_toolittle():
-    locs_meas_ts, _, _ = kw.data_retrieve.retrieve_catalog()
+    locs_meas_ts, _, _, _ = kw.data_retrieve.retrieve_catalog()
     bool_stations = locs_meas_ts.index.isin(["NONEXISTENTSTATION"])
     locs_sel = locs_meas_ts.loc[bool_stations]
     # this will silently continue the process, returing None
@@ -194,7 +196,10 @@ def test_read_measurements_napcorrection(dir_meas):
     the necessary assertions are done in non-ddl tests below
     """
     kw.read_measurements(
-        dir_output=dir_meas, station="HOEKVHLD", extremes=True, nap_correction=True
+        dir_output=dir_meas,
+        station="HOEKVHLD",
+        quantity="meas_ext",
+        nap_correction=True
     )
 
 

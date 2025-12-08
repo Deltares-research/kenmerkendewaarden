@@ -10,6 +10,7 @@ from kenmerkendewaarden.data_retrieve import (
     read_measurements,
     xarray_to_hatyan,
     retrieve_catalog,
+    raise_incorrect_quantity,
 )
 import hatyan
 import logging
@@ -151,18 +152,20 @@ def plot_stations(station_list: list, crs: int = None, add_labels: bool = False)
         Figure axis handle.
 
     """
-    locs_meas_ts_all, locs_meas_ext_all, _ = retrieve_catalog(crs=crs)
+    locs_meas_ts_all, locs_meas_ext_all, _, locs_meas_q_all = retrieve_catalog(crs=crs)
     locs_ts = locs_meas_ts_all.loc[locs_meas_ts_all.index.isin(station_list)]
     locs_ext = locs_meas_ext_all.loc[locs_meas_ext_all.index.isin(station_list)]
+    locs_q = locs_meas_q_all.loc[locs_meas_q_all.index.isin(station_list)]
     if crs is None:
         crs = int(locs_ts["Coordinatenstelsel"].iloc[0])
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.plot(locs_ts["X"], locs_ts["Y"], "xk", label="timeseries")
+    ax.plot(locs_ts["X"], locs_ts["Y"], "xk", label="waterlevels")
     ax.plot(locs_ext["X"], locs_ext["Y"], "+r", label="extremes")
+    ax.plot(locs_q["X"], locs_q["Y"], "+r", label="discharges")
     ax.legend()
 
-    ax.set_title("stations with timeseries/extremes data")
+    ax.set_title("stations with measurement data")
     ax.set_aspect("equal")
     ax.set_xlabel(f"X (EPSG:{crs})")
     ax.set_ylabel(f"Y (EPSG:{crs})")
@@ -263,7 +266,7 @@ def get_stats_from_dataframe(df):
     return ds_stats
 
 
-def derive_statistics(dir_output: str, station_list: list, extremes: bool):
+def derive_statistics(dir_output: str, station_list: list, quantity: str):
     """
     Derive several statistics for the measurements of each station in the list.
 
@@ -273,8 +276,9 @@ def derive_statistics(dir_output: str, station_list: list, extremes: bool):
         Path where the measurement netcdf file will be stored.
     station : list
         list of station names to derive statistics for, for instance ["HOEKVHLD"].
-    extremes : bool
-        Whether to derive statistics from waterlevel timeseries or extremes.
+    quantity : str
+        Whether to derive statistics from waterlevel timeseries, waterlevel extremes
+        or discharges.
 
     Returns
     -------
@@ -282,16 +286,17 @@ def derive_statistics(dir_output: str, station_list: list, extremes: bool):
         A dataframe with several statistics for each station from the provided list.
 
     """
+    raise_incorrect_quantity(quantity)
     row_list = []
     for current_station in station_list:
-        logger.info(f"deriving statistics for {current_station} (extremes={extremes})")
+        logger.info(f"deriving statistics for {current_station} (quantity={quantity})")
         data_summary_row = {}
 
         # load measwl data
         ds_meas = read_measurements(
             dir_output=dir_output,
             station=current_station,
-            extremes=extremes,
+            quantity=quantity,
             return_xarray=True,
         )
         if ds_meas is not None:

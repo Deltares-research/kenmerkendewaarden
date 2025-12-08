@@ -8,12 +8,12 @@ import pandas as pd
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.systemtest
-@pytest.mark.parametrize("extremes", [False, True], ids=["timeseries", "extremes"])
-def test_derive_statistics(dir_meas, extremes):
+@pytest.mark.parametrize("quantity", ["meas_wl", "meas_ext"])
+def test_derive_statistics(dir_meas, quantity):
     current_station = "HOEKVHLD"
     station_list = [current_station]
 
-    if extremes:
+    if quantity == "meas_ext":
         cols_stats = [
             "WaarnemingMetadata.StatuswaardeLijst",
             "WaarnemingMetadata.KwaliteitswaardecodeLijst",
@@ -42,7 +42,7 @@ def test_derive_statistics(dir_meas, extremes):
         stats_expected = np.array([7.922705314009662, -133, 211])
         timedif_min = pd.Timedelta("0 days 00:34:00")
         timedif_max = pd.Timedelta("0 days 08:57:00")
-    else:
+    elif quantity == "meas_wl":
         cols_stats = [
             "WaarnemingMetadata.StatuswaardeLijst",
             "WaarnemingMetadata.KwaliteitswaardecodeLijst",
@@ -71,7 +71,7 @@ def test_derive_statistics(dir_meas, extremes):
         timedif_max = pd.Timedelta("0 days 00:10:00")
 
     stats = kw.derive_statistics(
-        dir_output=dir_meas, station_list=station_list, extremes=extremes
+        dir_output=dir_meas, station_list=station_list, quantity=quantity
     )
 
     # assert statistics columns
@@ -87,10 +87,10 @@ def test_derive_statistics(dir_meas, extremes):
 
 @pytest.mark.timeout(120)  # useful in case of ddl failure
 @pytest.mark.unittest
-@pytest.mark.parametrize("extremes", [False, True], ids=["timeseries", "extremes"])
-def test_plot_measurements_amount(dir_meas_amount, extremes):
+@pytest.mark.parametrize("quantity", ["meas_wl", "meas_ext"])
+def test_plot_measurements_amount(dir_meas_amount, quantity):
     df_amount = kw.read_measurements_amount(
-        dir_output=dir_meas_amount, extremes=extremes
+        dir_output=dir_meas_amount, quantity=quantity
     )
     kw.plot_measurements_amount(df=df_amount, relative=True)
 
