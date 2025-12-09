@@ -30,7 +30,6 @@ write_stations_table = False
 start_date = pd.Timestamp(1870, 1, 1, tz="UTC+01:00")
 end_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
 
-# dir_base = r'p:\11208031-010-kenmerkende-waarden-k\work'
 dir_base = r"p:\11210325-005-kenmerkende-waarden\work"
 dir_meas = os.path.join(dir_base, f"measurements_wl_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}")
 os.makedirs(dir_meas, exist_ok=True)
