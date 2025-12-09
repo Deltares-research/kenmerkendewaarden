@@ -176,7 +176,7 @@ def retrieve_measurements_amount(
     for station in station_list:
         logger.info(
             f"retrieving measurement amount (quantity={quantity}) from DDL for "
-            "{station}"
+            f"{station}"
             )
 
         bool_station = locs_meas.index.isin([station])
