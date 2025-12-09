@@ -351,7 +351,6 @@ def calc_HWLWtidalrange(df_ext: pd.DataFrame):
 def calc_getijcomponenten(
     df_meas,
     const_list=None,
-    nodalfactors=True,
     analysis_perperiod="Y",
     return_allperiods=False,
 ):
@@ -359,6 +358,8 @@ def calc_getijcomponenten(
     # RWS-default settings
     if const_list is None:
         const_list = hatyan.get_const_list_hatyan("year")
+    # nodalfactors=True is RWS and hatyan default
+    nodalfactors = True
     # fu_alltimes=False makes the hat/lat process significantly faster (default is True)
     fu_alltimes = False
     # xfac actually varies between stations (default is False), but different xfac

@@ -117,10 +117,7 @@ def calc_gemiddeldgetij(
         HW_np = LW_np = None
 
     # derive components via TA on measured waterlevels
-    comp_frommeasurements_avg, comp_av, comp_sn = get_gemgetij_components(
-        df_meas_10y,
-        nodalfactors=True,
-        )
+    comp_av, comp_sn = get_gemgetij_components(df_meas_10y)
 
     # start 12 hours in advance, to assure also corrected values on desired tstart
     times_pred_1mnth = pd.date_range(
@@ -141,6 +138,8 @@ def calc_gemiddeldgetij(
     prediction_avg_ext_one = prediction_avg_ext.loc[ia1:ia2]
 
     # spring/neap getijkromme
+    # make prediction with springneap components with nodalfactors=False (alternative for choosing a year with a neutral nodal factor).
+    # Using 1yr instead of 1month does not make a difference in min/max tidal range and shape, also because of nodalfactors=False.
     prediction_sn = hatyan.prediction(
         comp_sn, times=times_pred_1mnth
     )
@@ -309,16 +308,14 @@ def plot_gemiddeldgetij(
     return fig, ax
 
 
-def get_gemgetij_components(data_pd_meas, nodalfactors=True):
+def get_gemgetij_components(data_pd_meas):
     # =============================================================================
-    # Hatyan analyse voor 10 jaar (alle componenten voor gemiddelde getijcyclus) #TODO: maybe use original 4y period/componentfile instead? SA/SM should come from 19y analysis
+    # Hatyan analyse voor 10 jaar (alle componenten voor gemiddelde getijcyclus)
+    # TODO: maybe use original 4y period/componentfile instead? SA/SM should come from 19y analysis
     # =============================================================================
 
     # components should not be reduced, since higher harmonics are necessary
-    comp_frommeasurements_avg = calc_getijcomponenten(
-        df_meas=data_pd_meas,
-        nodalfactors=nodalfactors,
-        )
+    comp_frommeasurements_avg = calc_getijcomponenten(df_meas=data_pd_meas)
 
     # check if nans in analysis
     if comp_frommeasurements_avg.isnull()["A"].any():
@@ -376,6 +373,7 @@ def get_gemgetij_components(data_pd_meas, nodalfactors=True):
         "verhouding tussen originele en kwadratensom componenten:\n"
         f"{comp_av/comp_frommeasurements_avg.loc[components_av]}"
     )
+    
     # nodalfactors=False to guarantee repetitive signal
     comp_av.attrs["nodalfactors"] = False
 
@@ -420,11 +418,10 @@ def get_gemgetij_components(data_pd_meas, nodalfactors=True):
         "5MS12",
     ]
 
-    # make prediction with springneap components with nodalfactors=False (alternative for choosing a year with a neutral nodal factor). Using 1yr instead of 1month does not make a difference in min/max tidal range and shape, also because of nodalfactors=False. (when using more components, there is a slight difference)
     comp_sn = comp_frommeasurements_avg.loc[components_sn]
     # nodalfactors=False to make independent on chosen year
     comp_sn.attrs["nodalfactors"] = False
-    return comp_frommeasurements_avg, comp_av, comp_sn
+    return comp_av, comp_sn
 
 
 def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
