@@ -118,6 +118,30 @@ def test_read_measurements_notfound(tmp_path):
     assert df_meas is None
 
 
+@pytest.mark.unittest
+def test_retrieve_measurements_already_exists(tmp_path, caplog):
+    # create dummy file that would be created by kw.retrieve_measurements()
+    expected_file = tmp_path / "HOEKVHLD_measwl.nc"
+    with open(expected_file, "w"):
+        pass
+    
+    start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2010, 1, 2, tz="UTC+01:00")
+    current_station = "HOEKVHLD"
+    
+    # retrieve measurements
+    with caplog.at_level(logging.INFO):
+        meas = kw.retrieve_measurements(
+            dir_output=tmp_path,
+            station=current_station,
+            quantity="meas_wl",
+            start_date=start_date,
+            end_date=end_date,
+        )
+    assert "meas data (quantity=meas_wl) for HOEKVHLD already available" in caplog.text
+    assert meas is None
+
+
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_retrieve_measurements_wrongperiod(caplog):
