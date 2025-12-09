@@ -117,7 +117,7 @@ def calc_gemiddeldgetij(
         HW_np = LW_np = None
 
     # derive components via TA on measured waterlevels
-    comp_frommeasurements_avg, comp_av = get_gemgetij_components(df_meas_10y)
+    comp_av, comp_sn = get_gemgetij_components(df_meas_10y)
 
     # start 12 hours in advance, to assure also corrected values on desired tstart
     times_pred_1mnth = pd.date_range(
@@ -126,8 +126,7 @@ def calc_gemiddeldgetij(
         freq=freq,
         tz=df_meas_10y.index.tz,
     )
-    # nodalfactors=False to guarantee repetative signal
-    comp_av.attrs["nodalfactors"] = False
+    # average getijkromme
     prediction_avg = hatyan.prediction(comp_av, times=times_pred_1mnth)
     prediction_avg_ext = hatyan.calc_HWLW(ts=prediction_avg, calc_HWLW345=False)
 
@@ -138,54 +137,10 @@ def calc_gemiddeldgetij(
     prediction_avg_one = prediction_avg.loc[ia1:ia2]
     prediction_avg_ext_one = prediction_avg_ext.loc[ia1:ia2]
 
-    # =============================================================================
-    # Hatyan predictie voor 1 jaar met gemiddelde helling maansbaan (voor afleiden spring-doodtijcyclus) >> predictie zonder nodalfactors instead
-    # =============================================================================
-    """
-    uit: gemiddelde getijkrommen 1991.0
-    Voor de ruwe krommen voor springtij en doodtij is het getij voorspeld
-    voor een jaar met gemiddelde helling maansbaan met
-    uitsluitend zuivere combinaties van de componenten M2 en S2:
-    tabel: Gebruikte componenten voor de spring- en doodtijkromme
-    SM, 3MS2, mu2, M2, S2, 2SM2, 3MS4, M4, MS4,
-    4MS6, M6, 2MS6, M8, 3MS8, M10, 4MS10, M12, 5MS12
-
-    In het aldus gemodelleerde getij is de vorm van iedere getijslag, gegeven de getijfase, identiek.
-    Vervolgens is aan de hand van de havengetallen een springtij- en een doodtijkromme geselecteerd.
-
-    Based on the information above one could consider adding more components, more information
-    is available in https://github.com/Deltares-research/kenmerkendewaarden/issues/173
-    """
-    components_sn = [
-        "A0",
-        "SM",
-        "3MS2",
-        "MU2",
-        "M2",
-        "S2",
-        "2SM2",
-        "3MS4",
-        "M4",
-        "MS4",
-        "4MS6",
-        "M6",
-        "2MS6",
-        "M8",
-        "3MS8",
-        "M10",
-        "4MS10",
-        "M12",
-        "5MS12",
-    ]
-
-    # make prediction with springneap components with nodalfactors=False (alternative for choosing a year with a neutral nodal factor). Using 1yr instead of 1month does not make a difference in min/max tidal range and shape, also because of nodalfactors=False. (when using more components, there is a slight difference)
-    comp_frommeasurements_avg_sncomp = comp_frommeasurements_avg.loc[components_sn]
-    # nodalfactors=False to make independent on chosen year
-    comp_frommeasurements_avg_sncomp.attrs["nodalfactors"] = False
-    prediction_sn = hatyan.prediction(
-        comp_frommeasurements_avg_sncomp, times=times_pred_1mnth
-    )
-
+    # spring/neap getijkromme
+    # make prediction with springneap components with nodalfactors=False (alternative for choosing a year with a neutral nodal factor).
+    # Using 1yr instead of 1month does not make a difference in min/max tidal range and shape, also because of nodalfactors=False.
+    prediction_sn = hatyan.prediction(comp_sn, times=times_pred_1mnth)
     prediction_sn_ext = hatyan.calc_HWLW(ts=prediction_sn, calc_HWLW345=False)
 
     # selecteer getijslag met minimale tidalrange en maximale tidalrange (werd geselecteerd adhv havengetallen in 1991.0 doc)
@@ -352,8 +307,14 @@ def plot_gemiddeldgetij(
 
 
 def get_gemgetij_components(data_pd_meas):
+    """
+    Components are derived with nodalfactors=True, but attrs are overwritten with
+    nodalfactors=False to guarantee predictions that are consistent between years so it
+    does not matter too much which prediction period is chosen.
+    """
     # =============================================================================
-    # Hatyan analyse voor 10 jaar (alle componenten voor gemiddelde getijcyclus) #TODO: maybe use original 4y period/componentfile instead? SA/SM should come from 19y analysis
+    # Hatyan analyse voor 10 jaar (alle componenten voor gemiddelde getijcyclus)
+    # TODO: maybe use original 4y period/componentfile instead? SA/SM should come from 19y analysis
     # =============================================================================
 
     # components should not be reduced, since higher harmonics are necessary
@@ -364,7 +325,7 @@ def get_gemgetij_components(data_pd_meas):
         raise ValueError("analysis result contains nan values")
 
     # =============================================================================
-    # gemiddelde getijkromme
+    # componentenset voor gemiddelde getijkromme
     # =============================================================================
     """
     uit: gemiddelde getijkrommen 1991.0
@@ -416,7 +377,54 @@ def get_gemgetij_components(data_pd_meas):
         f"{comp_av/comp_frommeasurements_avg.loc[components_av]}"
     )
 
-    return comp_frommeasurements_avg, comp_av
+    # nodalfactors=False to guarantee repetitive signal
+    comp_av.attrs["nodalfactors"] = False
+
+    # =============================================================================
+    # componentenset voor spring/neap getijkromme
+    # =============================================================================
+
+    """
+    uit: gemiddelde getijkrommen 1991.0
+    Voor de ruwe krommen voor springtij en doodtij is het getij voorspeld
+    voor een jaar met gemiddelde helling maansbaan met
+    uitsluitend zuivere combinaties van de componenten M2 en S2:
+    tabel: Gebruikte componenten voor de spring- en doodtijkromme
+    SM, 3MS2, mu2, M2, S2, 2SM2, 3MS4, M4, MS4,
+    4MS6, M6, 2MS6, M8, 3MS8, M10, 4MS10, M12, 5MS12
+
+    In het aldus gemodelleerde getij is de vorm van iedere getijslag, gegeven de getijfase, identiek.
+    Vervolgens is aan de hand van de havengetallen een springtij- en een doodtijkromme geselecteerd.
+
+    Based on the information above one could consider adding more components, more information
+    is available in https://github.com/Deltares-research/kenmerkendewaarden/issues/173
+    """
+    components_sn = [
+        "A0",
+        "SM",
+        "3MS2",
+        "MU2",
+        "M2",
+        "S2",
+        "2SM2",
+        "3MS4",
+        "M4",
+        "MS4",
+        "4MS6",
+        "M6",
+        "2MS6",
+        "M8",
+        "3MS8",
+        "M10",
+        "4MS10",
+        "M12",
+        "5MS12",
+    ]
+
+    comp_sn = comp_frommeasurements_avg.loc[components_sn]
+    # nodalfactors=False to make independent on chosen year
+    comp_sn.attrs["nodalfactors"] = False
+    return comp_av, comp_sn
 
 
 def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
