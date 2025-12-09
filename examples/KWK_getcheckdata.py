@@ -2,7 +2,6 @@
 
 import os
 import pandas as pd
-import datetime as dt
 import matplotlib.pyplot as plt
 plt.close('all')
 import kenmerkendewaarden as kw
@@ -125,7 +124,7 @@ for current_station in station_list:
     file_wl_png = os.path.join(dir_meas,f'ts_{current_station}.png')
     ax1.set_xlim(pd.Timestamp(start_date), pd.Timestamp(end_date)) # entire period
     fig.savefig(file_wl_png.replace('.png','_alldata.png'))
-    ax1.set_xlim(dt.datetime(2000,1,1),dt.datetime(2024,1,1)) # period of interest
+    ax1.set_xlim(pd.Timestamp(2000,1,1),pd.Timestamp(2024,1,1)) # period of interest
     fig.savefig(file_wl_png.replace('.png','_2000_2024.png'))
     plt.close(fig)
 
@@ -147,7 +146,7 @@ if plot_stations:
 if write_stations_table:
     # TODO: consider making retrieve_catalog public
     from kenmerkendewaarden.data_retrieve import retrieve_catalog
-    locs_meas_wl_all, _, _ = retrieve_catalog(crs=4326)
+    locs_meas_wl_all, _, _, _ = retrieve_catalog(crs=4326)
     locs_wl = locs_meas_wl_all.loc[locs_meas_wl_all.index.isin(station_list)]
     file_csv = os.path.join(dir_base, "station_locations.csv")
     locs_wl[["Locatie_MessageID","X","Y","Coordinatenstelsel","Naam"]].to_csv(file_csv)
