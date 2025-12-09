@@ -152,7 +152,7 @@ def retrieve_measurements_amount(
     None
 
     """
-    locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q = retrieve_catalog()
+    locs_meas_wl, locs_meas_ext, _, locs_meas_q = retrieve_catalog()
     raise_incorrect_quantity(quantity)
 
     if quantity == "meas_wl":

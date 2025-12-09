@@ -135,8 +135,8 @@ def test_read_measurements_notfound(tmp_path):
 def test_retrieve_measurements_already_exists(tmp_path, caplog):
     # create dummy file that would be created by kw.retrieve_measurements()
     expected_file = tmp_path / "HOEKVHLD_measwl.nc"
-    with open(expected_file, "w"):
-        pass
+    with open(expected_file, "w") as f:
+        f.write("")
 
     start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2010, 1, 2, tz="UTC+01:00")
