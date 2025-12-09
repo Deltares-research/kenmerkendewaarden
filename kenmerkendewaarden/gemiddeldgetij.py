@@ -117,7 +117,10 @@ def calc_gemiddeldgetij(
         HW_np = LW_np = None
 
     # derive components via TA on measured waterlevels
-    comp_frommeasurements_avg, comp_av = get_gemgetij_components(df_meas_10y)
+    comp_frommeasurements_avg, comp_av = get_gemgetij_components(
+        df_meas_10y,
+        nodalfactors=False,
+        )
 
     # start 12 hours in advance, to assure also corrected values on desired tstart
     times_pred_1mnth = pd.date_range(
@@ -127,7 +130,7 @@ def calc_gemiddeldgetij(
         tz=df_meas_10y.index.tz,
     )
     # nodalfactors=False to guarantee repetative signal
-    comp_av.attrs["nodalfactors"] = False
+    # comp_av.attrs["nodalfactors"] = False
     prediction_avg = hatyan.prediction(comp_av, times=times_pred_1mnth)
     prediction_avg_ext = hatyan.calc_HWLW(ts=prediction_avg, calc_HWLW345=False)
 
@@ -181,7 +184,7 @@ def calc_gemiddeldgetij(
     # make prediction with springneap components with nodalfactors=False (alternative for choosing a year with a neutral nodal factor). Using 1yr instead of 1month does not make a difference in min/max tidal range and shape, also because of nodalfactors=False. (when using more components, there is a slight difference)
     comp_frommeasurements_avg_sncomp = comp_frommeasurements_avg.loc[components_sn]
     # nodalfactors=False to make independent on chosen year
-    comp_frommeasurements_avg_sncomp.attrs["nodalfactors"] = False
+    # comp_frommeasurements_avg_sncomp.attrs["nodalfactors"] = False
     prediction_sn = hatyan.prediction(
         comp_frommeasurements_avg_sncomp, times=times_pred_1mnth
     )
@@ -351,13 +354,16 @@ def plot_gemiddeldgetij(
     return fig, ax
 
 
-def get_gemgetij_components(data_pd_meas):
+def get_gemgetij_components(data_pd_meas, nodalfactors=True):
     # =============================================================================
     # Hatyan analyse voor 10 jaar (alle componenten voor gemiddelde getijcyclus) #TODO: maybe use original 4y period/componentfile instead? SA/SM should come from 19y analysis
     # =============================================================================
 
     # components should not be reduced, since higher harmonics are necessary
-    comp_frommeasurements_avg = calc_getijcomponenten(df_meas=data_pd_meas)
+    comp_frommeasurements_avg = calc_getijcomponenten(
+        df_meas=data_pd_meas,
+        nodalfactors=nodalfactors,
+        )
 
     # check if nans in analysis
     if comp_frommeasurements_avg.isnull()["A"].any():
