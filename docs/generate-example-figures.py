@@ -30,8 +30,8 @@ current_station = "HOEKVHLD"
 
 # READ MEASUREMENT DATA
 dir_testdata = "../tests/testdata"
-file_dia_ts = os.path.join(dir_testdata, "HOEK_KW.dia")
-df_meas_all = hatyan.read_dia(file_dia_ts)
+file_dia_wl = os.path.join(dir_testdata, "HOEK_KW.dia")
+df_meas_all = hatyan.read_dia(file_dia_wl)
 df_meas_all["values"] *= 100
 df_meas_all.attrs["eenheid"] = "cm"
 file_dia_ext = os.path.join(dir_testdata, "HOEKVHLD_ext.dia")
