@@ -174,7 +174,7 @@ def retrieve_measurements_amount(
     # if csv file(s) do not exist, get the measurement amount from the DDL
     amount_list = []
     for station in station_list:
-        logger.info(f"retrieving measurement amount from DDL for {station}")
+        logger.info(f"retrieving {quantity} measurement amount from DDL for {station}")
 
         bool_station = locs_meas.index.isin([station])
         loc_meas_one = locs_meas.loc[bool_station]
