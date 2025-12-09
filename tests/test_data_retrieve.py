@@ -108,7 +108,7 @@ def test_retrieve_read_measurements(dir_meas):
     assert df_ext.index[-1] == pd.Timestamp("2010-12-31 23:50:00+0100", tz="Etc/GMT-1")
     assert df_q.index.tz.zone == "Etc/GMT-1"
     assert df_q.index[0] == pd.Timestamp("2010-01-01 00:00:00+0100", tz="Etc/GMT-1")
-    assert df_q.index[-1] == pd.Timestamp("2010-12-31 00:00:00+0100", tz="Etc/GMT-1")
+    assert df_q.index[-1] == pd.Timestamp("2011-01-01 00:00:00+0100", tz="Etc/GMT-1")
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
@@ -137,11 +137,11 @@ def test_retrieve_measurements_already_exists(tmp_path, caplog):
     expected_file = tmp_path / "HOEKVHLD_measwl.nc"
     with open(expected_file, "w"):
         pass
-    
+
     start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2010, 1, 2, tz="UTC+01:00")
     current_station = "HOEKVHLD"
-    
+
     # retrieve measurements
     with caplog.at_level(logging.INFO):
         meas = kw.retrieve_measurements(
@@ -160,7 +160,7 @@ def test_retrieve_measurements_no_station(caplog):
     start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2010, 1, 2, tz="UTC+01:00")
     current_station = "NON-EXISTENT-STATION"
-    
+
     # retrieve measurements
     with caplog.at_level(logging.INFO):
         meas = kw.retrieve_measurements(
