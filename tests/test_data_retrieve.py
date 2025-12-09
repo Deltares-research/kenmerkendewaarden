@@ -142,10 +142,28 @@ def test_retrieve_measurements_already_exists(tmp_path, caplog):
     assert meas is None
 
 
+@pytest.mark.unittest
+def test_retrieve_measurements_no_station(caplog):
+    start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2010, 1, 2, tz="UTC+01:00")
+    current_station = "NON-EXISTENT-STATION"
+    
+    # retrieve measurements
+    with caplog.at_level(logging.INFO):
+        meas = kw.retrieve_measurements(
+            dir_output=".",
+            station=current_station,
+            quantity="meas_wl",
+            start_date=start_date,
+            end_date=end_date,
+        )
+    assert "no station available (quantity=meas_wl), skipping station" in caplog.text
+    assert meas is None
+
+
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_retrieve_measurements_wrongperiod(caplog):
-    dir_meas = "."
     start_date = pd.Timestamp(3010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(3010, 1, 2, tz="UTC+01:00")
     current_station = "HOEKVHLD"
@@ -153,7 +171,7 @@ def test_retrieve_measurements_wrongperiod(caplog):
     # retrieve measurements
     with caplog.at_level(logging.INFO):
         kw.retrieve_measurements(
-            dir_output=dir_meas,
+            dir_output=".",
             station=current_station,
             quantity="meas_wl",
             start_date=start_date,
@@ -165,7 +183,6 @@ def test_retrieve_measurements_wrongperiod(caplog):
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_retrieve_measurements_amount_periodwithoutdata(tmp_path, caplog):
-    dir_meas = tmp_path
     start_date = pd.Timestamp(2020, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2021, 1, 2, tz="UTC+01:00")
     current_station = "BAALHK"
@@ -173,7 +190,7 @@ def test_retrieve_measurements_amount_periodwithoutdata(tmp_path, caplog):
     # retrieve measurements
     with caplog.at_level(logging.INFO):
         kw.retrieve_measurements_amount(
-            dir_output=dir_meas,
+            dir_output=tmp_path,
             station_list=[current_station],
             quantity="meas_ext",
             start_date=start_date,
@@ -185,7 +202,6 @@ def test_retrieve_measurements_amount_periodwithoutdata(tmp_path, caplog):
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_retrieve_measurements_amount_emptylocslist(tmp_path, caplog):
-    dir_meas = tmp_path
     start_date = pd.Timestamp(2020, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2021, 1, 2, tz="UTC+01:00")
     current_station = "A12"
@@ -193,7 +209,7 @@ def test_retrieve_measurements_amount_emptylocslist(tmp_path, caplog):
     # retrieve measurements
     with caplog.at_level(logging.INFO):
         kw.retrieve_measurements_amount(
-            dir_output=dir_meas,
+            dir_output=tmp_path,
             station_list=[current_station],
             quantity="meas_ext",
             start_date=start_date,
