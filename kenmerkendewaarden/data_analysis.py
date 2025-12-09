@@ -162,7 +162,7 @@ def plot_stations(station_list: list, crs: int = None, add_labels: bool = False)
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.plot(locs_wl["X"], locs_wl["Y"], "xk", label="waterlevels")
     ax.plot(locs_ext["X"], locs_ext["Y"], "+r", label="extremes")
-    ax.plot(locs_q["X"], locs_q["Y"], "+r", label="discharges")
+    ax.plot(locs_q["X"], locs_q["Y"], "1b", label="discharges")
     ax.legend()
 
     ax.set_title("stations with measurement data")
