@@ -326,7 +326,7 @@ def retrieve_measurements(
         loc_meas_one = loc_meas_ext_one
         freq = dateutil.rrule.YEARLY
     elif quantity == "meas_q":
-        fname = DICT_FNAMES["meas_ext"].format(station=station)
+        fname = DICT_FNAMES["meas_q"].format(station=station)
         loc_meas_one = loc_meas_q_one
         freq = dateutil.rrule.MONTHLY
 
@@ -478,7 +478,7 @@ def read_measurements(
     elif quantity == "meas_ext":
         fname = DICT_FNAMES["meas_ext"].format(station=station)
     elif quantity == "meas_q":
-        fname = DICT_FNAMES["meas_ext"].format(station=station)
+        fname = DICT_FNAMES["meas_q"].format(station=station)
 
     file_nc = os.path.join(dir_output, fname)
 
