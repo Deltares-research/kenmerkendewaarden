@@ -23,10 +23,12 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 DICT_FNAMES = {
-    "meas_ts": "{station}_measwl.nc",
-    "meas_ext": "{station}_measext.nc",
-    "amount_ts": "data_amount_ts.csv",
+    "meas_wl": "{station}_meas_wl.nc",
+    "meas_ext": "{station}_meas_ext.nc",
+    "meas_q": "{station}_meas_q.nc",
+    "amount_wl": "data_amount_wl.csv",
     "amount_ext": "data_amount_ext.csv",
+    "amount_q": "data_amount_q.csv",
 }
 
 
@@ -72,7 +74,7 @@ def retrieve_catalog(overwrite=False, crs: int = None):
         locations["Coordinatenstelsel"] = str(crs)
 
     bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
-    bool_groepering_ts = locations["Groepering.Code"].isin(["NVT"])
+    bool_groepering_wl = locations["Groepering.Code"].isin(["NVT"])
     bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2", "GETETMSL2"])
     # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
     # bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
@@ -81,11 +83,16 @@ def retrieve_catalog(overwrite=False, crs: int = None):
     # filtering locations dataframe on Typering is possible because "Typeringen" was in catalog_filter for ddlpy.locations
     bool_typering_exttypes = locations["Typering.Code"].isin(["GETETTPE"])
 
+    # filtering locations dataframe on discharge/Q
+    bool_grootheid_q = locations["Grootheid.Code"].isin(["Q"])
+    bool_eenheid_q = locations["Eenheid.Code"].isin(["m3/s"])
+
     # select locations on grootheid/groepering/exttypes
-    locs_meas_ts = locations.loc[bool_grootheid & bool_groepering_ts]
+    locs_meas_wl = locations.loc[bool_grootheid & bool_groepering_wl]
     locs_meas_ext = locations.loc[bool_grootheid & bool_groepering_ext]
     locs_meas_exttype = locations.loc[bool_typering_exttypes & bool_groepering_ext]
-    return locs_meas_ts, locs_meas_ext, locs_meas_exttype
+    locs_meas_q = locations.loc[bool_grootheid_q & bool_eenheid_q]
+    return locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q
 
 
 def raise_multiple_locations(locations):
@@ -101,10 +108,25 @@ def raise_multiple_locations(locations):
         )
 
 
+def raise_incorrect_quantity(quantity):
+    """
+    checks whether the requested quantity is in the set of allowed quantities
+    """
+    allowed_quantities = [
+        "meas_wl",  # measured waterlevel timeseries [cm]
+        "meas_ext",  # measured waterlevel extremes [cm]
+        "meas_q",  # measured discharge Q [m3/s]
+    ]
+    if quantity not in allowed_quantities:
+        raise ValueError(
+            f"quantity '{quantity}' is not allowed, choose from {allowed_quantities}"
+        )
+
+
 def retrieve_measurements_amount(
     dir_output: str,
     station_list: list,
-    extremes: bool,
+    quantity: str,
     start_date: pd.Timestamp,
     end_date: pd.Timestamp,
 ):
@@ -117,8 +139,9 @@ def retrieve_measurements_amount(
         Path where the measurement netcdf file will be stored.
     station : str
         station name, for instance "HOEKVHLD".
-    extremes : bool
-        Whether to read measurements for waterlevel timeseries or extremes.
+    quantity : str
+        Whether to retrieve measurements amount for waterlevel timeseries, waterlevel
+        extremes or discharges.
     start_date : pd.Timestamp (or anything understood by pd.Timestamp)
         start date of the measurements to be retrieved.
     end_date : pd.Timestamp (or anything understood by pd.Timestamp)
@@ -129,14 +152,18 @@ def retrieve_measurements_amount(
     None
 
     """
-    locs_meas_ts, locs_meas_ext, locs_meas_exttype = retrieve_catalog()
+    locs_meas_wl, locs_meas_ext, _, locs_meas_q = retrieve_catalog()
+    raise_incorrect_quantity(quantity)
 
-    if extremes:
+    if quantity == "meas_wl":
+        fname = DICT_FNAMES["amount_wl"]
+        locs_meas = locs_meas_wl
+    elif quantity == "meas_ext":
         fname = DICT_FNAMES["amount_ext"]
         locs_meas = locs_meas_ext
-    else:
-        fname = DICT_FNAMES["amount_ts"]
-        locs_meas = locs_meas_ts
+    elif quantity == "meas_q":
+        fname = DICT_FNAMES["amount_q"]
+        locs_meas = locs_meas_q
     file_csv_amount = os.path.join(dir_output, fname)
 
     if os.path.exists(file_csv_amount):
@@ -147,7 +174,10 @@ def retrieve_measurements_amount(
     # if csv file(s) do not exist, get the measurement amount from the DDL
     amount_list = []
     for station in station_list:
-        logger.info(f"retrieving measurement amount from DDL for {station}")
+        logger.info(
+            f"retrieving measurement amount (quantity={quantity}) from DDL for "
+            f"{station}"
+            )
 
         bool_station = locs_meas.index.isin([station])
         loc_meas_one = locs_meas.loc[bool_station]
@@ -160,7 +190,7 @@ def retrieve_measurements_amount(
             return empty_df
 
         if len(loc_meas_one) == 0:
-            logger.info(f"no station available (extremes={extremes})")
+            logger.info(f"no station available (quantity={quantity})")
             # TODO: no ext station available for ["A12","AWGPFM","BAALHK","GATVBSLE","D15","F16","F3PFM","J6","K14PFM",
             #                                     "L9PFM","MAASMSMPL","NORTHCMRT","OVLVHWT","Q1","SINTANLHVSGR","WALSODN"]
             # https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
@@ -177,7 +207,7 @@ def retrieve_measurements_amount(
                 amount_meas = amount_meas.rename(columns={"AantalMetingen": station})
             except NoDataError:
                 logger.info(
-                    f"no measurements available in this period (extremes={extremes})"
+                    f"no measurements available in this period (quantity={quantity})"
                 )
                 amount_meas = empty_df_row(station)
 
@@ -190,7 +220,7 @@ def retrieve_measurements_amount(
     df_amount.to_csv(file_csv_amount)
 
 
-def read_measurements_amount(dir_output: str, extremes: bool):
+def read_measurements_amount(dir_output: str, quantity: str):
     """
     Read the measurements amount csv into a dataframe.
 
@@ -198,8 +228,9 @@ def read_measurements_amount(dir_output: str, extremes: bool):
     ----------
     dir_output : str
         Path where the measurements are stored.
-    extremes : bool
-        Whether to read measurements amount for waterlevel timeseries or extremes.
+    quantity : str
+        Whether to read measurements amount for waterlevel timeseries, waterlevel
+        extremes or discharges.
 
     Returns
     -------
@@ -207,10 +238,13 @@ def read_measurements_amount(dir_output: str, extremes: bool):
         DataFrame with the amount of measurements per year.
 
     """
-    if extremes:
+    raise_incorrect_quantity(quantity)
+    if quantity == "meas_wl":
+        fname = DICT_FNAMES["amount_wl"]
+    elif quantity == "meas_ext":
         fname = DICT_FNAMES["amount_ext"]
-    else:
-        fname = DICT_FNAMES["amount_ts"]
+    elif quantity == "meas_q":
+        fname = DICT_FNAMES["amount_q"]
     file_csv_amount = os.path.join(dir_output, fname)
 
     if not os.path.exists(file_csv_amount):
@@ -225,7 +259,7 @@ def read_measurements_amount(dir_output: str, extremes: bool):
 def retrieve_measurements(
     dir_output: str,
     station: str,
-    extremes: bool,
+    quantity: str,
     start_date: pd.Timestamp,
     end_date: pd.Timestamp,
     drop_if_constant: list = None,
@@ -239,8 +273,9 @@ def retrieve_measurements(
         Path where the measurement netcdf file will be stored.
     station : str
         station name, for instance "HOEKVHLD".
-    extremes : bool
-        Whether to read measurements for waterlevel timeseries or extremes.
+    quantity : str
+        Whether to retrieve measurements for waterlevel timeseries, waterlevel extremes
+        or discharges.
     start_date : pd.Timestamp (or anything understood by pd.Timestamp)
         start date of the measurements to be retrieved.
     end_date : pd.Timestamp (or anything understood by pd.Timestamp)
@@ -254,7 +289,8 @@ def retrieve_measurements(
 
     """
 
-    locs_meas_ts, locs_meas_ext, locs_meas_exttype = retrieve_catalog()
+    locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q = retrieve_catalog()
+    raise_incorrect_quantity(quantity)
 
     if drop_if_constant is None:
         drop_if_constant = [
@@ -272,38 +308,45 @@ def retrieve_measurements(
             "MeetApparaat.Code",
         ]
 
-    bool_station_ts = locs_meas_ts.index.isin([station])
+    bool_station_wl = locs_meas_wl.index.isin([station])
     bool_station_ext = locs_meas_ext.index.isin([station])
     bool_station_exttype = locs_meas_exttype.index.isin([station])
-    loc_meas_ts_one = locs_meas_ts.loc[bool_station_ts]
+    bool_station_q = locs_meas_q.index.isin([station])
+    loc_meas_wl_one = locs_meas_wl.loc[bool_station_wl]
     loc_meas_ext_one = locs_meas_ext.loc[bool_station_ext]
     loc_meas_exttype_one = locs_meas_exttype.loc[bool_station_exttype]
+    loc_meas_q_one = locs_meas_q.loc[bool_station_q]
 
-    if extremes:
+    if quantity == "meas_wl":
+        fname = DICT_FNAMES["meas_wl"].format(station=station)
+        loc_meas_one = loc_meas_wl_one
+        freq = dateutil.rrule.MONTHLY
+    elif quantity == "meas_ext":
         fname = DICT_FNAMES["meas_ext"].format(station=station)
         loc_meas_one = loc_meas_ext_one
         freq = dateutil.rrule.YEARLY
-    else:
-        fname = DICT_FNAMES["meas_ts"].format(station=station)
-        loc_meas_one = loc_meas_ts_one
+    elif quantity == "meas_q":
+        fname = DICT_FNAMES["meas_q"].format(station=station)
+        loc_meas_one = loc_meas_q_one
         freq = dateutil.rrule.MONTHLY
+
     file_nc = os.path.join(dir_output, fname)
 
     # retrieving waterlevel extremes or timeseries
     if os.path.exists(file_nc):
         logger.info(
-            f"meas data (extremes={extremes}) for {station} already available in "
+            f"meas data (quantity={quantity}) for {station} already available in "
             f"{os.path.basename(dir_output)}, skipping station"
         )
         return
 
     raise_multiple_locations(loc_meas_one)
     if len(loc_meas_one) == 0:
-        logger.info(f"no station available (extremes={extremes}), skipping station")
+        logger.info(f"no station available (quantity={quantity}), skipping station")
         return
 
     logger.info(
-        f"retrieving meas data (extremes={extremes}) from DDL for {station} to {os.path.basename(dir_output)}"
+        f"retrieving meas data (quantity={quantity}) from DDL for {station} to {os.path.basename(dir_output)}"
     )
     measurements = ddlpy.measurements(
         location=loc_meas_one.iloc[0],
@@ -315,7 +358,7 @@ def retrieve_measurements(
         logger.info("no data found for the requested period")
         return
     ds_meas = ddlpy.dataframe_to_xarray(measurements, drop_if_constant)
-    if extremes:
+    if quantity == "meas_ext":
         # convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
         # TODO: simplify by retrieving the extreme value and type from ddl in a single request: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
         measurements_exttyp = ddlpy.measurements(
@@ -397,7 +440,7 @@ def drop_duplicate_times(df_meas):
 def read_measurements(
     dir_output: str,
     station: str,
-    extremes: bool,
+    quantity: str,
     return_xarray: bool = False,
     nap_correction: bool = False,
     drop_duplicates: bool = False,
@@ -411,8 +454,9 @@ def read_measurements(
         Path where the measurements are stored.
     station : str
         station name, for instance "HOEKVHLD".
-    extremes : bool
-        Whether to read measurements for waterlevel timeseries or extremes.
+    quantity : str
+        Whether to read measurements for waterlevel timeseries, waterlevel extremes
+        or discharges.
     return_xarray : bool, optional
         Whether to return raw xarray.Dataset instead of a DataFrame. No support
         for nap_correction and drop_duplicates. The default is False.
@@ -427,11 +471,15 @@ def read_measurements(
         DataFrame with the measurements or extremes timeseries.
 
     """
+    raise_incorrect_quantity(quantity)
 
-    if extremes:
+    if quantity == "meas_wl":
+        fname = DICT_FNAMES["meas_wl"].format(station=station)
+    elif quantity == "meas_ext":
         fname = DICT_FNAMES["meas_ext"].format(station=station)
-    else:
-        fname = DICT_FNAMES["meas_ts"].format(station=station)
+    elif quantity == "meas_q":
+        fname = DICT_FNAMES["meas_q"].format(station=station)
+
     file_nc = os.path.join(dir_output, fname)
 
     if not os.path.exists(file_nc):

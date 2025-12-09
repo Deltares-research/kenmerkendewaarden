@@ -16,8 +16,8 @@ dir_testdata = os.path.join(dir_tests, "testdata")
 
 @pytest.fixture(scope="session")
 def df_meas():
-    file_dia_ts = os.path.join(dir_testdata, "HOEK_KW.dia")
-    df_meas = hatyan.read_dia(file_dia_ts)
+    file_dia_wl = os.path.join(dir_testdata, "HOEK_KW.dia")
+    df_meas = hatyan.read_dia(file_dia_wl)
     return df_meas
 
 
@@ -93,14 +93,21 @@ def dir_meas(tmp_path):
     kw.retrieve_measurements(
         dir_output=dir_meas,
         station=current_station,
-        extremes=False,
+        quantity="meas_wl",
         start_date=start_date,
         end_date=end_date,
     )
     kw.retrieve_measurements(
         dir_output=dir_meas,
         station=current_station,
-        extremes=True,
+        quantity="meas_ext",
+        start_date=start_date,
+        end_date=end_date,
+    )
+    kw.retrieve_measurements(
+        dir_output=dir_meas,
+        station="HAGSBVN",
+        quantity="meas_q",
         start_date=start_date,
         end_date=end_date,
     )
@@ -121,13 +128,20 @@ def dir_meas_amount(tmp_path):
         station_list=station_list,
         start_date=start_date,
         end_date=end_date,
-        extremes=False,
+        quantity="meas_wl",
     )
     kw.retrieve_measurements_amount(
         dir_output=dir_meas_amount,
         station_list=station_list,
         start_date=start_date,
         end_date=end_date,
-        extremes=True,
+        quantity="meas_ext",
+    )
+    kw.retrieve_measurements_amount(
+        dir_output=dir_meas_amount,
+        station_list=["HAGSBVN"],
+        start_date=start_date,
+        end_date=end_date,
+        quantity="meas_q",
     )
     return dir_meas_amount

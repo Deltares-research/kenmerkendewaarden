@@ -88,10 +88,10 @@ for current_station in station_list:
     plt.close('all')
     
     # timeseries are used for slotgemiddelden, gemgetijkrommen (needs slotgem+havget)
-    df_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=False, 
+    df_meas_all = kw.read_measurements(dir_output=dir_meas, station=current_station, quantity="meas_wl", 
                                        nap_correction=nap_correction, drop_duplicates=drop_duplicates)
     # extremes are used for slotgemiddelden, havengetallen, overschrijding
-    df_ext_12345_all = kw.read_measurements(dir_output=dir_meas, station=current_station, extremes=True,
+    df_ext_12345_all = kw.read_measurements(dir_output=dir_meas, station=current_station, quantity="meas_ext",
                                       nap_correction=nap_correction, drop_duplicates=drop_duplicates)
     if df_meas_all is None or df_ext_12345_all is None:
         raise ValueError(f"missing data for {current_station}")

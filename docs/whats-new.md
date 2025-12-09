@@ -4,6 +4,7 @@
 
 ### Feat
 - automatic linear trend correction in `kw.calc_overschrijding()` in [#253](https://github.com/Deltares-research/kenmerkendewaarden/pull/253)
+- add support for retrieving discharges in [#257](https://github.com/Deltares-research/kenmerkendewaarden/pull/257)
 
 
 ## 0.4.0 (2025-08-13)
