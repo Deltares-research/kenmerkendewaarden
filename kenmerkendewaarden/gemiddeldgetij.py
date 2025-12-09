@@ -307,6 +307,11 @@ def plot_gemiddeldgetij(
 
 
 def get_gemgetij_components(data_pd_meas):
+    """
+    Components are derived with nodalfactors=True, but attrs are overwritten with
+    nodalfactors=False to guarantee predictions that are consistent between years so it
+    does not matter too much which prediction period is chosen.
+    """
     # =============================================================================
     # Hatyan analyse voor 10 jaar (alle componenten voor gemiddelde getijcyclus)
     # TODO: maybe use original 4y period/componentfile instead? SA/SM should come from 19y analysis
