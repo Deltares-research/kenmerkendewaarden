@@ -292,7 +292,7 @@ def derive_statistics(dir_output: str, station_list: list, quantity: str):
         logger.info(f"deriving statistics for {current_station} (quantity={quantity})")
         data_summary_row = {}
 
-        # load measwl data
+        # load measurement data
         ds_meas = read_measurements(
             dir_output=dir_output,
             station=current_station,
