@@ -134,7 +134,7 @@ def test_read_measurements_notfound(tmp_path):
 @pytest.mark.unittest
 def test_retrieve_measurements_already_exists(tmp_path, caplog):
     # create dummy file that would be created by kw.retrieve_measurements()
-    expected_file = tmp_path / "HOEKVHLD_measwl.nc"
+    expected_file = tmp_path / "HOEKVHLD_meas_wl.nc"
     with open(expected_file, "w") as f:
         f.write("")
 

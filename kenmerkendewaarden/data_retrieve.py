@@ -23,9 +23,9 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 DICT_FNAMES = {
-    "meas_wl": "{station}_measwl.nc",
-    "meas_ext": "{station}_measext.nc",
-    "meas_q": "{station}_measq.nc",
+    "meas_wl": "{station}_meas_wl.nc",
+    "meas_ext": "{station}_meas_ext.nc",
+    "meas_q": "{station}_meas_q.nc",
     "amount_wl": "data_amount_wl.csv",
     "amount_ext": "data_amount_ext.csv",
     "amount_q": "data_amount_q.csv",
