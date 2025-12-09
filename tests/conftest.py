@@ -104,6 +104,13 @@ def dir_meas(tmp_path):
         start_date=start_date,
         end_date=end_date,
     )
+    kw.retrieve_measurements(
+        dir_output=dir_meas,
+        station="HAGSBVN",
+        quantity="meas_q",
+        start_date=start_date,
+        end_date=end_date,
+    )
     return dir_meas
 
 
@@ -129,5 +136,12 @@ def dir_meas_amount(tmp_path):
         start_date=start_date,
         end_date=end_date,
         quantity="meas_ext",
+    )
+    kw.retrieve_measurements_amount(
+        dir_output=dir_meas_amount,
+        station_list=["HAGSBVN"],
+        start_date=start_date,
+        end_date=end_date,
+        quantity="meas_q",
     )
     return dir_meas_amount

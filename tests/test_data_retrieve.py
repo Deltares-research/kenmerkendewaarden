@@ -60,21 +60,26 @@ def test_drop_duplicate_times_noaction(df_meas_2010, caplog):
 
 @pytest.mark.timeout(120)  # useful in case of ddl failure
 @pytest.mark.systemtest
-@pytest.mark.parametrize("quantity", ["meas_wl", "meas_ext"])
+@pytest.mark.parametrize("quantity", ["meas_wl", "meas_ext", "meas_q"])
 def test_retrieve_read_measurements_amount(dir_meas_amount, quantity):
     df_amount = kw.read_measurements_amount(
         dir_output=dir_meas_amount, quantity=quantity
     )
 
     # assert amounts, this might change if ddl data is updated
-    assert df_amount.columns.tolist() == ["HOEKVHLD"]
     assert df_amount.index.tolist() == [2010, 2011]
     if quantity == "meas_wl":
         df_vals = np.array([8784, 4465])
+        expected_station = "HOEKVHLD"
     elif quantity == "meas_ext":
         df_vals = np.array([312, 157])
+        expected_station = "HOEKVHLD"
+    elif quantity == "meas_q":
+        df_vals = np.array([1525, 777])
+        expected_station = "HAGSBVN"
+    assert df_amount.columns.tolist() == [expected_station]
     assert len(df_amount) == 2
-    assert np.allclose(df_amount["HOEKVHLD"].values, df_vals)
+    assert np.allclose(df_amount[expected_station].values, df_vals)
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
@@ -90,12 +95,20 @@ def test_retrieve_read_measurements(dir_meas):
         station="HOEKVHLD",
         quantity="meas_ext",
     )
+    df_q = kw.read_measurements(
+        dir_output=dir_meas,
+        station="HAGSBVN",
+        quantity="meas_q",
+    )
     assert df_meas.index.tz.zone == "Etc/GMT-1"
-    assert df_ext.index.tz.zone == "Etc/GMT-1"
     assert df_meas.index[0] == pd.Timestamp("2010-01-01 00:00:00+0100", tz="Etc/GMT-1")
     assert df_meas.index[-1] == pd.Timestamp("2011-01-01 00:00:00+0100", tz="Etc/GMT-1")
+    assert df_ext.index.tz.zone == "Etc/GMT-1"
     assert df_ext.index[0] == pd.Timestamp("2010-01-01 02:35:00+0100", tz="Etc/GMT-1")
     assert df_ext.index[-1] == pd.Timestamp("2010-12-31 23:50:00+0100", tz="Etc/GMT-1")
+    assert df_q.index.tz.zone == "Etc/GMT-1"
+    assert df_q.index[0] == pd.Timestamp("2010-01-01 00:00:00+0100", tz="Etc/GMT-1")
+    assert df_q.index[-1] == pd.Timestamp("2010-12-31 00:00:00+0100", tz="Etc/GMT-1")
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
