@@ -13,7 +13,7 @@ def test_get_gemgetij_components(df_meas_2010):
     def get_tidalrange(comp, year):
         times_pred = pd.date_range(
             start=pd.Timestamp(year, 1, 1, 0, 0),
-            end=pd.Timestamp(year+1, 1, 1, 0, 0),
+            end=pd.Timestamp(year + 1, 1, 1, 0, 0),
             freq="10min",
         )
         pred = hatyan.prediction(comp, times=times_pred)
@@ -23,12 +23,12 @@ def test_get_gemgetij_components(df_meas_2010):
         return tr
 
     comp_av, comp_sn = get_gemgetij_components(df_meas_2010)
-    
+
     tr_av_2020 = get_tidalrange(comp_av, year=2020)
     tr_av_2030 = get_tidalrange(comp_av, year=2030)
     tr_sn_2020 = get_tidalrange(comp_sn, year=2020)
     tr_sn_2030 = get_tidalrange(comp_sn, year=2030)
-    
+
     # assert values
     # the differences between 2020 and 2030 are the smallest with the current method,
     # analyisis with nodalfactors=True and prediction with nodalfactors=False.
@@ -38,10 +38,14 @@ def test_get_gemgetij_components(df_meas_2010):
     assert np.isclose(tr_av_2020.mean(), tr_av_2030.mean())
     assert np.isclose(tr_av_2020.min(), tr_av_2030.min())
     assert np.isclose(tr_av_2020.max(), tr_av_2030.max())
-    
+
     assert np.isclose(tr_sn_2020.mean(), tr_sn_2030.mean(), atol=0.005)
-    assert np.isclose(tr_sn_2020.min(), tr_sn_2030.min(), atol=5e-05) # 0.0002 with consistent nodalfactors=False (4x larger)
-    assert np.isclose(tr_sn_2020.max(), tr_sn_2030.max(), atol=2e-05) # 3.98e-05 with consistent nodalfactors=False (2x larger)
+    assert np.isclose(
+        tr_sn_2020.min(), tr_sn_2030.min(), atol=5e-05
+    )  # 0.0002 with consistent nodalfactors=False (4x larger)
+    assert np.isclose(
+        tr_sn_2020.max(), tr_sn_2030.max(), atol=2e-05
+    )  # 3.98e-05 with consistent nodalfactors=False (2x larger)
 
 
 @pytest.mark.unittest

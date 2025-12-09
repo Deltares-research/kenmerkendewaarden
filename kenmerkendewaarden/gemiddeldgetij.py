@@ -140,9 +140,7 @@ def calc_gemiddeldgetij(
     # spring/neap getijkromme
     # make prediction with springneap components with nodalfactors=False (alternative for choosing a year with a neutral nodal factor).
     # Using 1yr instead of 1month does not make a difference in min/max tidal range and shape, also because of nodalfactors=False.
-    prediction_sn = hatyan.prediction(
-        comp_sn, times=times_pred_1mnth
-    )
+    prediction_sn = hatyan.prediction(comp_sn, times=times_pred_1mnth)
     prediction_sn_ext = hatyan.calc_HWLW(ts=prediction_sn, calc_HWLW345=False)
 
     # selecteer getijslag met minimale tidalrange en maximale tidalrange (werd geselecteerd adhv havengetallen in 1991.0 doc)
@@ -373,7 +371,7 @@ def get_gemgetij_components(data_pd_meas):
         "verhouding tussen originele en kwadratensom componenten:\n"
         f"{comp_av/comp_frommeasurements_avg.loc[components_av]}"
     )
-    
+
     # nodalfactors=False to guarantee repetitive signal
     comp_av.attrs["nodalfactors"] = False
 
