@@ -303,6 +303,7 @@ def retrieve_measurements(
             "WaarnemingMetadata.OpdrachtgevendeInstantie",
             "WaarnemingMetadata.Bemonsteringshoogte",
             "WaarnemingMetadata.Referentievlak",
+            "ProcesType",
             "BioTaxonType.Code",
             "BemonsteringsSoort.Code",
             "Compartiment.Code",
