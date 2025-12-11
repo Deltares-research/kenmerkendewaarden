@@ -268,7 +268,7 @@ def retrieve_measurements(
     quantity: str,
     start_date: pd.Timestamp,
     end_date: pd.Timestamp,
-    drop_if_constant: list = None,
+    always_preserve: list = None,
 ):
     """
     Retrieve timeseries with measurements or extremes for a single station from the DDL with ddlpy.
@@ -286,8 +286,9 @@ def retrieve_measurements(
         start date of the measurements to be retrieved.
     end_date : pd.Timestamp (or anything understood by pd.Timestamp)
         end date of the measurements to be retrieved.
-    drop_if_constant : list, optional
-        A list of columns to drop if the row values are constant, to save disk space. The default is None.
+    always_preserve : list, optional
+        A list of columns to preserve even if its values are constant. The default is
+        None, which defaults to a predefined set.
 
     Returns
     -------
@@ -298,20 +299,13 @@ def retrieve_measurements(
     locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q = retrieve_catalog()
     raise_incorrect_quantity(quantity)
 
-    if drop_if_constant is None:
-        drop_if_constant = [
-            "WaarnemingMetadata.OpdrachtgevendeInstantie",
-            "WaarnemingMetadata.Bemonsteringshoogte",
-            "WaarnemingMetadata.Referentievlak",
-            "ProcesType",
-            "BioTaxonType.Code",
-            "BemonsteringsSoort.Code",
-            "Compartiment.Code",
-            "Eenheid.Code",
-            "Grootheid.Code",
-            "Hoedanigheid.Code",
-            "WaardeBepalingsMethode.Code",
-            "MeetApparaat.Code",
+    if always_preserve is None:
+        always_preserve = [
+            'WaarnemingMetadata.Statuswaarde',
+            'WaarnemingMetadata.OpdrachtgevendeInstantie',
+            'WaarnemingMetadata.Kwaliteitswaardecode',
+            'WaardeBepalingsMethode.Code',
+            'Meetwaarde.Waarde_Numeriek',
         ]
 
     bool_station_wl = locs_meas_wl.index.isin([station])
@@ -364,7 +358,10 @@ def retrieve_measurements(
         logger.info("no data found for the requested period")
         return
 
-    ds_meas = ddlpy.dataframe_to_xarray(measurements, drop_if_constant)
+    ds_meas = ddlpy.dataframe_to_xarray(
+        df=measurements,
+        always_preserve=always_preserve,
+        )
     if quantity == "meas_ext":
         # convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
         # TODO: simplify by retrieving the extreme value and type from ddl in a single request: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
