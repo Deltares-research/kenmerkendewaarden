@@ -45,6 +45,7 @@ def retrieve_catalog(overwrite=False, crs: int = None):
         logger.info("retrieving DDL locations catalog with ddlpy")
         # include Typeringen in locations catalog
         catalog_filter = [
+            "ProcesTypes",
             "Eenheden",
             "Grootheden",
             "Hoedanigheden",
@@ -77,6 +78,7 @@ def retrieve_catalog(overwrite=False, crs: int = None):
         )
         locations["Coordinatenstelsel"] = str(crs)
 
+    bool_procestype = locations["ProcesType"].isin(["meting"])
     bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
     bool_groepering_wl = locations["Groepering.Code"].isin([""])
     bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2", "GETETMSL2"])
@@ -92,10 +94,10 @@ def retrieve_catalog(overwrite=False, crs: int = None):
     bool_eenheid_q = locations["Eenheid.Code"].isin(["m3/s"])
 
     # select locations on grootheid/groepering/exttypes
-    locs_meas_wl = locations.loc[bool_grootheid & bool_groepering_wl]
-    locs_meas_ext = locations.loc[bool_grootheid & bool_groepering_ext]
-    locs_meas_exttype = locations.loc[bool_typering_exttypes & bool_groepering_ext]
-    locs_meas_q = locations.loc[bool_grootheid_q & bool_eenheid_q]
+    locs_meas_wl = locations.loc[bool_procestype & bool_grootheid & bool_groepering_wl]
+    locs_meas_ext = locations.loc[bool_procestype & bool_grootheid & bool_groepering_ext]
+    locs_meas_exttype = locations.loc[bool_procestype & bool_typering_exttypes & bool_groepering_ext]
+    locs_meas_q = locations.loc[bool_procestype & bool_grootheid_q & bool_eenheid_q]
     return locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q
 
 

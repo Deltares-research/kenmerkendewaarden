@@ -19,8 +19,8 @@ retrieve_catalog(overwrite=False)
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
 
-retrieve_meas_amount = False
-plot_meas_amount = False
+retrieve_meas_amount = True
+plot_meas_amount = True
 retrieve_meas = True
 derive_stats = True
 plot_meas = True
@@ -46,7 +46,7 @@ station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUW
 # subset of 11 stations along the coast
 station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
 # short list for testing
-station_list = ["hoekvanholland"]#,"vlissingen"]
+station_list = ["hoekvanholland","vlissingen"]
 
 stations_skip = []
 # skip duplicate code stations from station_list_tk (hist/realtime)
