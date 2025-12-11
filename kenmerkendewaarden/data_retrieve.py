@@ -294,17 +294,16 @@ def retrieve_measurements(
 
     if drop_if_constant is None:
         drop_if_constant = [
-            "WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
-            "WaarnemingMetadata.BemonsteringshoogteLijst",
-            "WaarnemingMetadata.ReferentievlakLijst",
-            "AquoMetadata_MessageID",
-            "BioTaxonType",
+            "WaarnemingMetadata.OpdrachtgevendeInstantie",
+            "WaarnemingMetadata.Bemonsteringshoogte",
+            "WaarnemingMetadata.Referentievlak",
+            "BioTaxonType.Code",
             "BemonsteringsSoort.Code",
             "Compartiment.Code",
             "Eenheid.Code",
             "Grootheid.Code",
             "Hoedanigheid.Code",
-            "WaardeBepalingsmethode.Code",
+            "WaardeBepalingsMethode.Code",
             "MeetApparaat.Code",
         ]
 
@@ -346,7 +345,7 @@ def retrieve_measurements(
         return
 
     logger.info(
-        f"retrieving meas data (quantity={quantity}) from DDL for {station} to {os.path.basename(dir_output)}"
+        f"retrieving measurement data (quantity={quantity}) from DDL for {station} to {os.path.basename(dir_output)}"
     )
     measurements = ddlpy.measurements(
         location=loc_meas_one.iloc[0],

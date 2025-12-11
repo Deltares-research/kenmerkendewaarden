@@ -13,22 +13,23 @@ logging.basicConfig() # calling basicConfig is essential to set logging level fo
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 # retrieve fresh DDL catalog
-retrieve_catalog(overwrite=True)
+retrieve_catalog(overwrite=False)
 
 # TODO: overview of data improvements: https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
 
-retrieve_meas_amount = True
-plot_meas_amount = True
+retrieve_meas_amount = False
+plot_meas_amount = False
 retrieve_meas = True
-derive_stats = True
-plot_meas = True
-plot_stations = True
-write_stations_table = True
+derive_stats = False
+plot_meas = False
+plot_stations = False
+write_stations_table = False
 
 start_date = pd.Timestamp(1870, 1, 1, tz="UTC+01:00")
-end_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
+start_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
+end_date = pd.Timestamp(2024, 2, 1, tz="UTC+01:00")
 
 dir_base = r"p:\11210325-005-kenmerkende-waarden\work"
 dir_meas = os.path.join(dir_base, f"measurements_wl_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}")
