@@ -391,13 +391,14 @@ def xarray_to_hatyan(ds):
     This saves memory and prevents converting it multiple times
     in the kenmerkendewaarden code when passing it to hatyan.
     """
+    values = ds["Meetwaarde.Waarde_Numeriek"].to_pandas()
+    qualitycode = ds["WaarnemingMetadata.Kwaliteitswaardecode"].to_pandas()
+    status = ds["WaarnemingMetadata.Statuswaarde"].to_pandas()
     df = pd.DataFrame(
         {
-            "values": ds["Meetwaarde.Waarde_Numeriek"].to_pandas(),
-            "qualitycode": ds[
-                "WaarnemingMetadata.KwaliteitswaardecodeLijst"
-            ].to_pandas(),
-            "status": ds["WaarnemingMetadata.StatuswaardeLijst"].to_pandas(),
+            "values": values,
+            "qualitycode": qualitycode,
+            "status": status,
         }
     )
     if "HWLWcode" in ds.data_vars:

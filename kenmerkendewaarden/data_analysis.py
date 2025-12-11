@@ -198,12 +198,11 @@ def plot_stations(station_list: list, crs: int = None, add_labels: bool = False)
 
 def get_flat_meta_from_dataset(ds):
     list_relevantmetadata = [
-        "WaarnemingMetadata.StatuswaardeLijst",
-        "WaarnemingMetadata.KwaliteitswaardecodeLijst",
-        "WaardeBepalingsmethode.Code",
+        "WaarnemingMetadata.Statuswaarde",
+        "WaarnemingMetadata.Kwaliteitswaardecode",
+        "WaardeBepalingsMethode.Code",
         "MeetApparaat.Code",
         "Hoedanigheid.Code",
-        "WaardeBepalingsmethode.Code",
         "MeetApparaat.Code",
         "Hoedanigheid.Code",
         "Grootheid.Code",
