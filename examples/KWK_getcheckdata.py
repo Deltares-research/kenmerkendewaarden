@@ -21,11 +21,11 @@ retrieve_catalog(overwrite=False)
 
 retrieve_meas_amount = False
 plot_meas_amount = False
-retrieve_meas = True
-derive_stats = True
+retrieve_meas = False
+derive_stats = False
 plot_meas = False
-plot_stations = False
-write_stations_table = False
+plot_stations = True
+write_stations_table = True
 
 start_date = pd.Timestamp(1870, 1, 1, tz="UTC+01:00")
 start_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
@@ -149,4 +149,4 @@ if write_stations_table:
     locs_meas_wl_all, _, _, _ = retrieve_catalog(crs=4326)
     locs_wl = locs_meas_wl_all.loc[locs_meas_wl_all.index.isin(station_list)]
     file_csv = os.path.join(dir_base, "station_locations.csv")
-    locs_wl[["Locatie_MessageID","X","Y","Coordinatenstelsel","Naam"]].to_csv(file_csv)
+    locs_wl[["Locatie_MessageID","Lon","Lat","Coordinatenstelsel","Naam"]].to_csv(file_csv)

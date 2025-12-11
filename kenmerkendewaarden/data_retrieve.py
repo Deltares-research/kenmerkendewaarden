@@ -65,11 +65,15 @@ def retrieve_catalog(overwrite=False, crs: int = None):
     if crs is not None:
         assert len(locations["Coordinatenstelsel"].drop_duplicates()) == 1
         epsg_in = locations["Coordinatenstelsel"].iloc[0]
+        # TODO: manually replacing crs name with epsg
+        # https://github.com/Rijkswaterstaat/WaterWebservices/issues/20
+        if epsg_in == "ETRS89":
+            epsg_in = 4258
         transformer = Transformer.from_crs(
             f"epsg:{epsg_in}", f"epsg:{crs}", always_xy=True
         )
-        locations["X"], locations["Y"] = transformer.transform(
-            locations["X"], locations["Y"]
+        locations["Lon"], locations["Lat"] = transformer.transform(
+            locations["Lon"], locations["Lat"]
         )
         locations["Coordinatenstelsel"] = str(crs)
 

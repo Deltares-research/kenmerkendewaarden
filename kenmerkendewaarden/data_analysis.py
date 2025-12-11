@@ -160,9 +160,9 @@ def plot_stations(station_list: list, crs: int = None, add_labels: bool = False)
         crs = int(locs_wl["Coordinatenstelsel"].iloc[0])
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.plot(locs_wl["X"], locs_wl["Y"], "xk", label="waterlevels")
-    ax.plot(locs_ext["X"], locs_ext["Y"], "+r", label="extremes")
-    ax.plot(locs_q["X"], locs_q["Y"], "1b", label="discharges")
+    ax.plot(locs_wl["Lon"], locs_wl["Lat"], "xk", label="waterlevels")
+    ax.plot(locs_ext["Lon"], locs_ext["Lat"], "+r", label="extremes")
+    ax.plot(locs_q["Lon"], locs_q["Lat"], "1b", label="discharges")
     ax.legend()
 
     ax.set_title("stations with measurement data")
