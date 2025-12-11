@@ -362,11 +362,7 @@ def retrieve_measurements(
     if measurements.empty:
         logger.info("no data found for the requested period")
         return
-    
-    # TODO: temporarily replacing empty strings with "empty" to avoid
-    # "ValueError: Invalid name for attr '': string must be length 1 or greater for serialization to netCDF files"
-    measurements = measurements.replace("","empty")
-    
+
     ds_meas = ddlpy.dataframe_to_xarray(measurements, drop_if_constant)
     if quantity == "meas_ext":
         # convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
