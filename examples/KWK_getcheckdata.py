@@ -19,17 +19,16 @@ retrieve_catalog(overwrite=False)
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
 
-retrieve_meas_amount = False
-plot_meas_amount = False
-retrieve_meas = False
-derive_stats = False
-plot_meas = False
+retrieve_meas_amount = True
+plot_meas_amount = True
+retrieve_meas = True
+derive_stats = True
+plot_meas = True
 plot_stations = True
 write_stations_table = True
 
 start_date = pd.Timestamp(1870, 1, 1, tz="UTC+01:00")
-start_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
-end_date = pd.Timestamp(2024, 2, 1, tz="UTC+01:00")
+end_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
 
 dir_base = r"p:\11210325-005-kenmerkende-waarden\work"
 dir_meas = os.path.join(dir_base, f"measurements_wl_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}")
@@ -47,7 +46,7 @@ station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUW
 # subset of 11 stations along the coast
 station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
 # short list for testing
-station_list = ["hoekvanholland"]#,"vlissingen"]
+station_list = ["hoekvanholland","vlissingen"]
 
 stations_skip = []
 # skip duplicate code stations from station_list_tk (hist/realtime)
