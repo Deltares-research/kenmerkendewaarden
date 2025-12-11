@@ -74,7 +74,7 @@ def retrieve_catalog(overwrite=False, crs: int = None):
         locations["Coordinatenstelsel"] = str(crs)
 
     bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
-    bool_groepering_wl = locations["Groepering.Code"].isin(["NVT"])
+    bool_groepering_wl = locations["Groepering.Code"].isin([""])
     bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2", "GETETMSL2"])
     # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
     # bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
