@@ -61,7 +61,6 @@ station_list = ["a12", "ameland.westgat", "kloosterzande.baalhoek", "rilland.bat
 # station_list = ["hoekvanholland","vlissingen"]
 
 stations_skip = []
-
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
 stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
