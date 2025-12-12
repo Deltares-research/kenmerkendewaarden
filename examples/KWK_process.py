@@ -201,7 +201,7 @@ for current_station in station_list:
             ax1.plot(yearmeanwl[1],'+g',label='yearmean validation', zorder=0)
             ax1.legend(loc=2)
         
-        fig1.savefig(os.path.join(dir_slotgem,f'kw{year_slotgem}-slotgemiddelden-{current_station}'))
+        fig1.savefig(os.path.join(dir_slotgem,f'kw{year_slotgem}-slotgemiddelden-{current_station}.png'))
     
     
     
