@@ -48,7 +48,6 @@ station_list = ["a12", "ameland.westgat", "kloosterzande.baalhoek", "rilland.bat
                 "stavenisse", "stellendam.buitenhaven", "terneuzen", "terschelling.noordzee", 
                 "texel.noordzee", "vlaktevanderaan", "vlieland.haven", "vlissingen", "walsoorden", 
                 "westkapelle", "terschelling.west", "wierumergronden", "yerseke"]
-
 # subset of 11 stations along the coast
 station_list = ["vlissingen", "hoekvanholland", "ijmuiden.buitenhaven", "harlingen.waddenzee", 
                 "denhelder.marsdiep", "delfzijl", "schiermonnikoog.waddenzee", "vlieland.haven", 
@@ -64,26 +63,27 @@ stations_skip += ["north.cormorant"]
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
 stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
 # skip stations without extremes
-stations_skip += ['a12', 'ameland.westgat', 'd15', 'f16', 'f3', 'j6', 'k14', 'l9', 'north.cormorant', 'q1.1']
+stations_skip += ["a12", "ameland.westgat", "d15", "f16", "f3", "j6", "k14", "l9", "north.cormorant", "q1.1"]
 # skip stations that have no extremes before 2021-01-01
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ['gatvanborssele', 'breskens.veerhaven', 'ijgeul.1', 'ossenisse', 
-                  'sintannaland.havensteiger', 'vlaktevanderaan', 'walsoorden']
+stations_skip += ["gatvanborssele", "breskens.veerhaven", "ijgeul.1", "ossenisse", 
+                  "sintannaland.havensteiger", "vlaktevanderaan", "walsoorden"]
 # skip stations with too little extremes in 2000-2020
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ['brouwersdam.brouwershavensegat.2', 'holwerd.veersteiger', 'kats.zandkreeksluis', 
-                  'marollegat', 'oosterschelde.4', 'oosterschelde.11', 'oosterschelde.14', 
-                  'schaarvandenoord', 'stellendam.buitenhaven', 'yerseke']
+stations_skip += ["brouwersdam.brouwershavensegat.2", "holwerd.veersteiger", "kats.zandkreeksluis", 
+                  "marollegat", "oosterschelde.4", "oosterschelde.11", "oosterschelde.14", 
+                  "schaarvandenoord", "stellendam.buitenhaven", "yerseke"]
 # the two lists above are often not accurate anymore, since many more extremes are now present
 # however, many of these stations have (almost) duplicated extremes (not reported yet)
-stations_skip += ['gatvanborssele', 'vlaktevanderaan', 'walsoorden', 'brouwersdam.brouwershavensegat.2',
-                  'holwerd.veersteiger', 'kats.zandkreeksluis', 'marollegat', 'oosterschelde.11',
-                  'oosterschelde.14', 'stellendam.buitenhaven', 'yerseke']
+# TODO: report these in https://github.com/Deltares-research/kenmerkendewaarden/issues/191
+stations_skip += ["kloosterzande.baalhoek", "gatvanborssele", "vlaktevanderaan", "walsoorden", 
+                  "brouwersdam.brouwershavensegat.2", "holwerd.veersteiger", "kats.zandkreeksluis", 
+                  "marollegat", "oosterschelde.11", "oosterschelde.14", "stellendam.buitenhaven", "yerseke"]
 # skip TEXNZE for 2011.0 since it has too little meas/ext data in 2007
 # skip BROUWHVSGT08 for 2011.0 since it has no ext data in 2010 (disappeared with DDL update of August 8)
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
 if year_slotgem == 2011:
-    stations_skip += ['texel.noordzee', 'brouwersdam.brouwershavensegat.8']
+    stations_skip += ["texel.noordzee", "brouwersdam.brouwershavensegat.8"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
