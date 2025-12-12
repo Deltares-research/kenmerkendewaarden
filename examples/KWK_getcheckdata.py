@@ -19,13 +19,13 @@ retrieve_catalog(overwrite=False)
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
 
-retrieve_meas_amount = False
-plot_meas_amount = False
-retrieve_meas = True
-derive_stats = True
-plot_meas = True
-plot_stations = True
-write_stations_table = True
+retrieve_meas_amount = True
+plot_meas_amount = True
+retrieve_meas = False
+derive_stats = False
+plot_meas = False
+plot_stations = False
+write_stations_table = False
 
 start_date = pd.Timestamp(1870, 1, 1, tz="UTC+01:00")
 end_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
@@ -54,19 +54,17 @@ station_list = ["a12", "ameland.westgat", "kloosterzande.baalhoek", "rilland.bat
                 "westkapelle", "terschelling.west", "wierumergronden", "yerseke"]
 
 # subset of 11 stations along the coast
-station_list = ["vlissingen", "hoekvanholland", "ijmuiden.buitenhaven", "harlingen.waddenzee", 
-                "denhelder.marsdiep", "delfzijl", "schiermonnikoog.waddenzee", "vlieland.haven", 
-                "stellendam.buitenhaven", "scheveningen", "oosterschelde.roompotsluis.buiten"]
+# station_list = ["vlissingen", "hoekvanholland", "ijmuiden.buitenhaven", "harlingen.waddenzee", 
+#                 "denhelder.marsdiep", "delfzijl", "schiermonnikoog.waddenzee", "vlieland.haven", 
+#                 "stellendam.buitenhaven", "scheveningen", "oosterschelde.roompotsluis.buiten"]
 # short list for testing
-station_list = ["hoekvanholland","vlissingen"]
+# station_list = ["hoekvanholland","vlissingen"]
 
 stations_skip = []
-# skip duplicate code stations from station_list_tk (hist/realtime)
-# TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
-stations_skip += ["BATH", "D15", "J6", "NES"]
+
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
-stations_skip += ["EURPFM", "LICHTELGRE", "K13APFM"]
+stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:

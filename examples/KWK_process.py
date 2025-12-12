@@ -57,26 +57,25 @@ station_list = ["vlissingen", "hoekvanholland", "ijmuiden.buitenhaven", "harling
 station_list = ["hoekvanholland","vlissingen"]
 
 stations_skip = []
-# skip duplicate code stations from station_list_tk (hist/realtime)
-# TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
-stations_skip += ["BATH", "D15", "J6", "NES"]
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
-stations_skip += ["EURPFM", "LICHTELGRE", "K13APFM"]
+stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
 # skip stations without extremes
-stations_skip += ["A12", "AWGPFM", "BAALHK", "F16", "F3PFM", "K14PFM", "L9PFM", "NORTHCMRT", "Q1"]
+stations_skip += ['a12', 'ameland.westgat', 'kloosterzande.baalhoek', 'f16', 'f3', 'k14', 'l9', 'north.cormorant', 'q1.1']
 # skip stations that have no extremes before 2021-01-01
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["GATVBSLE", "BRESKVHVN", "IJMDSMPL", "OVLVHWT", "SINTANLHVSGR", "VLAKTVDRN", "WALSODN"]
+stations_skip += ['gatvanborssele', 'breskens.veerhaven', 'ijgeul.1', 'ossenisse', 
+                  'sintannaland.havensteiger', 'vlaktevanderaan', 'walsoorden']
 # skip stations with too little extremes in 2000-2020
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["BROUWHVSGT02", "HOLWD", "KATSBTN", "MARLGT", "OOSTSDE04", "OOSTSDE11",
-                  "OOSTSDE14", "SCHAARVDND", "STELLDBTN", "YERSKE"]
+stations_skip += ['brouwersdam.brouwershavensegat.2', 'holwerd.veersteiger', 'kats.zandkreeksluis', 
+                  'marollegat', 'oosterschelde.4', 'oosterschelde.11', 'oosterschelde.14', 
+                  'schaarvandenoord', 'stellendam.buitenhaven', 'yerseke']
 # skip TEXNZE for 2011.0 since it has too little meas/ext data in 2007
 # skip BROUWHVSGT08 for 2011.0 since it has no ext data in 2010 (disappeared with DDL update of August 8)
 # TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
 if year_slotgem == 2011:
-    stations_skip += ["TEXNZE", "BROUWHVSGT08"]
+    stations_skip += ['texel.noordzee', 'brouwersdam.brouwershavensegat.8']
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
