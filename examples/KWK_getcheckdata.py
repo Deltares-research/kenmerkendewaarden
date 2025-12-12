@@ -37,14 +37,26 @@ dir_meas_amount = os.path.join(dir_base, f"measurements_amount_wl_{start_date.st
 os.makedirs(dir_meas_amount, exist_ok=True)
 
 # all stations from TK (dataTKdia)
-station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUWHVSGT08","GATVBSLE","BRESKVHVN","CADZD",
-                "D15","DELFZL","DENHDR","EEMSHVN","EURPFM","F16","F3PFM","HARVT10","HANSWT","HARLGN","HOEKVHLD","HOLWD","HUIBGT",
-                "IJMDBTHVN","IJMDSMPL","J6","K13APFM","K14PFM","KATSBTN","KORNWDZBTN","KRAMMSZWT","L9PFM","LAUWOG","LICHTELGRE",
-                "MARLGT","NES","NIEUWSTZL","NORTHCMRT","DENOVBTN","OOSTSDE04","OOSTSDE11","OOSTSDE14","OUDSD","OVLVHWT","Q1",
-                "ROOMPBNN","ROOMPBTN","SCHAARVDND","SCHEVNGN","SCHIERMNOG","SINTANLHVSGR","STAVNSE","STELLDBTN","TERNZN","TERSLNZE","TEXNZE",
-                "VLAKTVDRN","VLIELHVN","VLISSGN","WALSODN","WESTKPLE","WESTTSLG","WIERMGDN","YERSKE"]
+station_list = ["a12", "ameland.westgat", "kloosterzande.baalhoek", "rilland.bath", 
+                "tholen.bergsediepsluis.buiten", "brouwersdam.brouwershavensegat.2", 
+                "brouwersdam.brouwershavensegat.8", "gatvanborssele", "breskens.veerhaven", 
+                "cadzand.2", "d15", "delfzijl", "denhelder.marsdiep", "eemshaven.haven", 
+                "europlatform", "f16", "f3", "haringvliet.10", "hansweert", "harlingen.waddenzee", 
+                "hoekvanholland", "holwerd.veersteiger", "huibertgat", "ijmuiden.buitenhaven", 
+                "ijgeul.1", "j6", "k13a", "k14", "kats.zandkreeksluis", "kornwerderzand.waddenzee.buitenhaven", 
+                "krammersluizen.west", "l9", "lauwersoog.waddenzee", "goeree.lichteiland", "marollegat", 
+                "ameland.nes", "nieuwestatenzijl.dollard", "north.cormorant", "denoever.waddenzee.voorhaven", 
+                "oosterschelde.4", "oosterschelde.11", "oosterschelde.14", "texel.oudeschild", 
+                "ossenisse", "q1.1", "oosterschelde.roompotsluis.binnen", "oosterschelde.roompotsluis.buiten", 
+                "schaarvandenoord", "scheveningen", "schiermonnikoog.waddenzee", "sintannaland.havensteiger", 
+                "stavenisse", "stellendam.buitenhaven", "terneuzen", "terschelling.noordzee", 
+                "texel.noordzee", "vlaktevanderaan", "vlieland.haven", "vlissingen", "walsoorden", 
+                "westkapelle", "terschelling.west", "wierumergronden", "yerseke"]
+
 # subset of 11 stations along the coast
-station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
+station_list = ["vlissingen", "hoekvanholland", "ijmuiden.buitenhaven", "harlingen.waddenzee", 
+                "denhelder.marsdiep", "delfzijl", "schiermonnikoog.waddenzee", "vlieland.haven", 
+                "stellendam.buitenhaven", "scheveningen", "oosterschelde.roompotsluis.buiten"]
 # short list for testing
 station_list = ["hoekvanholland","vlissingen"]
 
