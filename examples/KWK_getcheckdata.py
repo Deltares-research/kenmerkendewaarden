@@ -141,8 +141,8 @@ for current_station in station_list:
 ### PLOT SELECTION OF AVAILABLE STATIONS ON MAP
 if plot_stations:
     station_list_map = station_list.copy()
-    if "NORTHCMRT" in station_list_map:
-        northcmrt_idx = station_list_map.index("NORTHCMRT")
+    if "north.cormorant" in station_list_map:
+        northcmrt_idx = station_list_map.index("north.cormorant")
         station_list_map.pop(northcmrt_idx)
     
     fig, ax = kw.plot_stations(station_list=station_list_map, crs=28992, add_labels=False)
