@@ -57,6 +57,9 @@ station_list = ["vlissingen", "hoekvanholland", "ijmuiden.buitenhaven", "harling
 station_list = ["hoekvanholland","vlissingen"]
 
 stations_skip = []
+# TODO: no measurements anymore for NORTHCMRT, incorrectly matched?
+# https://github.com/Deltares-research/kenmerkendewaarden/issues/260
+stations_skip += ["north.cormorant"]
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
 stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
