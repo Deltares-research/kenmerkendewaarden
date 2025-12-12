@@ -177,8 +177,8 @@ for current_station in station_list:
             slotgemiddelden_valid[key].to_csv(file_csv, float_format='%.3f')
         
         # get and plot validation timeseries (yearly mean wl/HW/LW)
-        station_name_dict = {'HOEKVHLD':'hoek',
-                             'HARVT10':'ha10'}
+        station_name_dict = {'hoekvanholland':'hoek',
+                             'haringvliet.10':'ha10'}
         if current_station in station_name_dict.keys():
             dir_meas_gemHWLWwlAB = r'p:\archivedprojects\11208031-010-kenmerkende-waarden-k\work\data_KW-RMM'
             file_yearmeanHW = os.path.join(dir_meas_gemHWLWwlAB,f'{station_name_dict[current_station]}_hw.txt')
@@ -282,7 +282,7 @@ for current_station in station_list:
         return dist_dict
 
     def add_validation_dist(dist_dict, dist_type, station):
-        station_names_vali_dict = {"HOEKVHLD":"Hoek_van_Holland"}
+        station_names_vali_dict = {"hoekvanholland":"Hoek_van_Holland"}
         if station not in station_names_vali_dict.keys():
             return
         dir_overschr_vali = r"p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Tables"
