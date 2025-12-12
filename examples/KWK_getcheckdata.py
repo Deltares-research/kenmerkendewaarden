@@ -23,9 +23,9 @@ retrieve_meas_amount = False
 plot_meas_amount = False
 retrieve_meas = False
 derive_stats = False
-plot_meas = True
-plot_stations = True
-write_stations_table = True
+plot_meas = False
+plot_stations = False
+write_stations_table = False
 
 start_date = pd.Timestamp(1870, 1, 1, tz="UTC+01:00")
 end_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
