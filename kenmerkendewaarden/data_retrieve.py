@@ -144,7 +144,7 @@ def retrieve_measurements_amount(
     dir_output : str
         Path where the measurement netcdf file will be stored.
     station : str
-        station name, for instance "HOEKVHLD".
+        station name, for instance "hoekvanholland".
     quantity : str
         Whether to retrieve measurements amount for waterlevel timeseries, waterlevel
         extremes or discharges.
@@ -278,7 +278,7 @@ def retrieve_measurements(
     dir_output : str
         Path where the measurement netcdf file will be stored.
     station : str
-        station name, for instance "HOEKVHLD".
+        station name, for instance "hoekvanholland".
     quantity : str
         Whether to retrieve measurements for waterlevel timeseries, waterlevel extremes
         or discharges.
@@ -458,7 +458,7 @@ def read_measurements(
     dir_output : str
         Path where the measurements are stored.
     station : str
-        station name, for instance "HOEKVHLD".
+        station name, for instance "hoekvanholland".
     quantity : str
         Whether to read measurements for waterlevel timeseries, waterlevel extremes
         or discharges.
@@ -513,20 +513,20 @@ def clip_timeseries_physical_break(df_meas):
     # physical_break_dict for slotgemiddelden and overschrijdingsfrequenties
     # values from chapter 6.4 from "Kenmerkende waarden kustwateren en grote rivieren" (Dillingh, 2013)
     # https://open.rijkswaterstaat.nl/open-overheid/onderzoeksrapporten/@44612/kenmerkende-waarden-kustwateren-grote
-    # TODO: consider adding nearby stations like CADZD02, CADZBSD and others
-    # TODO: add physical_break for KATSBTN? (Oosterscheldekering)
+    # TODO: consider adding nearby stations like cadzand.1, cadzand.badstrand and others
+    # TODO: add physical_break for kats.zandkreeksluis (Oosterscheldekering)
     # TODO: maybe use physical_break_dict everywhere to crop data?
     physical_break_dict = {
-        "CADZD": "1966",
-        "STAVNSE": "1988",
-        "SCHEVNGN": "1962",
-        "PETTZD": "1977",
-        "DENHDR": "1933",
-        "OUDSD": "1933",
-        "WESTTSLG": "1933",
-        "DENOVBTN": "1933",
-        "HARLGN": "1933",
-        "VLIELHVN": "1941",
+        "cadzand.2": "1966",
+        "stavenisse": "1988",
+        "scheveningen": "1962",
+        "petten.zuid": "1977",
+        "denhelder.marsdiep": "1933",
+        "texel.oudeschild": "1933",
+        "terschelling.west": "1933",
+        "denoever.waddenzee.voorhaven": "1933",
+        "harlingen.waddenzee": "1933",
+        "vlieland.haven": "1941",
     }
 
     station = df_meas.attrs["station"]
@@ -553,9 +553,9 @@ def nap2005_correction(df_meas):
     # Dit is de rapportage waar het gebruik voor PSMSL data voor het eerst beschreven is: https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_137204_31&versienummer=1
     # TODO: maybe move dict to csv file and add as package data
     dict_correct_nap2005 = {
-        "HOEKVHLD": -0.0277,
-        "HARVT10": -0.0210,
-        "VLISSGN": -0.0297,
+        "hoekvanholland": -0.0277,
+        "haringvliet.10": -0.0210,
+        "vlissingen": -0.0297,
     }
 
     station = df_meas.attrs["station"]

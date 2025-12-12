@@ -274,7 +274,7 @@ def derive_statistics(dir_output: str, station_list: list, quantity: str):
     dir_output : str
         Path where the measurement netcdf file will be stored.
     station : list
-        list of station names to derive statistics for, for instance ["HOEKVHLD"].
+        list of station names to derive statistics for, for instance ["hoekvanholland"].
     quantity : str
         Whether to derive statistics from waterlevel timeseries, waterlevel extremes
         or discharges.
