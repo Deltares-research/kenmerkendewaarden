@@ -45,6 +45,7 @@ def retrieve_catalog(overwrite=False, crs: int = None):
         logger.info("retrieving DDL locations catalog with ddlpy")
         # include Typeringen in locations catalog
         catalog_filter = [
+            "ProcesTypes",
             "Eenheden",
             "Grootheden",
             "Hoedanigheden",
@@ -61,6 +62,10 @@ def retrieve_catalog(overwrite=False, crs: int = None):
         locations = locations_full.drop(columns=drop_columns)
         pd.to_pickle(locations, file_catalog_pkl)
 
+    # TODO: manually replacing crs name with epsg
+    # https://github.com/Rijkswaterstaat/WaterWebservices/issues/20
+    ser_crs_new = locations["Coordinatenstelsel"].replace("ETRS89","4258").astype(int)
+    locations["Coordinatenstelsel"] = ser_crs_new
     # convert coordinates to new crs
     if crs is not None:
         assert len(locations["Coordinatenstelsel"].drop_duplicates()) == 1
@@ -68,13 +73,14 @@ def retrieve_catalog(overwrite=False, crs: int = None):
         transformer = Transformer.from_crs(
             f"epsg:{epsg_in}", f"epsg:{crs}", always_xy=True
         )
-        locations["X"], locations["Y"] = transformer.transform(
-            locations["X"], locations["Y"]
+        locations["Lon"], locations["Lat"] = transformer.transform(
+            locations["Lon"], locations["Lat"]
         )
         locations["Coordinatenstelsel"] = str(crs)
 
+    bool_procestype = locations["ProcesType"].isin(["meting"])
     bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
-    bool_groepering_wl = locations["Groepering.Code"].isin(["NVT"])
+    bool_groepering_wl = locations["Groepering.Code"].isin([""])
     bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2", "GETETMSL2"])
     # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
     # bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
@@ -88,10 +94,10 @@ def retrieve_catalog(overwrite=False, crs: int = None):
     bool_eenheid_q = locations["Eenheid.Code"].isin(["m3/s"])
 
     # select locations on grootheid/groepering/exttypes
-    locs_meas_wl = locations.loc[bool_grootheid & bool_groepering_wl]
-    locs_meas_ext = locations.loc[bool_grootheid & bool_groepering_ext]
-    locs_meas_exttype = locations.loc[bool_typering_exttypes & bool_groepering_ext]
-    locs_meas_q = locations.loc[bool_grootheid_q & bool_eenheid_q]
+    locs_meas_wl = locations.loc[bool_procestype & bool_grootheid & bool_groepering_wl]
+    locs_meas_ext = locations.loc[bool_procestype & bool_grootheid & bool_groepering_ext]
+    locs_meas_exttype = locations.loc[bool_procestype & bool_typering_exttypes & bool_groepering_ext]
+    locs_meas_q = locations.loc[bool_procestype & bool_grootheid_q & bool_eenheid_q]
     return locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q
 
 
@@ -138,7 +144,7 @@ def retrieve_measurements_amount(
     dir_output : str
         Path where the measurement netcdf file will be stored.
     station : str
-        station name, for instance "HOEKVHLD".
+        station name, for instance "hoekvanholland".
     quantity : str
         Whether to retrieve measurements amount for waterlevel timeseries, waterlevel
         extremes or discharges.
@@ -262,7 +268,7 @@ def retrieve_measurements(
     quantity: str,
     start_date: pd.Timestamp,
     end_date: pd.Timestamp,
-    drop_if_constant: list = None,
+    always_preserve: list = None,
 ):
     """
     Retrieve timeseries with measurements or extremes for a single station from the DDL with ddlpy.
@@ -272,7 +278,7 @@ def retrieve_measurements(
     dir_output : str
         Path where the measurement netcdf file will be stored.
     station : str
-        station name, for instance "HOEKVHLD".
+        station name, for instance "hoekvanholland".
     quantity : str
         Whether to retrieve measurements for waterlevel timeseries, waterlevel extremes
         or discharges.
@@ -280,8 +286,9 @@ def retrieve_measurements(
         start date of the measurements to be retrieved.
     end_date : pd.Timestamp (or anything understood by pd.Timestamp)
         end date of the measurements to be retrieved.
-    drop_if_constant : list, optional
-        A list of columns to drop if the row values are constant, to save disk space. The default is None.
+    always_preserve : list, optional
+        A list of columns to preserve even if its values are constant. The default is
+        None, which defaults to a predefined set.
 
     Returns
     -------
@@ -292,20 +299,13 @@ def retrieve_measurements(
     locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q = retrieve_catalog()
     raise_incorrect_quantity(quantity)
 
-    if drop_if_constant is None:
-        drop_if_constant = [
-            "WaarnemingMetadata.OpdrachtgevendeInstantieLijst",
-            "WaarnemingMetadata.BemonsteringshoogteLijst",
-            "WaarnemingMetadata.ReferentievlakLijst",
-            "AquoMetadata_MessageID",
-            "BioTaxonType",
-            "BemonsteringsSoort.Code",
-            "Compartiment.Code",
-            "Eenheid.Code",
-            "Grootheid.Code",
-            "Hoedanigheid.Code",
-            "WaardeBepalingsmethode.Code",
-            "MeetApparaat.Code",
+    if always_preserve is None:
+        always_preserve = [
+            'WaarnemingMetadata.Statuswaarde',
+            'WaarnemingMetadata.OpdrachtgevendeInstantie',
+            'WaarnemingMetadata.Kwaliteitswaardecode',
+            'WaardeBepalingsMethode.Code',
+            'Meetwaarde.Waarde_Numeriek',
         ]
 
     bool_station_wl = locs_meas_wl.index.isin([station])
@@ -346,7 +346,7 @@ def retrieve_measurements(
         return
 
     logger.info(
-        f"retrieving meas data (quantity={quantity}) from DDL for {station} to {os.path.basename(dir_output)}"
+        f"retrieving measurement data (quantity={quantity}) from DDL for {station} to {os.path.basename(dir_output)}"
     )
     measurements = ddlpy.measurements(
         location=loc_meas_one.iloc[0],
@@ -357,7 +357,11 @@ def retrieve_measurements(
     if measurements.empty:
         logger.info("no data found for the requested period")
         return
-    ds_meas = ddlpy.dataframe_to_xarray(measurements, drop_if_constant)
+
+    ds_meas = ddlpy.dataframe_to_xarray(
+        df=measurements,
+        always_preserve=always_preserve,
+        )
     if quantity == "meas_ext":
         # convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
         # TODO: simplify by retrieving the extreme value and type from ddl in a single request: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
@@ -387,13 +391,14 @@ def xarray_to_hatyan(ds):
     This saves memory and prevents converting it multiple times
     in the kenmerkendewaarden code when passing it to hatyan.
     """
+    values = ds["Meetwaarde.Waarde_Numeriek"].to_pandas()
+    qualitycode = ds["WaarnemingMetadata.Kwaliteitswaardecode"].to_pandas()
+    status = ds["WaarnemingMetadata.Statuswaarde"].to_pandas()
     df = pd.DataFrame(
         {
-            "values": ds["Meetwaarde.Waarde_Numeriek"].to_pandas(),
-            "qualitycode": ds[
-                "WaarnemingMetadata.KwaliteitswaardecodeLijst"
-            ].to_pandas(),
-            "status": ds["WaarnemingMetadata.StatuswaardeLijst"].to_pandas(),
+            "values": values,
+            "qualitycode": qualitycode,
+            "status": status,
         }
     )
     if "HWLWcode" in ds.data_vars:
@@ -453,7 +458,7 @@ def read_measurements(
     dir_output : str
         Path where the measurements are stored.
     station : str
-        station name, for instance "HOEKVHLD".
+        station name, for instance "hoekvanholland".
     quantity : str
         Whether to read measurements for waterlevel timeseries, waterlevel extremes
         or discharges.
@@ -508,20 +513,20 @@ def clip_timeseries_physical_break(df_meas):
     # physical_break_dict for slotgemiddelden and overschrijdingsfrequenties
     # values from chapter 6.4 from "Kenmerkende waarden kustwateren en grote rivieren" (Dillingh, 2013)
     # https://open.rijkswaterstaat.nl/open-overheid/onderzoeksrapporten/@44612/kenmerkende-waarden-kustwateren-grote
-    # TODO: consider adding nearby stations like CADZD02, CADZBSD and others
-    # TODO: add physical_break for KATSBTN? (Oosterscheldekering)
+    # TODO: consider adding nearby stations like cadzand.1, cadzand.badstrand and others
+    # TODO: add physical_break for kats.zandkreeksluis (Oosterscheldekering)
     # TODO: maybe use physical_break_dict everywhere to crop data?
     physical_break_dict = {
-        "CADZD": "1966",
-        "STAVNSE": "1988",
-        "SCHEVNGN": "1962",
-        "PETTZD": "1977",
-        "DENHDR": "1933",
-        "OUDSD": "1933",
-        "WESTTSLG": "1933",
-        "DENOVBTN": "1933",
-        "HARLGN": "1933",
-        "VLIELHVN": "1941",
+        "cadzand.2": "1966",
+        "stavenisse": "1988",
+        "scheveningen": "1962",
+        "petten.zuid": "1977",
+        "denhelder.marsdiep": "1933",
+        "texel.oudeschild": "1933",
+        "terschelling.west": "1933",
+        "denoever.waddenzee.voorhaven": "1933",
+        "harlingen.waddenzee": "1933",
+        "vlieland.haven": "1941",
     }
 
     station = df_meas.attrs["station"]
@@ -548,9 +553,9 @@ def nap2005_correction(df_meas):
     # Dit is de rapportage waar het gebruik voor PSMSL data voor het eerst beschreven is: https://puc.overheid.nl/PUC/Handlers/DownloadDocument.ashx?identifier=PUC_137204_31&versienummer=1
     # TODO: maybe move dict to csv file and add as package data
     dict_correct_nap2005 = {
-        "HOEKVHLD": -0.0277,
-        "HARVT10": -0.0210,
-        "VLISSGN": -0.0297,
+        "hoekvanholland": -0.0277,
+        "haringvliet.10": -0.0210,
+        "vlissingen": -0.0297,
     }
 
     station = df_meas.attrs["station"]

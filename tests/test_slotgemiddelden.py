@@ -220,11 +220,11 @@ def test_calc_slotgemiddelden_physical_break(df_meas_2010_2014, df_ext_12_2010_2
 
     df_meas_1931_1935 = df_meas_2010_2014.copy()
     df_meas_1931_1935.index = df_meas_1931_1935.index - tdiff
-    df_meas_1931_1935.attrs["station"] = "HARLGN"
+    df_meas_1931_1935.attrs["station"] = "harlingen.waddenzee"
 
     df_ext_12_1931_1935 = df_ext_12_2010_2014.copy()
     df_ext_12_1931_1935.index = df_ext_12_1931_1935.index - tdiff
-    df_ext_12_1931_1935.attrs["station"] = "HARLGN"
+    df_ext_12_1931_1935.attrs["station"] = "harlingen.waddenzee"
 
     # check if the timeseries do not extend over the expected slotgemiddelden value
     assert df_meas_1931_1935.index[-1] <= pd.Timestamp("1936-01-01 00:00:00 +01:00")

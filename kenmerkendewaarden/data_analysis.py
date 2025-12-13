@@ -160,9 +160,9 @@ def plot_stations(station_list: list, crs: int = None, add_labels: bool = False)
         crs = int(locs_wl["Coordinatenstelsel"].iloc[0])
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.plot(locs_wl["X"], locs_wl["Y"], "xk", label="waterlevels")
-    ax.plot(locs_ext["X"], locs_ext["Y"], "+r", label="extremes")
-    ax.plot(locs_q["X"], locs_q["Y"], "1b", label="discharges")
+    ax.plot(locs_wl["Lon"], locs_wl["Lat"], "xk", label="waterlevels")
+    ax.plot(locs_ext["Lon"], locs_ext["Lat"], "+r", label="extremes")
+    ax.plot(locs_q["Lon"], locs_q["Lat"], "1b", label="discharges")
     ax.legend()
 
     ax.set_title("stations with measurement data")
@@ -191,19 +191,18 @@ def plot_stations(station_list: list, crs: int = None, add_labels: bool = False)
 
     if add_labels:
         for irow, row in locs_wl.iterrows():
-            ax.text(row["X"], row["Y"], row.name)
+            ax.text(row["Lon"], row["Lat"], row.name)
 
     return fig, ax
 
 
 def get_flat_meta_from_dataset(ds):
     list_relevantmetadata = [
-        "WaarnemingMetadata.StatuswaardeLijst",
-        "WaarnemingMetadata.KwaliteitswaardecodeLijst",
-        "WaardeBepalingsmethode.Code",
+        "WaarnemingMetadata.Statuswaarde",
+        "WaarnemingMetadata.Kwaliteitswaardecode",
+        "WaardeBepalingsMethode.Code",
         "MeetApparaat.Code",
         "Hoedanigheid.Code",
-        "WaardeBepalingsmethode.Code",
         "MeetApparaat.Code",
         "Hoedanigheid.Code",
         "Grootheid.Code",
@@ -275,7 +274,7 @@ def derive_statistics(dir_output: str, station_list: list, quantity: str):
     dir_output : str
         Path where the measurement netcdf file will be stored.
     station : list
-        list of station names to derive statistics for, for instance ["HOEKVHLD"].
+        list of station names to derive statistics for, for instance ["hoekvanholland"].
     quantity : str
         Whether to derive statistics from waterlevel timeseries, waterlevel extremes
         or discharges.
