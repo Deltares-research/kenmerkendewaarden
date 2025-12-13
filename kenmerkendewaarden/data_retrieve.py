@@ -62,7 +62,8 @@ def retrieve_catalog(overwrite=False, crs: int = None):
         locations = locations_full.drop(columns=drop_columns)
         pd.to_pickle(locations, file_catalog_pkl)
 
-    # TODO: manually replacing crs name with epsg
+    # TODO: manually replacing crs name with epsg, the old waterwebservices had epsg in
+    # this column, would be great if new wws also has this.
     # https://github.com/Rijkswaterstaat/WaterWebservices/issues/20
     ser_crs_new = locations["Coordinatenstelsel"].replace("ETRS89", "4258").astype(int)
     locations["Coordinatenstelsel"] = ser_crs_new
