@@ -23,8 +23,12 @@ def test_retrieve_catalog():
     assert np.isclose(locs_meas_wl.loc["hoekvanholland"]["Lat"], 443924.9530462769)
     assert np.isclose(locs_meas_ext.loc["hoekvanholland"]["Lon"], 67924.98523360591)
     assert np.isclose(locs_meas_ext.loc["hoekvanholland"]["Lat"], 443924.9530462769)
-    assert np.isclose(locs_meas_q.loc["schijndel.sluis.kleplinks"]["Lon"], 158894.00869222777)
-    assert np.isclose(locs_meas_q.loc["schijndel.sluis.kleplinks"]["Lat"], 406610.09644023067)
+    assert np.isclose(
+        locs_meas_q.loc["schijndel.sluis.kleplinks"]["Lon"], 158894.00869222777
+    )
+    assert np.isclose(
+        locs_meas_q.loc["schijndel.sluis.kleplinks"]["Lat"], 406610.09644023067
+    )
     df_crs = locs_meas_ext["Coordinatenstelsel"].drop_duplicates().tolist()
     assert len(df_crs) == 1
     assert isinstance(df_crs[0], str)
@@ -151,7 +155,10 @@ def test_retrieve_measurements_already_exists(tmp_path, caplog):
             start_date=start_date,
             end_date=end_date,
         )
-    assert "meas data (quantity=meas_wl) for hoekvanholland already available" in caplog.text
+    assert (
+        "meas data (quantity=meas_wl) for hoekvanholland already available"
+        in caplog.text
+    )
     assert meas is None
 
 

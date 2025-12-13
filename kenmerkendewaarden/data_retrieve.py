@@ -64,7 +64,7 @@ def retrieve_catalog(overwrite=False, crs: int = None):
 
     # TODO: manually replacing crs name with epsg
     # https://github.com/Rijkswaterstaat/WaterWebservices/issues/20
-    ser_crs_new = locations["Coordinatenstelsel"].replace("ETRS89","4258").astype(int)
+    ser_crs_new = locations["Coordinatenstelsel"].replace("ETRS89", "4258").astype(int)
     locations["Coordinatenstelsel"] = ser_crs_new
     # convert coordinates to new crs
     if crs is not None:
@@ -95,8 +95,12 @@ def retrieve_catalog(overwrite=False, crs: int = None):
 
     # select locations on grootheid/groepering/exttypes
     locs_meas_wl = locations.loc[bool_procestype & bool_grootheid & bool_groepering_wl]
-    locs_meas_ext = locations.loc[bool_procestype & bool_grootheid & bool_groepering_ext]
-    locs_meas_exttype = locations.loc[bool_procestype & bool_typering_exttypes & bool_groepering_ext]
+    locs_meas_ext = locations.loc[
+        bool_procestype & bool_grootheid & bool_groepering_ext
+    ]
+    locs_meas_exttype = locations.loc[
+        bool_procestype & bool_typering_exttypes & bool_groepering_ext
+    ]
     locs_meas_q = locations.loc[bool_procestype & bool_grootheid_q & bool_eenheid_q]
     return locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q
 
@@ -301,11 +305,11 @@ def retrieve_measurements(
 
     if always_preserve is None:
         always_preserve = [
-            'WaarnemingMetadata.Statuswaarde',
-            'WaarnemingMetadata.OpdrachtgevendeInstantie',
-            'WaarnemingMetadata.Kwaliteitswaardecode',
-            'WaardeBepalingsMethode.Code',
-            'Meetwaarde.Waarde_Numeriek',
+            "WaarnemingMetadata.Statuswaarde",
+            "WaarnemingMetadata.OpdrachtgevendeInstantie",
+            "WaarnemingMetadata.Kwaliteitswaardecode",
+            "WaardeBepalingsMethode.Code",
+            "Meetwaarde.Waarde_Numeriek",
         ]
 
     bool_station_wl = locs_meas_wl.index.isin([station])
@@ -361,7 +365,7 @@ def retrieve_measurements(
     ds_meas = ddlpy.dataframe_to_xarray(
         df=measurements,
         always_preserve=always_preserve,
-        )
+    )
     if quantity == "meas_ext":
         # convert extreme type to HWLWcode add extreme type and HWLcode as dataset variables
         # TODO: simplify by retrieving the extreme value and type from ddl in a single request: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/19
