@@ -62,14 +62,14 @@ def retrieve_catalog(overwrite=False, crs: int = None):
         locations = locations_full.drop(columns=drop_columns)
         pd.to_pickle(locations, file_catalog_pkl)
 
+    # TODO: manually replacing crs name with epsg
+    # https://github.com/Rijkswaterstaat/WaterWebservices/issues/20
+    ser_crs_new = locations["Coordinatenstelsel"].replace("ETRS89","4258").astype(int)
+    locations["Coordinatenstelsel"] = ser_crs_new
     # convert coordinates to new crs
     if crs is not None:
         assert len(locations["Coordinatenstelsel"].drop_duplicates()) == 1
         epsg_in = locations["Coordinatenstelsel"].iloc[0]
-        # TODO: manually replacing crs name with epsg
-        # https://github.com/Rijkswaterstaat/WaterWebservices/issues/20
-        if epsg_in == "ETRS89":
-            epsg_in = 4258
         transformer = Transformer.from_crs(
             f"epsg:{epsg_in}", f"epsg:{crs}", always_xy=True
         )

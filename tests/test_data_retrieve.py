@@ -19,12 +19,12 @@ def test_retrieve_catalog():
         crs=crs
     )
 
-    assert np.isclose(locs_meas_wl.loc["HOEKVHLD"]["X"], 67930.00003341127)
-    assert np.isclose(locs_meas_wl.loc["HOEKVHLD"]["Y"], 444000.0027572268)
-    assert np.isclose(locs_meas_ext.loc["HOEKVHLD"]["X"], 67930.00003341127)
-    assert np.isclose(locs_meas_ext.loc["HOEKVHLD"]["Y"], 444000.0027572268)
-    assert np.isclose(locs_meas_q.loc["SCHIJNDLKLPL"]["X"], 158894.1045765158)
-    assert np.isclose(locs_meas_q.loc["SCHIJNDLKLPL"]["Y"], 406610.02905768325)
+    assert np.isclose(locs_meas_wl.loc["hoekvanholland"]["Lon"], 67924.98523360591)
+    assert np.isclose(locs_meas_wl.loc["hoekvanholland"]["Lat"], 443924.9530462769)
+    assert np.isclose(locs_meas_ext.loc["hoekvanholland"]["Lon"], 67924.98523360591)
+    assert np.isclose(locs_meas_ext.loc["hoekvanholland"]["Lat"], 443924.9530462769)
+    assert np.isclose(locs_meas_q.loc["schijndel.sluis.kleplinks"]["Lon"], 158894.00869222777)
+    assert np.isclose(locs_meas_q.loc["schijndel.sluis.kleplinks"]["Lat"], 406610.09644023067)
     df_crs = locs_meas_ext["Coordinatenstelsel"].drop_duplicates().tolist()
     assert len(df_crs) == 1
     assert isinstance(df_crs[0], str)
@@ -70,13 +70,13 @@ def test_retrieve_read_measurements_amount(dir_meas_amount, quantity):
     assert df_amount.index.tolist() == [2010, 2011]
     if quantity == "meas_wl":
         df_vals = np.array([8784, 4465])
-        expected_station = "HOEKVHLD"
+        expected_station = "hoekvanholland"
     elif quantity == "meas_ext":
         df_vals = np.array([312, 157])
-        expected_station = "HOEKVHLD"
+        expected_station = "hoekvanholland"
     elif quantity == "meas_q":
         df_vals = np.array([1525, 777])
-        expected_station = "HAGSBVN"
+        expected_station = "hagestein.boven"
     assert df_amount.columns.tolist() == [expected_station]
     assert len(df_amount) == 2
     assert np.allclose(df_amount[expected_station].values, df_vals)
@@ -87,17 +87,17 @@ def test_retrieve_read_measurements_amount(dir_meas_amount, quantity):
 def test_retrieve_read_measurements(dir_meas):
     df_meas = kw.read_measurements(
         dir_output=dir_meas,
-        station="HOEKVHLD",
+        station="hoekvanholland",
         quantity="meas_wl",
     )
     df_ext = kw.read_measurements(
         dir_output=dir_meas,
-        station="HOEKVHLD",
+        station="hoekvanholland",
         quantity="meas_ext",
     )
     df_q = kw.read_measurements(
         dir_output=dir_meas,
-        station="HAGSBVN",
+        station="hagestein.boven",
         quantity="meas_q",
     )
     assert df_meas.index.tz.zone == "Etc/GMT-1"
@@ -125,7 +125,7 @@ def test_read_measurements_notfound(tmp_path):
     # this will silently continue the process, returing None
     df_meas = kw.read_measurements(
         dir_output=tmp_path,
-        station="HOEKVHLD",
+        station="hoekvanholland",
         quantity="meas_wl",
     )
     assert df_meas is None
@@ -134,13 +134,13 @@ def test_read_measurements_notfound(tmp_path):
 @pytest.mark.unittest
 def test_retrieve_measurements_already_exists(tmp_path, caplog):
     # create dummy file that would be created by kw.retrieve_measurements()
-    expected_file = tmp_path / "HOEKVHLD_meas_wl.nc"
+    expected_file = tmp_path / "hoekvanholland_meas_wl.nc"
     with open(expected_file, "w") as f:
         f.write("")
 
     start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2010, 1, 2, tz="UTC+01:00")
-    current_station = "HOEKVHLD"
+    current_station = "hoekvanholland"
 
     # retrieve measurements
     with caplog.at_level(logging.INFO):
@@ -151,7 +151,7 @@ def test_retrieve_measurements_already_exists(tmp_path, caplog):
             start_date=start_date,
             end_date=end_date,
         )
-    assert "meas data (quantity=meas_wl) for HOEKVHLD already available" in caplog.text
+    assert "meas data (quantity=meas_wl) for hoekvanholland already available" in caplog.text
     assert meas is None
 
 
@@ -179,7 +179,7 @@ def test_retrieve_measurements_no_station(caplog):
 def test_retrieve_measurements_wrongperiod(caplog):
     start_date = pd.Timestamp(3010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(3010, 1, 2, tz="UTC+01:00")
-    current_station = "HOEKVHLD"
+    current_station = "hoekvanholland"
 
     # retrieve measurements
     with caplog.at_level(logging.INFO):
@@ -196,9 +196,9 @@ def test_retrieve_measurements_wrongperiod(caplog):
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
 def test_retrieve_measurements_amount_periodwithoutdata(tmp_path, caplog):
-    start_date = pd.Timestamp(2020, 1, 1, tz="UTC+01:00")
-    end_date = pd.Timestamp(2021, 1, 2, tz="UTC+01:00")
-    current_station = "BAALHK"
+    start_date = pd.Timestamp(2050, 1, 1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2050, 1, 2, tz="UTC+01:00")
+    current_station = "kloosterzande.baalhoek"
 
     # retrieve measurements
     with caplog.at_level(logging.INFO):
@@ -217,7 +217,7 @@ def test_retrieve_measurements_amount_periodwithoutdata(tmp_path, caplog):
 def test_retrieve_measurements_amount_emptylocslist(tmp_path, caplog):
     start_date = pd.Timestamp(2020, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2021, 1, 2, tz="UTC+01:00")
-    current_station = "A12"
+    current_station = "a12"
 
     # retrieve measurements
     with caplog.at_level(logging.INFO):
@@ -235,7 +235,7 @@ def test_retrieve_measurements_amount_emptylocslist(tmp_path, caplog):
 @pytest.mark.unittest
 def test_raise_multiple_locations_toomuch():
     locs_meas_wl, _, _, _ = kw.data_retrieve.retrieve_catalog()
-    bool_stations = locs_meas_wl.index.isin(["BATH"])
+    bool_stations = locs_meas_wl.index.isin(["europlatform"])
     locs_sel = locs_meas_wl.loc[bool_stations]
     with pytest.raises(ValueError) as e:
         kw.data_retrieve.raise_multiple_locations(locs_sel)
@@ -268,7 +268,7 @@ def test_read_measurements_napcorrection(dir_meas):
     """
     kw.read_measurements(
         dir_output=dir_meas,
-        station="HOEKVHLD",
+        station="hoekvanholland",
         quantity="meas_ext",
         nap_correction=True,
     )
@@ -277,6 +277,7 @@ def test_read_measurements_napcorrection(dir_meas):
 @pytest.mark.unittest
 def test_napcorrection(df_meas):
     df_meas_sel = df_meas.loc["2004":"2005"]
+    df_meas_sel.attrs["station"] = "hoekvanholland"
     df_meas_sel_nap = kw.data_retrieve.nap2005_correction(df_meas=df_meas_sel)
     assert (df_meas_sel.index == df_meas_sel_nap.index).all()
     assert np.isclose(
@@ -301,7 +302,7 @@ def test_napcorrection_notdefined(df_meas_2010):
 @pytest.mark.unittest
 def test_clip_timeseries_physical_break(df_ext):
     df_ext_vlie = df_ext.copy()  # only change attributes on a copy of the dataframe
-    df_ext_vlie.attrs["station"] = "VLIELHVN"
+    df_ext_vlie.attrs["station"] = "vlieland.haven"
     df_ext_vlie_clipped = kw.data_retrieve.clip_timeseries_physical_break(
         df_meas=df_ext_vlie
     )

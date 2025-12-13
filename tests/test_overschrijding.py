@@ -212,7 +212,7 @@ def test_calc_overschrijding_clip_physical_break(df_ext_12_2010_2014):
 
     df_ext_12_1931_1935 = df_ext_12_2010_2014.copy()
     df_ext_12_1931_1935.index = df_ext_12_1931_1935.index - tdiff
-    df_ext_12_1931_1935.attrs["station"] = "HARLGN"
+    df_ext_12_1931_1935.attrs["station"] = "harlingen.waddenzee"
 
     Tfreqs_interested = [
         5,

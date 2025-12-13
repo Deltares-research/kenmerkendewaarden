@@ -191,7 +191,7 @@ def plot_stations(station_list: list, crs: int = None, add_labels: bool = False)
 
     if add_labels:
         for irow, row in locs_wl.iterrows():
-            ax.text(row["X"], row["Y"], row.name)
+            ax.text(row["Lon"], row["Lat"], row.name)
 
     return fig, ax
 
