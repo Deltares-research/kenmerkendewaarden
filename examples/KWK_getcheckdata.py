@@ -52,9 +52,9 @@ station_list = ['a12', 'ameland.nes', 'ameland.westgat', 'breskens.veerhaven', '
                 'tholen.bergsediepsluis.buiten', 'vlaktevanderaan', 'vlieland.haven', 'vlissingen', 
                 'walsoorden', 'westkapelle', 'wierumergronden', 'yerseke']
 # subset of 11 stations along the coast
-station_list = ['delfzijl', 'denhelder.marsdiep', 'harlingen.waddenzee', 'hoekvanholland', 
-                'ijmuiden.buitenhaven', 'oosterschelde.roompotsluis.buiten', 'scheveningen', 
-                'schiermonnikoog.waddenzee', 'stellendam.buitenhaven', 'vlieland.haven', 'vlissingen']
+# station_list = ['delfzijl', 'denhelder.marsdiep', 'harlingen.waddenzee', 'hoekvanholland', 
+#                 'ijmuiden.buitenhaven', 'oosterschelde.roompotsluis.buiten', 'scheveningen', 
+#                 'schiermonnikoog.waddenzee', 'stellendam.buitenhaven', 'vlieland.haven', 'vlissingen']
 # short list for testing
 # station_list = ["hoekvanholland","vlissingen"]
 
