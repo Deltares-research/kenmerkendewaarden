@@ -13,7 +13,7 @@ import logging
 logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-year_slotgem = 2011
+year_slotgem = 2021
 print(f'year_slotgem: {year_slotgem}')
 
 dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
