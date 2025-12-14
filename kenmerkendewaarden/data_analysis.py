@@ -54,7 +54,7 @@ def plot_measurements_amount(df: pd.DataFrame, relative: bool = False):
         df_relative = df_relative.clip(upper=200)
         df = df_relative
 
-    fig, ax = plt.subplots(figsize=(14, 8))
+    fig, ax = plt.subplots(figsize=(14, 10))
     pc = ax.pcolormesh(df.columns, df.index, df.values, cmap="turbo")
     cbar = fig.colorbar(pc, ax=ax)
     ax.tick_params(axis="x", labelrotation=90)
