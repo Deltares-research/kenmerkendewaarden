@@ -37,26 +37,24 @@ dir_meas_amount = os.path.join(dir_base, f"measurements_amount_wl_{start_date.st
 os.makedirs(dir_meas_amount, exist_ok=True)
 
 # all stations from TK (dataTKdia)
-station_list = ["a12", "ameland.westgat", "kloosterzande.baalhoek", "rilland.bath", 
-                "tholen.bergsediepsluis.buiten", "brouwersdam.brouwershavensegat.2", 
-                "brouwersdam.brouwershavensegat.8", "gatvanborssele", "breskens.veerhaven", 
-                "cadzand.2", "d15", "delfzijl", "denhelder.marsdiep", "eemshaven.haven", 
-                "europlatform", "f16", "f3", "haringvliet.10", "hansweert", "harlingen.waddenzee", 
-                "hoekvanholland", "holwerd.veersteiger", "huibertgat", "ijmuiden.buitenhaven", 
-                "ijgeul.1", "j6", "k13a", "k14", "kats.zandkreeksluis", "kornwerderzand.waddenzee.buitenhaven", 
-                "krammersluizen.west", "l9", "lauwersoog.waddenzee", "goeree.lichteiland", "marollegat", 
-                "ameland.nes", "nieuwestatenzijl.dollard", "north.cormorant", "denoever.waddenzee.voorhaven", 
-                "oosterschelde.4", "oosterschelde.11", "oosterschelde.14", "texel.oudeschild", 
-                "ossenisse", "q1.1", "oosterschelde.roompotsluis.binnen", "oosterschelde.roompotsluis.buiten", 
-                "schaarvandenoord", "scheveningen", "schiermonnikoog.waddenzee", "sintannaland.havensteiger", 
-                "stavenisse", "stellendam.buitenhaven", "terneuzen", "terschelling.noordzee", 
-                "texel.noordzee", "vlaktevanderaan", "vlieland.haven", "vlissingen", "walsoorden", 
-                "westkapelle", "terschelling.west", "wierumergronden", "yerseke"]
-
+station_list = ['a12', 'ameland.nes', 'ameland.westgat', 'breskens.veerhaven', 'brouwersdam.brouwershavensegat.2', 
+                'brouwersdam.brouwershavensegat.8', 'cadzand.2', 'd15', 'delfzijl', 'denhelder.marsdiep', 
+                'denoever.waddenzee.voorhaven', 'eemshaven.haven', 'europlatform', 'f16', 'f3', 'gatvanborssele', 
+                'goeree.lichteiland', 'hansweert', 'haringvliet.10', 'harlingen.waddenzee', 'hoekvanholland', 
+                'holwerd.veersteiger', 'huibertgat', 'ijgeul.1', 'ijmuiden.buitenhaven', 'j6', 'k13a', 'k14', 
+                'kats.zandkreeksluis', 'kloosterzande.baalhoek', 'kornwerderzand.waddenzee.buitenhaven', 
+                'krammersluizen.west', 'l9', 'lauwersoog.waddenzee', 'marollegat', 'nieuwestatenzijl.dollard', 
+                'north.cormorant', 'oosterschelde.11', 'oosterschelde.14', 'oosterschelde.4', 
+                'oosterschelde.roompotsluis.binnen', 'oosterschelde.roompotsluis.buiten', 'ossenisse', 
+                'q1.1', 'rilland.bath', 'schaarvandenoord', 'scheveningen', 'schiermonnikoog.waddenzee', 
+                'sintannaland.havensteiger', 'stavenisse', 'stellendam.buitenhaven', 'terneuzen', 
+                'terschelling.noordzee', 'terschelling.west', 'texel.noordzee', 'texel.oudeschild',
+                'tholen.bergsediepsluis.buiten', 'vlaktevanderaan', 'vlieland.haven', 'vlissingen', 
+                'walsoorden', 'westkapelle', 'wierumergronden', 'yerseke']
 # subset of 11 stations along the coast
-# station_list = ["vlissingen", "hoekvanholland", "ijmuiden.buitenhaven", "harlingen.waddenzee", 
-#                 "denhelder.marsdiep", "delfzijl", "schiermonnikoog.waddenzee", "vlieland.haven", 
-#                 "stellendam.buitenhaven", "scheveningen", "oosterschelde.roompotsluis.buiten"]
+station_list = ['delfzijl', 'denhelder.marsdiep', 'harlingen.waddenzee', 'hoekvanholland', 
+                'ijmuiden.buitenhaven', 'oosterschelde.roompotsluis.buiten', 'scheveningen', 
+                'schiermonnikoog.waddenzee', 'stellendam.buitenhaven', 'vlieland.haven', 'vlissingen']
 # short list for testing
 # station_list = ["hoekvanholland","vlissingen"]
 
