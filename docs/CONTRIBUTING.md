@@ -62,10 +62,12 @@
 ## Create release
 
 - make sure the ``main`` branch is up to date (important issues solved, all pullrequests and branches closed)
+- create and checkout branch for release
 - bump the versionnumber with ``bumpversion minor``
 - update ``docs/whats-new.md`` and add a date to the current release heading
 - run local testbank
 - local check with: ``python -m build`` and ``twine check dist/*`` ([does not work on WCF](https://github.com/pypa/setuptools/issues/4133))
+- commit+push to branch and merge PR
 - copy the kenmerkendewaarden version from [pyproject.toml](https://github.com/Deltares-research/kenmerkendewaarden/blob/main/pyproject.toml) (e.g. ``0.3.0``)
 - create a [new release](https://github.com/Deltares-research/kenmerkendewaarden/releases/new)
 - click ``choose a tag`` and type v+versionnumber (e.g. ``v0.3.0``), click ``create new tag: v0.11.0 on publish``
