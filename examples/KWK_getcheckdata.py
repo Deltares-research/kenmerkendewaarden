@@ -61,7 +61,7 @@ station_list = ["a12", "ameland.westgat", "kloosterzande.baalhoek", "rilland.bat
 # station_list = ["hoekvanholland","vlissingen"]
 
 stations_skip = []
-# TODO: no measurements anymore for NORTHCMRT, incorrectly matched?
+# TODO: no measurements anymore for NORTHCMRT, stations abroad not (yet?) included in new wws in dec 2025
 # https://github.com/Deltares-research/kenmerkendewaarden/issues/260
 stations_skip += ["north.cormorant"]
 # skip MSL/NAP duplicate stations from station_list_tk
