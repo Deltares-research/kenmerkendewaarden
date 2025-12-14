@@ -13,7 +13,7 @@ logging.basicConfig() # calling basicConfig is essential to set logging level fo
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
 # retrieve fresh DDL catalog
-retrieve_catalog(overwrite=True)
+retrieve_catalog(overwrite=False)
 
 # TODO: overview of data improvements: https://github.com/Deltares-research/kenmerkendewaarden/issues/29
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
@@ -37,24 +37,34 @@ dir_meas_amount = os.path.join(dir_base, f"measurements_amount_wl_{start_date.st
 os.makedirs(dir_meas_amount, exist_ok=True)
 
 # all stations from TK (dataTKdia)
-station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUWHVSGT08","GATVBSLE","BRESKVHVN","CADZD",
-                "D15","DELFZL","DENHDR","EEMSHVN","EURPFM","F16","F3PFM","HARVT10","HANSWT","HARLGN","HOEKVHLD","HOLWD","HUIBGT",
-                "IJMDBTHVN","IJMDSMPL","J6","K13APFM","K14PFM","KATSBTN","KORNWDZBTN","KRAMMSZWT","L9PFM","LAUWOG","LICHTELGRE",
-                "MARLGT","NES","NIEUWSTZL","NORTHCMRT","DENOVBTN","OOSTSDE04","OOSTSDE11","OOSTSDE14","OUDSD","OVLVHWT","Q1",
-                "ROOMPBNN","ROOMPBTN","SCHAARVDND","SCHEVNGN","SCHIERMNOG","SINTANLHVSGR","STAVNSE","STELLDBTN","TERNZN","TERSLNZE","TEXNZE",
-                "VLAKTVDRN","VLIELHVN","VLISSGN","WALSODN","WESTKPLE","WESTTSLG","WIERMGDN","YERSKE"]
+station_list = ['a12', 'ameland.nes', 'ameland.westgat', 'breskens.veerhaven', 'brouwersdam.brouwershavensegat.2', 
+                'brouwersdam.brouwershavensegat.8', 'cadzand.2', 'd15', 'delfzijl', 'denhelder.marsdiep', 
+                'denoever.waddenzee.voorhaven', 'eemshaven.haven', 'europlatform', 'f16', 'f3', 'gatvanborssele', 
+                'goeree.lichteiland', 'hansweert', 'haringvliet.10', 'harlingen.waddenzee', 'hoekvanholland', 
+                'holwerd.veersteiger', 'huibertgat', 'ijgeul.1', 'ijmuiden.buitenhaven', 'j6', 'k13a', 'k14', 
+                'kats.zandkreeksluis', 'kloosterzande.baalhoek', 'kornwerderzand.waddenzee.buitenhaven', 
+                'krammersluizen.west', 'l9', 'lauwersoog.waddenzee', 'marollegat', 'nieuwestatenzijl.dollard', 
+                'north.cormorant', 'oosterschelde.11', 'oosterschelde.14', 'oosterschelde.4', 
+                'oosterschelde.roompotsluis.binnen', 'oosterschelde.roompotsluis.buiten', 'ossenisse', 
+                'q1.1', 'rilland.bath', 'schaarvandenoord', 'scheveningen', 'schiermonnikoog.waddenzee', 
+                'sintannaland.havensteiger', 'stavenisse', 'stellendam.buitenhaven', 'terneuzen', 
+                'terschelling.noordzee', 'terschelling.west', 'texel.noordzee', 'texel.oudeschild',
+                'tholen.bergsediepsluis.buiten', 'vlaktevanderaan', 'vlieland.haven', 'vlissingen', 
+                'walsoorden', 'westkapelle', 'wierumergronden', 'yerseke']
 # subset of 11 stations along the coast
-station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
+# station_list = ['delfzijl', 'denhelder.marsdiep', 'harlingen.waddenzee', 'hoekvanholland', 
+#                 'ijmuiden.buitenhaven', 'oosterschelde.roompotsluis.buiten', 'scheveningen', 
+#                 'schiermonnikoog.waddenzee', 'stellendam.buitenhaven', 'vlieland.haven', 'vlissingen']
 # short list for testing
-station_list = ["HOEKVHLD"]
+# station_list = ["hoekvanholland","vlissingen"]
 
 stations_skip = []
-# skip duplicate code stations from station_list_tk (hist/realtime)
-# TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
-stations_skip += ["BATH", "D15", "J6", "NES"]
+# TODO: no measurements anymore for NORTHCMRT, stations abroad not (yet?) included in new wws in dec 2025
+# https://github.com/Deltares-research/kenmerkendewaarden/issues/260
+stations_skip += ["north.cormorant"]
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
-stations_skip += ["EURPFM", "LICHTELGRE", "K13APFM"]
+stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
@@ -132,8 +142,8 @@ for current_station in station_list:
 ### PLOT SELECTION OF AVAILABLE STATIONS ON MAP
 if plot_stations:
     station_list_map = station_list.copy()
-    if "NORTHCMRT" in station_list_map:
-        northcmrt_idx = station_list_map.index("NORTHCMRT")
+    if "north.cormorant" in station_list_map:
+        northcmrt_idx = station_list_map.index("north.cormorant")
         station_list_map.pop(northcmrt_idx)
     
     fig, ax = kw.plot_stations(station_list=station_list_map, crs=28992, add_labels=False)
@@ -148,4 +158,4 @@ if write_stations_table:
     locs_meas_wl_all, _, _, _ = retrieve_catalog(crs=4326)
     locs_wl = locs_meas_wl_all.loc[locs_meas_wl_all.index.isin(station_list)]
     file_csv = os.path.join(dir_base, "station_locations.csv")
-    locs_wl[["Locatie_MessageID","X","Y","Coordinatenstelsel","Naam"]].to_csv(file_csv)
+    locs_wl[["Locatie_MessageID","Lon","Lat","Coordinatenstelsel","Naam"]].to_csv(file_csv)

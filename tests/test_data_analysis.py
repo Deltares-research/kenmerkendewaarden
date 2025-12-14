@@ -10,14 +10,14 @@ import pandas as pd
 @pytest.mark.systemtest
 @pytest.mark.parametrize("quantity", ["meas_wl", "meas_ext"])
 def test_derive_statistics(dir_meas, quantity):
-    current_station = "HOEKVHLD"
+    current_station = "hoekvanholland"
     station_list = [current_station]
 
     if quantity == "meas_ext":
         cols_stats = [
-            "WaarnemingMetadata.StatuswaardeLijst",
-            "WaarnemingMetadata.KwaliteitswaardecodeLijst",
-            "WaardeBepalingsmethode.Code",
+            "WaarnemingMetadata.Statuswaarde",
+            "WaarnemingMetadata.Kwaliteitswaardecode",
+            "WaardeBepalingsMethode.Code",
             "MeetApparaat.Code",
             "Hoedanigheid.Code",
             "Grootheid.Code",
@@ -44,9 +44,9 @@ def test_derive_statistics(dir_meas, quantity):
         timedif_max = pd.Timedelta("0 days 08:57:00")
     elif quantity == "meas_wl":
         cols_stats = [
-            "WaarnemingMetadata.StatuswaardeLijst",
-            "WaarnemingMetadata.KwaliteitswaardecodeLijst",
-            "WaardeBepalingsmethode.Code",
+            "WaarnemingMetadata.Statuswaarde",
+            "WaarnemingMetadata.Kwaliteitswaardecode",
+            "WaardeBepalingsMethode.Code",
             "MeetApparaat.Code",
             "Hoedanigheid.Code",
             "Grootheid.Code",
@@ -102,4 +102,4 @@ def test_plot_measurements(df_meas_2010, df_ext_2010):
 
 @pytest.mark.unittest
 def test_plot_stations():
-    kw.plot_stations(station_list=["HOEKVHLD"], crs=None, add_labels=True)
+    kw.plot_stations(station_list=["hoekvanholland"], crs=None, add_labels=True)

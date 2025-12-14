@@ -87,7 +87,7 @@ def dir_meas(tmp_path):
     dir_meas = tmp_path
     start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2011, 1, 1, tz="UTC+01:00")
-    current_station = "HOEKVHLD"
+    current_station = "hoekvanholland"
 
     # retrieve measurements
     kw.retrieve_measurements(
@@ -106,7 +106,7 @@ def dir_meas(tmp_path):
     )
     kw.retrieve_measurements(
         dir_output=dir_meas,
-        station="HAGSBVN",
+        station="hagestein.boven",
         quantity="meas_q",
         start_date=start_date,
         end_date=end_date,
@@ -121,7 +121,7 @@ def dir_meas_amount(tmp_path):
     dir_meas_amount = tmp_path
     start_date = pd.Timestamp(2010, 11, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2011, 2, 1, tz="UTC+01:00")
-    station_list = ["HOEKVHLD"]
+    station_list = ["hoekvanholland"]
 
     kw.retrieve_measurements_amount(
         dir_output=dir_meas_amount,
@@ -139,7 +139,7 @@ def dir_meas_amount(tmp_path):
     )
     kw.retrieve_measurements_amount(
         dir_output=dir_meas_amount,
-        station_list=["HAGSBVN"],
+        station_list=["hagestein.boven"],
         start_date=start_date,
         end_date=end_date,
         quantity="meas_q",

@@ -33,38 +33,69 @@ os.makedirs(dir_overschrijding, exist_ok=True)
 fig_alltimes_ext = [dt.datetime.strptime(x,'%Y%m%d') for x in os.path.basename(dir_meas).split('_')[2:4]]
 
 # all stations from TK (dataTKdia)
-station_list = ["A12","AWGPFM","BAALHK","BATH","BERGSDSWT","BROUWHVSGT02","BROUWHVSGT08","GATVBSLE","BRESKVHVN","CADZD",
-                "D15","DELFZL","DENHDR","EEMSHVN","EURPFM","F16","F3PFM","HARVT10","HANSWT","HARLGN","HOEKVHLD","HOLWD","HUIBGT",
-                "IJMDBTHVN","IJMDSMPL","J6","K13APFM","K14PFM","KATSBTN","KORNWDZBTN","KRAMMSZWT","L9PFM","LAUWOG","LICHTELGRE",
-                "MARLGT","NES","NIEUWSTZL","NORTHCMRT","DENOVBTN","OOSTSDE04","OOSTSDE11","OOSTSDE14","OUDSD","OVLVHWT","Q1",
-                "ROOMPBNN","ROOMPBTN","SCHAARVDND","SCHEVNGN","SCHIERMNOG","SINTANLHVSGR","STAVNSE","STELLDBTN","TERNZN","TERSLNZE","TEXNZE",
-                "VLAKTVDRN","VLIELHVN","VLISSGN","WALSODN","WESTKPLE","WESTTSLG","WIERMGDN","YERSKE"]
+station_list = ['a12', 'ameland.nes', 'ameland.westgat', 'breskens.veerhaven', 'brouwersdam.brouwershavensegat.2', 
+                'brouwersdam.brouwershavensegat.8', 'cadzand.2', 'd15', 'delfzijl', 'denhelder.marsdiep', 
+                'denoever.waddenzee.voorhaven', 'eemshaven.haven', 'europlatform', 'f16', 'f3', 'gatvanborssele', 
+                'goeree.lichteiland', 'hansweert', 'haringvliet.10', 'harlingen.waddenzee', 'hoekvanholland', 
+                'holwerd.veersteiger', 'huibertgat', 'ijgeul.1', 'ijmuiden.buitenhaven', 'j6', 'k13a', 'k14', 
+                'kats.zandkreeksluis', 'kloosterzande.baalhoek', 'kornwerderzand.waddenzee.buitenhaven', 
+                'krammersluizen.west', 'l9', 'lauwersoog.waddenzee', 'marollegat', 'nieuwestatenzijl.dollard', 
+                'north.cormorant', 'oosterschelde.11', 'oosterschelde.14', 'oosterschelde.4', 
+                'oosterschelde.roompotsluis.binnen', 'oosterschelde.roompotsluis.buiten', 'ossenisse', 
+                'q1.1', 'rilland.bath', 'schaarvandenoord', 'scheveningen', 'schiermonnikoog.waddenzee', 
+                'sintannaland.havensteiger', 'stavenisse', 'stellendam.buitenhaven', 'terneuzen', 
+                'terschelling.noordzee', 'terschelling.west', 'texel.noordzee', 'texel.oudeschild',
+                'tholen.bergsediepsluis.buiten', 'vlaktevanderaan', 'vlieland.haven', 'vlissingen', 
+                'walsoorden', 'westkapelle', 'wierumergronden', 'yerseke']
 # subset of 11 stations along the coast
-station_list = ["VLISSGN","HOEKVHLD","IJMDBTHVN","HARLGN","DENHDR","DELFZL","SCHIERMNOG","VLIELHVN","STELLDBTN","SCHEVNGN","ROOMPBTN"]
+station_list = ['delfzijl', 'denhelder.marsdiep', 'harlingen.waddenzee', 'hoekvanholland', 
+                'ijmuiden.buitenhaven', 'oosterschelde.roompotsluis.buiten', 'scheveningen', 
+                'schiermonnikoog.waddenzee', 'stellendam.buitenhaven', 'vlieland.haven', 'vlissingen']
 # short list for testing
-station_list = ["HOEKVHLD"]
+station_list = ["hoekvanholland","vlissingen"]
 
 stations_skip = []
-# skip duplicate code stations from station_list_tk (hist/realtime)
-# TODO: avoid this https://github.com/Rijkswaterstaat/wm-ws-dl/issues/12 and https://github.com/Rijkswaterstaat/wm-ws-dl/issues/20
-stations_skip += ["BATH", "D15", "J6", "NES"]
+# TODO: no measurements anymore for NORTHCMRT, stations abroad not (yet?) included in new wws in dec 2025
+# https://github.com/Deltares-research/kenmerkendewaarden/issues/260
+stations_skip += ["north.cormorant"]
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
-stations_skip += ["EURPFM", "LICHTELGRE", "K13APFM"]
+stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
 # skip stations without extremes
-stations_skip += ["A12", "AWGPFM", "BAALHK", "F16", "F3PFM", "K14PFM", "L9PFM", "NORTHCMRT", "Q1"]
+stations_skip += ["a12", "ameland.westgat", "d15", "f16", "f3", "j6", "k14", "l9", "north.cormorant", "q1.1"]
+# skip stations Unalignable boolean indexing error
+# TODO: resolve bug in kw toolbox: https://github.com/Deltares-research/kenmerkendewaarden/issues/263
+stations_skip += ["breskens.veerhaven", "oosterschelde.4"]
+# do not skip stations with (almost) duplicated extremes for entire period
+# TODO: report these in https://github.com/Deltares-research/kenmerkendewaarden/issues/191
+# stations_skip += ['kloosterzande.baalhoek', 'brouwersdam.brouwershavensegat.2', 'gatvanborssele', 
+#                   'breskens.veerhaven', 'cadzand.2', 'denhelder.marsdiep', 'holwerd.veersteiger', 
+#                   'kats.zandkreeksluis', 'kornwerderzand.waddenzee.buitenhaven', 'marollegat', 
+#                   'nieuwestatenzijl.dollard', 'denoever.waddenzee.voorhaven', 'oosterschelde.4', 
+#                   'oosterschelde.11', 'oosterschelde.14', 'oosterschelde.roompotsluis.binnen', 
+#                   'scheveningen', 'stellendam.buitenhaven', 'vlaktevanderaan', 'vlieland.haven', 
+#                   'walsoorden', 'yerseke']
+# skip stations with (almost) duplicated extremes after 1993 (see below) and before 2021-01-01
+stations_skip += ['kloosterzande.baalhoek', 'brouwersdam.brouwershavensegat.2', 'gatvanborssele', 
+                  'breskens.veerhaven', 'holwerd.veersteiger', 'kats.zandkreeksluis', 'marollegat', 
+                  'oosterschelde.4', 'oosterschelde.11', 'oosterschelde.14', 'stellendam.buitenhaven', 
+                  'vlaktevanderaan', 'walsoorden', 'yerseke']
 # skip stations that have no extremes before 2021-01-01
-# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["GATVBSLE", "BRESKVHVN", "IJMDSMPL", "OVLVHWT", "SINTANLHVSGR", "VLAKTVDRN", "WALSODN"]
-# skip stations with too little extremes in 2000-2020
-# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["BROUWHVSGT02", "HOLWD", "KATSBTN", "MARLGT", "OOSTSDE04", "OOSTSDE11",
-                  "OOSTSDE14", "SCHAARVDND", "STELLDBTN", "YERSKE"]
+# TODO: remove after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/264
+stations_skip += ["ijgeul.1"]
+# skip stations with no extremes in some years in 2000-2020 period
+# TODO: remove after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/264
+stations_skip += ['breskens.veerhaven', 'schaarvandenoord', 'sintannaland.havensteiger']
+# skip stations with too little extremes in 2000-2020 (too low min_coverage)
+# TODO: remove after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/264
+stations_skip += ['kloosterzande.baalhoek', 'brouwersdam.brouwershavensegat.2', 'gatvanborssele', 
+                  'breskens.veerhaven', 'kats.zandkreeksluis', 'marollegat', 'oosterschelde.4', 
+                  'oosterschelde.11', 'oosterschelde.14', 'vlaktevanderaan', 'walsoorden', 'yerseke']
 # skip TEXNZE for 2011.0 since it has too little meas/ext data in 2007
 # skip BROUWHVSGT08 for 2011.0 since it has no ext data in 2010 (disappeared with DDL update of August 8)
-# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
+# TODO: remove after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/264
 if year_slotgem == 2011:
-    stations_skip += ["TEXNZE", "BROUWHVSGT08"]
+    stations_skip += ["texel.noordzee", "brouwersdam.brouwershavensegat.8"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
@@ -166,8 +197,8 @@ for current_station in station_list:
             slotgemiddelden_valid[key].to_csv(file_csv, float_format='%.3f')
         
         # get and plot validation timeseries (yearly mean wl/HW/LW)
-        station_name_dict = {'HOEKVHLD':'hoek',
-                             'HARVT10':'ha10'}
+        station_name_dict = {'hoekvanholland':'hoek',
+                             'haringvliet.10':'ha10'}
         if current_station in station_name_dict.keys():
             dir_meas_gemHWLWwlAB = r'p:\archivedprojects\11208031-010-kenmerkende-waarden-k\work\data_KW-RMM'
             file_yearmeanHW = os.path.join(dir_meas_gemHWLWwlAB,f'{station_name_dict[current_station]}_hw.txt')
@@ -182,7 +213,7 @@ for current_station in station_list:
             ax1.plot(yearmeanwl[1],'+g',label='yearmean validation', zorder=0)
             ax1.legend(loc=2)
         
-        fig1.savefig(os.path.join(dir_slotgem,f'kw{year_slotgem}-slotgemiddelden-{current_station}'))
+        fig1.savefig(os.path.join(dir_slotgem,f'kw{year_slotgem}-slotgemiddelden-{current_station}.png'))
     
     
     
@@ -271,7 +302,7 @@ for current_station in station_list:
         return dist_dict
 
     def add_validation_dist(dist_dict, dist_type, station):
-        station_names_vali_dict = {"HOEKVHLD":"Hoek_van_Holland"}
+        station_names_vali_dict = {"hoekvanholland":"Hoek_van_Holland"}
         if station not in station_names_vali_dict.keys():
             return
         dir_overschr_vali = r"p:\archivedprojects\11205258-005-kpp2020_rmm-g5\C_Work\00_KenmerkendeWaarden\Onder_overschrijdingslijnen_Boyan\Tables"
