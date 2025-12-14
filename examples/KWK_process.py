@@ -13,7 +13,7 @@ import logging
 logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
 
-year_slotgem = 2021
+year_slotgem = 2011
 print(f'year_slotgem: {year_slotgem}')
 
 dir_base = r'p:\11210325-005-kenmerkende-waarden\work'
@@ -56,7 +56,7 @@ station_list = ["vlissingen", "hoekvanholland", "ijmuiden.buitenhaven", "harling
 station_list = ["hoekvanholland","vlissingen"]
 
 stations_skip = []
-# TODO: no measurements anymore for NORTHCMRT, incorrectly matched?
+# TODO: no measurements anymore for NORTHCMRT, stations abroad not (yet?) included in new wws in dec 2025
 # https://github.com/Deltares-research/kenmerkendewaarden/issues/260
 stations_skip += ["north.cormorant"]
 # skip MSL/NAP duplicate stations from station_list_tk
@@ -64,24 +64,37 @@ stations_skip += ["north.cormorant"]
 stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
 # skip stations without extremes
 stations_skip += ["a12", "ameland.westgat", "d15", "f16", "f3", "j6", "k14", "l9", "north.cormorant", "q1.1"]
-# skip stations that have no extremes before 2021-01-01
-# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["gatvanborssele", "breskens.veerhaven", "ijgeul.1", "ossenisse", 
-                  "sintannaland.havensteiger", "vlaktevanderaan", "walsoorden"]
-# skip stations with too little extremes in 2000-2020
-# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
-stations_skip += ["brouwersdam.brouwershavensegat.2", "holwerd.veersteiger", "kats.zandkreeksluis", 
-                  "marollegat", "oosterschelde.4", "oosterschelde.11", "oosterschelde.14", 
-                  "schaarvandenoord", "stellendam.buitenhaven", "yerseke"]
-# the two lists above are often not accurate anymore, since many more extremes are now present
-# however, many of these stations have (almost) duplicated extremes (not reported yet)
+# skip stations Unalignable boolean indexing error
+# TODO: resolve bug in kw toolbox: https://github.com/Deltares-research/kenmerkendewaarden/issues/263
+stations_skip += ["breskens.veerhaven", "oosterschelde.4"]
+# do not skip stations with (almost) duplicated extremes for entire period
 # TODO: report these in https://github.com/Deltares-research/kenmerkendewaarden/issues/191
-stations_skip += ["kloosterzande.baalhoek", "gatvanborssele", "vlaktevanderaan", "walsoorden", 
-                  "brouwersdam.brouwershavensegat.2", "holwerd.veersteiger", "kats.zandkreeksluis", 
-                  "marollegat", "oosterschelde.11", "oosterschelde.14", "stellendam.buitenhaven", "yerseke"]
+# stations_skip += ['kloosterzande.baalhoek', 'brouwersdam.brouwershavensegat.2', 'gatvanborssele', 
+#                   'breskens.veerhaven', 'cadzand.2', 'denhelder.marsdiep', 'holwerd.veersteiger', 
+#                   'kats.zandkreeksluis', 'kornwerderzand.waddenzee.buitenhaven', 'marollegat', 
+#                   'nieuwestatenzijl.dollard', 'denoever.waddenzee.voorhaven', 'oosterschelde.4', 
+#                   'oosterschelde.11', 'oosterschelde.14', 'oosterschelde.roompotsluis.binnen', 
+#                   'scheveningen', 'stellendam.buitenhaven', 'vlaktevanderaan', 'vlieland.haven', 
+#                   'walsoorden', 'yerseke']
+# skip stations with (almost) duplicated extremes after 1993 (see below) and before 2021-01-01
+stations_skip += ['kloosterzande.baalhoek', 'brouwersdam.brouwershavensegat.2', 'gatvanborssele', 
+                  'breskens.veerhaven', 'holwerd.veersteiger', 'kats.zandkreeksluis', 'marollegat', 
+                  'oosterschelde.4', 'oosterschelde.11', 'oosterschelde.14', 'stellendam.buitenhaven', 
+                  'vlaktevanderaan', 'walsoorden', 'yerseke']
+# skip stations that have no extremes before 2021-01-01
+# TODO: remove after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/264
+stations_skip += ["ijgeul.1"]
+# skip stations with no extremes in some years in 2000-2020 period
+# TODO: remove after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/264
+stations_skip += ['breskens.veerhaven', 'schaarvandenoord', 'sintannaland.havensteiger']
+# skip stations with too little extremes in 2000-2020 (too low min_coverage)
+# TODO: remove after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/264
+stations_skip += ['kloosterzande.baalhoek', 'brouwersdam.brouwershavensegat.2', 'gatvanborssele', 
+                  'breskens.veerhaven', 'kats.zandkreeksluis', 'marollegat', 'oosterschelde.4', 
+                  'oosterschelde.11', 'oosterschelde.14', 'vlaktevanderaan', 'walsoorden', 'yerseke']
 # skip TEXNZE for 2011.0 since it has too little meas/ext data in 2007
 # skip BROUWHVSGT08 for 2011.0 since it has no ext data in 2010 (disappeared with DDL update of August 8)
-# TODO: remove after fixing https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39
+# TODO: remove after fixing https://github.com/Deltares-research/kenmerkendewaarden/issues/264
 if year_slotgem == 2011:
     stations_skip += ["texel.noordzee", "brouwersdam.brouwershavensegat.8"]
 # remove stations from station_list
