@@ -22,16 +22,14 @@ dependencies = [
 	"netcdf4>=1.5.6",
 	#xarray>=2023.4.0 works with pandas<2.0.0 for resampling, only available for py39
 	"xarray>=2023.4.0",
-	#rws-ddlpy>=0.9.0 added caching for ddlpy.locations()
-	"rws-ddlpy>=0.9.0",
+	#rws-ddlpy>=0.9.3 added caching for ddlpy.locations() including dependency
+	"rws-ddlpy>=0.9.3",
 	#hatyan>=2.13.0 works with ddlpy datasets retrieved from the new RWS waterwebservices
 	"hatyan>=2.13.0",
 	#statsmodels>=0.14.5 fixed scipy _lazywhere importerror
 	"statsmodels>=0.14.5",
 	#pyproj>=3.1.0 pip installable in py38
 	"pyproj>=3.1.0",
-	#pooch>=1.1.0 has attribute retrieve
-	"pooch>=1.1.0",
 ]
 classifiers = [
 	"Development Status :: 2 - Pre-Alpha",
