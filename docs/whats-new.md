@@ -2,6 +2,9 @@
 
 ## UNRELEASED
 
+### Feat
+- locations catalog consistent with measurements by replacing custom caching by ddlpy caching in [#269](https://github.com/Deltares-research/kenmerkendewaarden/pull/269)
+
 
 ## 0.5.0 (2025-12-14)
 
