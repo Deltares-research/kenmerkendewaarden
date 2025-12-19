@@ -39,7 +39,7 @@ def retrieve_catalog(crs: int = None):
     # TODO: manually replacing crs name with epsg, the old waterwebservices had epsg in
     # this column, would be great if new wws also has this.
     # https://github.com/Rijkswaterstaat/WaterWebservices/issues/20
-    ser_crs_new = locations["Coordinatenstelsel"].replace("ETRS89", "4258").astype(int)
+    ser_crs_new = locations["Coordinatenstelsel"].replace("ETRS89", "4258")
     locations["Coordinatenstelsel"] = ser_crs_new
     # convert coordinates to new crs
     if crs is not None:
