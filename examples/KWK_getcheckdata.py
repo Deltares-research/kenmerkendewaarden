@@ -148,7 +148,7 @@ if plot_stations:
 
 
 
-### WRITE CSV WITH STATION CODE/X/Y/EPSG
+### WRITE CSV WITH STATION CODE/Lon/Lat/EPSG
 if write_stations_table:
     # TODO: consider making retrieve_catalog public
     from kenmerkendewaarden.data_retrieve import retrieve_catalog
