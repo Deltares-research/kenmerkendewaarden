@@ -12,6 +12,7 @@ import kenmerkendewaarden as kw
 import logging
 logging.basicConfig() # calling basicConfig is essential to set logging level for sub-modules
 logging.getLogger("kenmerkendewaarden").setLevel(level="INFO")
+logging.getLogger("ddlpy").setLevel(level="INFO")
 
 year_slotgem = 2021
 print(f'year_slotgem: {year_slotgem}')
