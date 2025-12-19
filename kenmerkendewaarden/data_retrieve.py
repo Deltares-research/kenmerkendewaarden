@@ -7,7 +7,6 @@ import os
 import pandas as pd
 import ddlpy
 from pyproj import Transformer
-import pooch
 import logging
 import dateutil
 import hatyan
@@ -32,35 +31,10 @@ DICT_FNAMES = {
 }
 
 
-def retrieve_catalog(overwrite=False, crs: int = None):
-    # create cache dir %USERPROFILE%/AppData/Local/kenmerkendewaarden/kenmerkendewaarden/Cache
-    dir_cache = str(pooch.os_cache("kenmerkendewaarden"))
-    os.makedirs(dir_cache, exist_ok=True)
-
-    file_catalog_pkl = os.path.join(dir_cache, "DDL_catalog.pkl")
-    if os.path.exists(file_catalog_pkl) and not overwrite:
-        logger.info("loading DDL locations catalog from pickle")
-        locations = pd.read_pickle(file_catalog_pkl)
-    else:
-        logger.info("retrieving DDL locations catalog with ddlpy")
-        # include Typeringen in locations catalog
-        catalog_filter = [
-            "ProcesTypes",
-            "Eenheden",
-            "Grootheden",
-            "Hoedanigheden",
-            "Groeperingen",
-            "Parameters",
-            "Compartimenten",
-            "Typeringen",
-        ]
-        locations_full = ddlpy.locations(catalog_filter=catalog_filter)
-        drop_columns = [
-            x for x in locations_full.columns if x.endswith(".Omschrijving")
-        ]
-        # drop_columns.append("Parameter_Wat_Omschrijving") # TODO: uncomment after ddlpy 0.6.0 is released: https://github.com/Deltares/ddlpy/pull/104
-        locations = locations_full.drop(columns=drop_columns)
-        pd.to_pickle(locations, file_catalog_pkl)
+def retrieve_catalog(crs: int = None):
+    # get the catalog from Waterwebservices. This is cached by ddlpy so only requires a
+    # significant amount of time the first time it is retrieved.
+    locations = ddlpy.locations()
 
     # TODO: manually replacing crs name with epsg, the old waterwebservices had epsg in
     # this column, would be great if new wws also has this.
@@ -87,7 +61,7 @@ def retrieve_catalog(overwrite=False, crs: int = None):
     # bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
     # bool_hoedanigheid_msl = locations["Hoedanigheid.Code"].isin(["MSL"])
 
-    # filtering locations dataframe on Typering is possible because "Typeringen" was in catalog_filter for ddlpy.locations
+    # filtering locations dataframe on Typering
     bool_typering_exttypes = locations["Typering.Code"].isin(["GETETTPE"])
 
     # filtering locations dataframe on discharge/Q
