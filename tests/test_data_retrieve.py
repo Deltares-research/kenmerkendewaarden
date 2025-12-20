@@ -117,6 +117,25 @@ def test_retrieve_read_measurements(dir_meas):
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
 @pytest.mark.unittest
+def test_retrieve_read_measurements_hoedanigheid_taw_notincluded(tmp_path):
+    dir_meas = tmp_path
+    start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
+    end_date = pd.Timestamp(2010, 2, 1, tz="UTC+01:00")
+
+    # waterlevels for borgharen are available in TAW and NAP. When not filtering on
+    # Hoedanigheid=NAP/MSL this retrieve will raise the following error
+    # "ValueError: multiple stations present after station subsetting"
+    kw.retrieve_measurements(
+        dir_output=dir_meas,
+        station="maastricht.borgharen.maas.beneden",
+        quantity="meas_wl",
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+
+@pytest.mark.timeout(60)  # useful in case of ddl failure
+@pytest.mark.unittest
 def test_read_measurements_amount_notfound(tmp_path):
     with pytest.raises(FileNotFoundError) as e:
         kw.read_measurements_amount(dir_output=tmp_path, quantity="meas_wl")
