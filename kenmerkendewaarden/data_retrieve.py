@@ -60,7 +60,7 @@ def retrieve_catalog(crs: int = None):
     # filter on Hoedanigheid to avoid including TAW for meas_q stations along the border
     # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which
     # have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
-    bool_hoedanigheid = locations["Hoedanigheid.Code"].isin(["NAP","MSL"])
+    bool_hoedanigheid = locations["Hoedanigheid.Code"].isin(["NAP", "MSL"])
 
     # filtering locations dataframe on Typering
     bool_typering_exttypes = locations["Typering.Code"].isin(["GETETTPE"])
