@@ -57,7 +57,7 @@ def retrieve_catalog(crs: int = None):
     bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
     bool_groepering_wl = locations["Groepering.Code"].isin([""])
     bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2", "GETETMSL2"])
-    # filter on Hoedanigheid to avoid including TAW for meas_q stations along the border
+    # filter on Hoedanigheid to avoid including TAW meas_wl measurements along the border
     # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which
     # have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
     bool_hoedanigheid = locations["Hoedanigheid.Code"].isin(["NAP", "MSL"])
