@@ -57,9 +57,10 @@ def retrieve_catalog(crs: int = None):
     bool_grootheid = locations["Grootheid.Code"].isin(["WATHTE"])
     bool_groepering_wl = locations["Groepering.Code"].isin([""])
     bool_groepering_ext = locations["Groepering.Code"].isin(["GETETM2", "GETETMSL2"])
-    # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
-    # bool_hoedanigheid_nap = locations["Hoedanigheid.Code"].isin(["NAP"])
-    # bool_hoedanigheid_msl = locations["Hoedanigheid.Code"].isin(["MSL"])
+    # filter on Hoedanigheid to avoid including TAW for meas_q stations along the border
+    # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which
+    # have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
+    bool_hoedanigheid = locations["Hoedanigheid.Code"].isin(["NAP","MSL"])
 
     # filtering locations dataframe on Typering
     bool_typering_exttypes = locations["Typering.Code"].isin(["GETETTPE"])
@@ -69,9 +70,11 @@ def retrieve_catalog(crs: int = None):
     bool_eenheid_q = locations["Eenheid.Code"].isin(["m3/s"])
 
     # select locations on grootheid/groepering/exttypes
-    locs_meas_wl = locations.loc[bool_procestype & bool_grootheid & bool_groepering_wl]
+    locs_meas_wl = locations.loc[
+        bool_procestype & bool_grootheid & bool_groepering_wl & bool_hoedanigheid
+    ]
     locs_meas_ext = locations.loc[
-        bool_procestype & bool_grootheid & bool_groepering_ext
+        bool_procestype & bool_grootheid & bool_groepering_ext & bool_hoedanigheid
     ]
     locs_meas_exttype = locations.loc[
         bool_procestype & bool_typering_exttypes & bool_groepering_ext
