@@ -61,6 +61,9 @@ def retrieve_catalog(crs: int = None):
     # TODO: for now we do not separately retrieve NAP and MSL for EURPFM/LICHELGRE which
     # have both sets (https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17), these stations are skipped
     bool_hoedanigheid = locations["Hoedanigheid.Code"].isin(["NAP", "MSL"])
+    # WBM is not only NVT but also GEM24H for some river stations for both Q and WATHTHE
+    # https://github.com/Deltares-research/kenmerkendewaarden/issues/274
+    bool_wbm = locations["WaardeBewerkingsMethode.Code"].isin(["NVT"])
 
     # filtering locations dataframe on Typering
     bool_typering_exttypes = locations["Typering.Code"].isin(["GETETTPE"])
@@ -71,15 +74,25 @@ def retrieve_catalog(crs: int = None):
 
     # select locations on grootheid/groepering/exttypes
     locs_meas_wl = locations.loc[
-        bool_procestype & bool_grootheid & bool_groepering_wl & bool_hoedanigheid
+        bool_procestype
+        & bool_grootheid
+        & bool_groepering_wl
+        & bool_hoedanigheid
+        & bool_wbm
     ]
     locs_meas_ext = locations.loc[
-        bool_procestype & bool_grootheid & bool_groepering_ext & bool_hoedanigheid
+        bool_procestype
+        & bool_grootheid
+        & bool_groepering_ext
+        & bool_hoedanigheid
+        & bool_wbm
     ]
     locs_meas_exttype = locations.loc[
-        bool_procestype & bool_typering_exttypes & bool_groepering_ext
+        bool_procestype & bool_typering_exttypes & bool_groepering_ext & bool_wbm
     ]
-    locs_meas_q = locations.loc[bool_procestype & bool_grootheid_q & bool_eenheid_q]
+    locs_meas_q = locations.loc[
+        bool_procestype & bool_grootheid_q & bool_eenheid_q & bool_wbm
+    ]
     return locs_meas_wl, locs_meas_ext, locs_meas_exttype, locs_meas_q
 
 
