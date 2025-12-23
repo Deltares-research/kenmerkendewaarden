@@ -74,10 +74,18 @@ def retrieve_catalog(crs: int = None):
 
     # select locations on grootheid/groepering/exttypes
     locs_meas_wl = locations.loc[
-        bool_procestype & bool_grootheid & bool_groepering_wl & bool_hoedanigheid & bool_wbm
+        bool_procestype
+        & bool_grootheid
+        & bool_groepering_wl
+        & bool_hoedanigheid
+        & bool_wbm
     ]
     locs_meas_ext = locations.loc[
-        bool_procestype & bool_grootheid & bool_groepering_ext & bool_hoedanigheid & bool_wbm
+        bool_procestype
+        & bool_grootheid
+        & bool_groepering_ext
+        & bool_hoedanigheid
+        & bool_wbm
     ]
     locs_meas_exttype = locations.loc[
         bool_procestype & bool_typering_exttypes & bool_groepering_ext & bool_wbm

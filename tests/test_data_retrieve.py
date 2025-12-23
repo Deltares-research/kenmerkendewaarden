@@ -122,7 +122,7 @@ def test_retrieve_read_measurements_hoedanigheid_taw_notincluded(tmp_path):
     start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2010, 2, 1, tz="UTC+01:00")
 
-    # waterlevels for borgharen are available in TAW and NAP, and available as 
+    # waterlevels for borgharen are available in TAW and NAP, and available as
     # regular and Etmaalgemiddelde. When not filtering on Hoedanigheid=NAP/MSL and on
     # WaardeBewerkingsMethode="NVT" this retrieve will raise the following error
     # "ValueError: multiple stations present after station subsetting"
