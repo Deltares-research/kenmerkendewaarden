@@ -4,7 +4,8 @@
 
 ### Feat
 - locations catalog consistent with measurements by replacing custom caching by ddlpy caching in [#269](https://github.com/Deltares-research/kenmerkendewaarden/pull/269)
-- subset locations with Hoedanigheid MSL/NAP in [276](https://github.com/Deltares-research/kenmerkendewaarden/pull/276)
+- subset locations with Hoedanigheid MSL/NAP in [#276](https://github.com/Deltares-research/kenmerkendewaarden/pull/276)
+- alignment of peak detection code in [#277](https://github.com/Deltares-research/kenmerkendewaarden/pull/277)
 
 
 ## 0.5.0 (2025-12-14)
