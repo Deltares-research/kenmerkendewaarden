@@ -423,3 +423,18 @@ def test_detect_peaks(df_meas_2010):
     assert len(peak_indices) == 837
     assert np.isclose(peak_indices.min(), 15)
     assert np.isclose(peak_indices.max(), 52484)
+
+    ser_peaks, threshold, peak_indices = kw.overschrijding.detect_peaks(
+        ser=numval,
+        prominence=prominence,
+        inverse=True,
+    )
+
+    assert len(ser_peaks) == 990
+    assert np.isclose(ser_peaks.min(), -0.37)
+    assert np.isclose(ser_peaks.max(), 1.33)
+    assert np.isclose(ser_peaks.median(), 0.59)
+    assert np.isclose(threshold, -3)
+    assert len(peak_indices) == 990
+    assert np.isclose(peak_indices.min(), 47)
+    assert np.isclose(peak_indices.max(), 52515)
