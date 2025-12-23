@@ -406,13 +406,15 @@ def test_detect_peaks(df_meas_2010):
     detect_peaks() is disabled in the main code, but might be used later on. Therefore,
     add code coverage to ensure maintenance
     """
-    numval = df_meas_2010["values"] # in meters
-    prominence = 0.1 # in meters, corresponding to default value of 10 [cm]
-    
+    numval = df_meas_2010["values"]  # in meters
+    prominence = 0.1  # in meters, corresponding to default value of 10 [cm]
+
     ser_peaks, threshold, peak_indices = kw.overschrijding.detect_peaks(
-        ser=numval, prominence=prominence, inverse=False,
-        )
-    
+        ser=numval,
+        prominence=prominence,
+        inverse=False,
+    )
+
     assert len(ser_peaks) == 837
     assert np.isclose(ser_peaks.min(), -0.84)
     assert np.isclose(ser_peaks.max(), 2.11)
