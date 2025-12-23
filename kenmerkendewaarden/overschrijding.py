@@ -440,21 +440,13 @@ def filter_with_threshold(
     above the threshold.
     """
     if inverse:
-        return pd.concat(
-            [
-                ser_raw[ser_raw >= threshold],
-                ser_filtered[ser_filtered < threshold],
-            ],
-            axis=0,
-        ).sort_index()
+        subset_raw = ser_raw[ser_raw >= threshold]
+        subset_filtered = ser_filtered[ser_filtered < threshold]
     else:
-        return pd.concat(
-            [
-                ser_raw[ser_raw <= threshold],
-                ser_filtered[ser_filtered > threshold],
-            ],
-            axis=0,
-        ).sort_index()
+        subset_raw = ser_raw[ser_raw <= threshold]
+        subset_filtered = ser_filtered[ser_filtered > threshold]
+    subset_both = pd.concat([subset_raw, subset_filtered], axis=0).sort_index()
+    return subset_both
 
 
 def detect_peaks(ser: pd.Series, prominence: int = 10, inverse: bool = False):
