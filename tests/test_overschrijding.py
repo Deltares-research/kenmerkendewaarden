@@ -458,3 +458,13 @@ def test_filter_with_threshold(df_meas_2010, df_ext_2010):
     # check if all values above the threshold originate from the extremes timeseries
     filt_above_t = filtered.loc[filtered > treshold]
     assert filt_above_t.index.isin(hw.index).all()
+
+    # also add coverage for inverse=True, although inverse is actually meant for low waters
+    filtered = kw.overschrijding.filter_with_threshold(
+        ser_raw=wl,
+        ser_filtered=hw,
+        threshold=treshold,
+        inverse=True,
+    )
+    
+    assert len(filtered) == 119
