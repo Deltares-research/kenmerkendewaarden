@@ -398,3 +398,26 @@ def test_calc_highest_extremes(df_ext_12_2010_2014):
     expected_values = np.array([3.03, 2.77, 2.47, 2.44, 2.31])
     assert (df_ext_highest.index == expected_times).all()
     assert np.allclose(df_ext_highest.values, expected_values)
+
+
+@pytest.mark.unittest
+def test_detect_peaks(df_meas_2010):
+    """
+    detect_peaks() is disabled in the main code, but might be used later on. Therefore,
+    add code coverage to ensure maintenance
+    """
+    numval = df_meas_2010["values"] # in meters
+    prominence = 0.1 # in meters, corresponding to default value of 10 [cm]
+    
+    ser_peaks, threshold, peak_indices = kw.overschrijding.detect_peaks(
+        ser=numval, prominence=prominence, inverse=False,
+        )
+    
+    assert len(ser_peaks) == 837
+    assert np.isclose(ser_peaks.min(), -0.84)
+    assert np.isclose(ser_peaks.max(), 2.11)
+    assert np.isclose(ser_peaks.median(), 1.08)
+    assert np.isclose(threshold, -2)
+    assert len(peak_indices) == 837
+    assert np.isclose(peak_indices.min(), 15)
+    assert np.isclose(peak_indices.max(), 52484)

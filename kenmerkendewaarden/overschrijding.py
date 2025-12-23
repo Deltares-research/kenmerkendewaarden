@@ -286,8 +286,10 @@ def detect_peaks_hkv(
     peak_count = 0
     while len(values_sorted) != 0:
         _t, _p = times_sorted[0], values_sorted[0]
-        t_peaks[peak_count], peaks[peak_count] = _t, _p
-
+        # TODO: added .timestamp() to convert to a float in order to put it in the empty float array
+        t_peaks[peak_count], peaks[peak_count] = _t.timestamp()*1e9, _p
+        # TODO: temporary logging
+        print(f"peak_count: {peak_count}, len(values_sorted): {len(values_sorted)}")
         _i = indices[_t == times][0]
 
         # first left peak
