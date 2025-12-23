@@ -201,6 +201,7 @@ def get_flat_meta_from_dataset(ds):
         "WaarnemingMetadata.Statuswaarde",
         "WaarnemingMetadata.Kwaliteitswaardecode",
         "WaardeBepalingsMethode.Code",
+        "WaardeBewerkingsMethode.Code",
         "MeetApparaat.Code",
         "Hoedanigheid.Code",
         "MeetApparaat.Code",
