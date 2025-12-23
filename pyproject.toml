@@ -10,16 +10,16 @@ description = "Derive indicators from waterlevel measurements"
 readme = "README.md"
 keywords = ["kenmerkendewaarden"]
 license = "LGPL-3.0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
 	#numpy>=1.25.0 supports wide range of python versions
 	"numpy>=1.25.0",
 	#pandas>=2.1.4 supports diff on timedeltas
 	"pandas>=2.1.4",
-	#matplotlib>=3.7.0 contour colorbar on uniform values succeeds
-	"matplotlib>=3.7.0",
-	#netcdf4>=1.5.6 does not call numpy.bool (avoids AttributeError)
-	"netcdf4>=1.5.6",
+	#matplotlib>=3.10.7 fixed deprecationwarnings emitted by pyparsing
+	"matplotlib>=3.10.7",
+	#netcdf4>=1.6.3 supports python 3.10
+	"netcdf4>=1.6.3",
 	#xarray>=2023.4.0 works with pandas<2.0.0 for resampling, only available for py39
 	"xarray>=2023.4.0",
 	#rws-ddlpy>=0.9.3 added caching for ddlpy.locations() including dependency
@@ -28,8 +28,8 @@ dependencies = [
 	"hatyan>=2.13.0",
 	#statsmodels>=0.14.5 fixed scipy _lazywhere importerror
 	"statsmodels>=0.14.5",
-	#pyproj>=3.1.0 pip installable in py38
-	"pyproj>=3.1.0",
+	#pyproj>=3.3.0 pip installable in py310
+	"pyproj>=3.3.0",
 ]
 classifiers = [
 	"Development Status :: 2 - Pre-Alpha",
@@ -38,7 +38,6 @@ classifiers = [
 	"Topic :: Scientific/Engineering :: Information Analysis",
 	"Programming Language :: Python",
 	"Programming Language :: Python :: 3",
-	"Programming Language :: Python :: 3.9",
 	"Programming Language :: Python :: 3.10",
 	"Programming Language :: Python :: 3.11",
 	"Programming Language :: Python :: 3.12",
