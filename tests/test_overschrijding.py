@@ -398,3 +398,72 @@ def test_calc_highest_extremes(df_ext_12_2010_2014):
     expected_values = np.array([3.03, 2.77, 2.47, 2.44, 2.31])
     assert (df_ext_highest.index == expected_times).all()
     assert np.allclose(df_ext_highest.values, expected_values)
+
+
+@pytest.mark.unittest
+def test_detect_peaks(df_meas_2010):
+    """
+    detect_peaks() is disabled in the main code, but might be used later on. Therefore,
+    add code coverage to ensure maintenance
+    """
+    numval = df_meas_2010["values"]  # in meters
+    prominence = 0.1  # in meters, corresponding to default value of 10 [cm]
+
+    ser_peaks, threshold, peak_indices = kw.overschrijding.detect_peaks(
+        ser=numval,
+        prominence=prominence,
+        inverse=False,
+    )
+
+    assert len(ser_peaks) == 837
+    assert np.isclose(ser_peaks.min(), -0.84)
+    assert np.isclose(ser_peaks.max(), 2.11)
+    assert np.isclose(ser_peaks.median(), 1.08)
+    assert np.isclose(threshold, -2)
+    assert len(peak_indices) == 837
+    assert np.isclose(peak_indices.min(), 15)
+    assert np.isclose(peak_indices.max(), 52484)
+
+    ser_peaks, threshold, peak_indices = kw.overschrijding.detect_peaks(
+        ser=numval,
+        prominence=prominence,
+        inverse=True,
+    )
+
+    assert len(ser_peaks) == 990
+    assert np.isclose(ser_peaks.min(), -0.37)
+    assert np.isclose(ser_peaks.max(), 1.33)
+    assert np.isclose(ser_peaks.median(), 0.59)
+    assert np.isclose(threshold, -3)
+    assert len(peak_indices) == 990
+    assert np.isclose(peak_indices.min(), 47)
+    assert np.isclose(peak_indices.max(), 52515)
+
+
+def test_filter_with_threshold(df_meas_2010, df_ext_2010):
+    wl = df_meas_2010["values"].loc["2010-02"]
+    bool_hw = df_ext_2010["HWLWcode"] == 1
+    hw = df_ext_2010.loc[bool_hw]["values"].loc["2010-02"]
+    treshold = 1.5
+    filtered = kw.overschrijding.filter_with_threshold(
+        ser_raw=wl,
+        ser_filtered=hw,
+        threshold=treshold,
+    )
+
+    assert len(wl) == 4032
+    assert len(hw) == 54
+    assert len(filtered) == 3970
+
+    # check if all values above the threshold originate from the extremes timeseries
+    filt_above_t = filtered.loc[filtered > treshold]
+    assert filt_above_t.index.isin(hw.index).all()
+
+    # also add coverage for inverse=True, although inverse is actually meant for low waters
+    filtered = kw.overschrijding.filter_with_threshold(
+        ser_raw=wl,
+        ser_filtered=hw,
+        threshold=treshold,
+        inverse=True,
+    )
+    assert len(filtered) == 119
