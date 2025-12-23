@@ -466,5 +466,4 @@ def test_filter_with_threshold(df_meas_2010, df_ext_2010):
         threshold=treshold,
         inverse=True,
     )
-    
     assert len(filtered) == 119
