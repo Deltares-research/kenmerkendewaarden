@@ -79,7 +79,7 @@ def test_retrieve_read_measurements_amount(dir_meas_amount, quantity):
         df_vals = np.array([312, 157])
         expected_station = "hoekvanholland"
     elif quantity == "meas_q":
-        df_vals = np.array([1525, 777])
+        df_vals = np.array([1464, 745])
         expected_station = "hagestein.boven"
     assert df_amount.columns.tolist() == [expected_station]
     assert len(df_amount) == 2
@@ -122,8 +122,9 @@ def test_retrieve_read_measurements_hoedanigheid_taw_notincluded(tmp_path):
     start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2010, 2, 1, tz="UTC+01:00")
 
-    # waterlevels for borgharen are available in TAW and NAP. When not filtering on
-    # Hoedanigheid=NAP/MSL this retrieve will raise the following error
+    # waterlevels for borgharen are available in TAW and NAP, and available as 
+    # regular and Etmaalgemiddelde. When not filtering on Hoedanigheid=NAP/MSL and on
+    # WaardeBewerkingsMethode="NVT" this retrieve will raise the following error
     # "ValueError: multiple stations present after station subsetting"
     kw.retrieve_measurements(
         dir_output=dir_meas,
