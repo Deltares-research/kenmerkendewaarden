@@ -438,3 +438,23 @@ def test_detect_peaks(df_meas_2010):
     assert len(peak_indices) == 990
     assert np.isclose(peak_indices.min(), 47)
     assert np.isclose(peak_indices.max(), 52515)
+
+
+def test_filter_with_threshold(df_meas_2010, df_ext_2010):
+    wl = df_meas_2010["values"].loc["2010-02"]
+    bool_hw = df_ext_2010["HWLWcode"] == 1
+    hw = df_ext_2010.loc[bool_hw]["values"].loc["2010-02"]
+    treshold = 1.5
+    filtered = kw.overschrijding.filter_with_threshold(
+        ser_raw=wl,
+        ser_filtered=hw,
+        threshold=treshold,
+    )
+
+    assert len(wl) == 4032
+    assert len(hw) == 54
+    assert len(filtered) == 3970
+
+    # check if all values above the threshold originate from the extremes timeseries
+    filt_above_t = filtered.loc[filtered > treshold]
+    assert filt_above_t.index.isin(hw.index).all()

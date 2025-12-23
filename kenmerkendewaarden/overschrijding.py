@@ -435,6 +435,10 @@ def filter_with_threshold(
     threshold: float,
     inverse: bool = False,
 ) -> pd.Series:
+    """
+    filters out all regular waterlevels above the threshold, but includes the extremes
+    above the threshold.
+    """
     if inverse:
         return pd.concat(
             [
