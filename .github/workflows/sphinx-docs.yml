@@ -1,8 +1,7 @@
 name: sphinx-docs
 
 on:
-  push:
-    branches: ["main"]
+  push
 
 permissions:
   contents: read
@@ -15,6 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       # not required since no ipynb yet
       # - name: install pandoc
       #   # pip install is not seen somehow, so via choco
