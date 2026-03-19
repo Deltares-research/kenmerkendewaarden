@@ -10,6 +10,7 @@ import datetime as dt
 import logging
 from hatyan.astrog import astrog_culminations
 from hatyan.timeseries import calc_HWLWnumbering
+from kenmerkendewaarden.slotgemiddelden import calc_slotgemiddelden
 from kenmerkendewaarden.tidalindicators import (
     compute_actual_counts,
     compute_expected_counts,
@@ -36,6 +37,7 @@ def calc_havengetallen(
     return_df_ext: bool = False,
     min_coverage: float = None,
     moonculm_offset: int = 4,
+    correct_slotgemiddelden: bool = False,
 ):
     """
     Havengetallen consist of the extreme (high and low) median values and the
@@ -61,7 +63,11 @@ def calc_havengetallen(
         Offset between moonculmination and extremes. Passed on to
         `calc_HWLW_moonculm_combi`. The default is 4, which corresponds to a 2-day
         offset, which is applicable to the Dutch coast.
-
+    correct_slotgemiddelden : bool, optional
+        Whether to shift the havengetallen towards the slotgemiddelden. If so, all HW's
+        are shifted with the offset between the mean and the slotgemiddelde HW. The same
+        goes for all LW values. The default is False.
+    
     Returns
     -------
     df_havengetallen : pd.DataFrame
@@ -80,6 +86,7 @@ def calc_havengetallen(
         check_min_coverage_extremes(df_ext=df_ext_10y, min_coverage=min_coverage)
 
     current_station = df_ext_10y.attrs["station"]
+    eenheid = df_ext_10y.attrs["eenheid"]
     logger.info(f"computing havengetallen for {current_station}")
     df_ext_culm = calc_hwlw_moonculm_combi(
         df_ext=df_ext_10y,
@@ -87,6 +94,34 @@ def calc_havengetallen(
     )
     df_havengetallen = calc_HWLW_culmhr_summary(df_ext_culm)
     logger.info("computing havengetallen done")
+    if correct_slotgemiddelden:
+        slotgem_year = str(df_ext_10y.index.year[-1] + 1)
+        
+        slotgemiddelden_valid = calc_slotgemiddelden(
+            df_ext=df_ext,
+            min_coverage=min_coverage,
+            clip_physical_break=True,
+            )
+        HW_slotgem = slotgemiddelden_valid["HW_model_fit"].loc[slotgem_year]
+        LW_slotgem = slotgemiddelden_valid["LW_model_fit"].loc[slotgem_year]
+        HW_offset = HW_slotgem - df_havengetallen.loc["mean","HW_values_median"]
+        LW_offset = LW_slotgem - df_havengetallen.loc["mean","LW_values_median"]
+        logger.info(
+            f"correcting havengetallen with HW/LW slotgemiddelden, {slotgem_year}.0: "
+            f"HW correction {HW_offset:.2f} {eenheid}, "
+            f"LW correction {LW_offset:.2f} {eenheid}."
+            )
+        
+        HW_corrected = df_havengetallen["HW_values_median"] + HW_offset
+        LW_corrected = df_havengetallen["LW_values_median"] + LW_offset
+        df_havengetallen["HW_values_median"] = HW_corrected
+        df_havengetallen["LW_values_median"] = LW_corrected
+        df_havengetallen["tijverschil"] = (
+            df_havengetallen["HW_values_median"]
+            - df_havengetallen["LW_values_median"]
+        )
+
+
     if return_df_ext:
         return df_havengetallen, df_ext_culm
     else:
