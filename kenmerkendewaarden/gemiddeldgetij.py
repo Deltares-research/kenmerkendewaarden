@@ -94,8 +94,6 @@ def calc_gemiddeldgetij(
 
     current_station = df_meas_10y.attrs["station"]
 
-    # TODO: add correctie havengetallen HW/LW av/sp/np met slotgemiddelde uit PLSS/modelfit (HW/LW av)
-
     if scale_period:
         tP_goal = pd.Timedelta(hours=12, minutes=25)
     else:
