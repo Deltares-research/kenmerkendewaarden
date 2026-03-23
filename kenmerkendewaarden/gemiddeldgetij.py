@@ -107,7 +107,7 @@ def calc_gemiddeldgetij(
         station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
         assert all(x == station_attrs[0] for x in station_attrs)
 
-        # df_ext_10y = crop_timeseries_last_nyears(df_ext, nyears=10) # TODO: should be entire timeseries otherwise slotgem correction gives an incorrect result, add test for this
+        # compute trend/slotgemiddelden from the complete timeseries, not only last 10y
         df_havengetallen = calc_havengetallen(
             df_ext=df_ext, min_coverage=min_coverage,
             correct_slotgemiddelden=correct_slotgemiddelden,
@@ -445,7 +445,9 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
         ts.index.name = "timedelta"
         return ts
 
-    # TODO: consider removing the need for ts_ext, it should be possible with min/max, although the HW of the raw timeseries are not exactly equal
+    # TODO: consider removing the need for ts_ext, it should be possible with min/max
+    # although the first and last HW of the raw sp/np timeseries are not equal
+    # and this is corrected for in the current approach
 
     TR_goal = HW_goal - LW_goal
 
