@@ -163,6 +163,40 @@ def test_calc_gemiddeldgetij_corr_boi(df_meas_2010, df_ext_12_2010):
 
 
 @pytest.mark.unittest
+def test_calc_gemiddeldgetij_corr_slotgemiddelden(
+    df_meas_2010_2014, df_ext_12_2010_2014
+):
+    pred_freq = "60s"
+
+    gemgetij_dict_corr_sg = kw.calc_gemiddeldgetij(
+        df_meas=df_meas_2010_2014,
+        df_ext=df_ext_12_2010_2014,
+        freq=pred_freq,
+        nb=0,
+        nf=10,
+        scale_extremes=True,
+        scale_period=True,
+        correct_slotgemiddelden=True,
+    )
+
+    prediction_av_corr_sg = gemgetij_dict_corr_sg["mean"]
+    prediction_sp_corr_sg = gemgetij_dict_corr_sg["spring"]
+    prediction_np_corr_sg = gemgetij_dict_corr_sg["neap"]
+
+    assert len(prediction_av_corr_sg) == 8196
+    assert np.isclose(prediction_av_corr_sg.min(), -0.5882127084346245)
+    assert np.isclose(prediction_av_corr_sg.max(), 1.1819885559535053)
+
+    assert len(prediction_sp_corr_sg) == 8196
+    assert np.isclose(prediction_sp_corr_sg.min(), -0.6019627084346245)
+    assert np.isclose(prediction_sp_corr_sg.max(), 1.3553218892868384)
+
+    assert len(prediction_np_corr_sg) == 8196
+    assert np.isclose(prediction_np_corr_sg.min(), -0.5619627084346245)
+    assert np.isclose(prediction_np_corr_sg.max(), 0.9653218892868384)
+
+
+@pytest.mark.unittest
 def test_calc_gemiddeldgetij_aggers(df_meas_2010, df_ext_2010):
     pred_freq = "60s"
 
