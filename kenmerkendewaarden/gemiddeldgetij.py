@@ -435,13 +435,13 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     time_down was scaled with havengetallen before, but not anymore to avoid issues with aggers
     """
 
+    # TODO: consider removing the need for ts_ext, it should be possible with min/max, although the HW of the raw timeseries are not exactly equal
+    
     # early escape # TODO: should also be possible to only scale tP_goal
     if HW_goal is None and LW_goal is None:
         ts.index.name = "timedelta"
         return ts
-
-    # TODO: consider removing the need for ts_ext, it should be possible with min/max, although the HW of the raw timeseries are not exactly equal
-
+    
     TR_goal = HW_goal - LW_goal
 
     # selecteer alle hoogwaters en opvolgende laagwaters
@@ -459,17 +459,13 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     ts_time_lastHW = ts_ext[bool_HW].index[-1]
     ts_corr = ts.copy().loc[ts_time_firstHW:ts_time_lastHW]
 
-    # this is necessary since datetimeindex with freq is not editable, and Series is editable
-    ts_corr["timedelta"] = ts_corr.index
+    # scale values
     for i in np.arange(0, len(timesHW) - 1):
         HW1_val = ts_corr.loc[timesHW[i], "values"]
         HW2_val = ts_corr.loc[timesHW[i + 1], "values"]
         LW_val = ts_corr.loc[timesLW[i], "values"]
         TR1_val = HW1_val - LW_val
         TR2_val = HW2_val - LW_val
-        tP_val = timesHW[i + 1] - timesHW[i]
-        if tP_goal is None:
-            tP_goal = tP_val
 
         temp1 = (
             ts_corr.loc[timesHW[i] : timesLW[i], "values"] - LW_val
@@ -480,18 +476,42 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
         # .iloc[1:] since timesLW[i] is in both timeseries (values are equal)
         temp = pd.concat([temp1, temp2.iloc[1:]])
         ts_corr["values_new"] = temp
+    ts_corr["values"] = ts_corr["values_new"]
+    ts_corr = ts_corr.drop(["values_new"], axis=1)
+    
+    # early escape if tP_goal is None
+    if tP_goal is None:
+        return ts_corr
+    
+    # catch DatetimeIndex with freq=None
+    if ts.index.freq is None:
+        raise ValueError(
+            "DatetimeIndex should have a freq, since a constant freq is assumed when "
+            "scaling the tidal period."
+            )
+    
+    # scale period
+    # converting index to Series is necessary since datetimeindex with freq is not editable, and Series is editable
+    freq = ts.index.freq
+    ts_corr["timedelta"] = ts_corr.index
+    for i in np.arange(0, len(timesHW) - 1):
+        tP_val = timesHW[i + 1] - timesHW[i]
+        if tP_goal is None:
+            tP_goal = tP_val
 
         tide_HWtoHW = ts_corr.loc[timesHW[i] : timesHW[i + 1]]
+        # replacing the datetimes assumes a constant freq
         ts_corr["timedelta"] = pd.date_range(
             start=ts_corr.loc[timesHW[i], "timedelta"],
             end=ts_corr.loc[timesHW[i], "timedelta"] + tP_goal,
             periods=len(tide_HWtoHW),
         )
-
     ts_corr = ts_corr.set_index("timedelta", drop=True)
-    ts_corr["values"] = ts_corr["values_new"]
-    ts_corr = ts_corr.drop(["values_new"], axis=1)
+    # interpolate to constant freq again
+    # ts_corr = ts_corr.resample(freq).nearest()
+    
     return ts_corr
+    
 
 
 def repeat_signal(ts_one_HWtoHW, nb, nf):
