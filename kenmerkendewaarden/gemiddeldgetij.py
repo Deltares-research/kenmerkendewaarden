@@ -175,6 +175,7 @@ def calc_gemiddeldgetij(
     prediction_av_corr_one.index = (
         prediction_av_corr_one.index - prediction_av_corr_one.index[0]
     )
+    prediction_av_corr_one.index.name = "timedelta"
     prediction_av = repeat_signal(prediction_av_corr_one, nb=nb, nf=nf)
 
     logger.info(f"reshape_signal SPRINGTIJ: {current_station}")
@@ -189,6 +190,7 @@ def calc_gemiddeldgetij(
     prediction_sp_corr_one.index = (
         prediction_sp_corr_one.index - prediction_sp_corr_one.index[0]
     )
+    prediction_sp_corr_one.index.name = "timedelta"
     prediction_sp = repeat_signal(prediction_sp_corr_one, nb=nb, nf=nf)
 
     logger.info(f"reshape_signal DOODTIJ: {current_station}")
@@ -203,6 +205,7 @@ def calc_gemiddeldgetij(
     prediction_np_corr_one.index = (
         prediction_np_corr_one.index - prediction_np_corr_one.index[0]
     )
+    prediction_np_corr_one.index.name = "timedelta"
     prediction_np = repeat_signal(prediction_np_corr_one, nb=nb, nf=nf)
 
     # combine in single dictionary
