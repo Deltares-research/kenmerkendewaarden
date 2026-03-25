@@ -69,14 +69,24 @@ def crop_timeseries_last_nyears(df, nyears):
     return df_10y
 
 
-def interpolate_timeseries_tofreq(series, freq):
+def interpolate_timeseries_to_daterange(series, daterange):
     """
-    Convert time series to a fixed frequency with time-aware interpolation. Somehow this
-    seems not yet possible in pandas: https://github.com/pandas-dev/pandas/issues/64841
+    Interpolate time series to a different date_range with time-aware interpolation.
+    Somehow this seems not yet possible in pandas: https://github.com/pandas-dev/pandas/issues/64841
     """
-    new_index = pd.date_range(start=series.index.min(), end=series.index.max(), freq=freq)
-    padded = series.reindex(series.index.union(new_index)).sort_index()
-    interpolated = padded.interpolate(method='time').reindex(new_index)
+    padded = series.reindex(series.index.union(daterange)).sort_index()
+    interpolated = padded.interpolate(method="time").reindex(daterange)
+    return interpolated
+
+
+def interpolate_timeseries_to_freq(series, freq):
+    """
+    Convert time series to a fixed frequency with time-aware interpolation.
+    """
+    daterange = pd.date_range(
+        start=series.index.min(), end=series.index.max(), freq=freq
+    )
+    interpolated = interpolate_timeseries_to_daterange(series, daterange)
     return interpolated
 
 

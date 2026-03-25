@@ -18,7 +18,7 @@ from kenmerkendewaarden.utils import (
     TimeSeries_TimedeltaFormatter_improved,
     raise_empty_df,
     raise_not_monotonic,
-    interpolate_timeseries_tofreq,
+    interpolate_timeseries_to_freq,
 )
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 
@@ -431,12 +431,12 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     """
 
     # TODO: consider removing the need for ts_ext, it should be possible with min/max, although the HW of the raw timeseries are not exactly equal
-    
+
     # early escape # TODO: should also be possible to only scale tP_goal
     if HW_goal is None and LW_goal is None:
         ts.index.name = "timedelta"
         return ts
-    
+
     TR_goal = HW_goal - LW_goal
 
     # selecteer alle hoogwaters en opvolgende laagwaters
@@ -471,25 +471,26 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
         ) / TR2_val * TR_goal + LW_goal
         # .iloc[1:] since timesLW[i] is in both timeseries (values are equal)
         temp = pd.concat([temp1, temp2.iloc[1:]])
-        values_corr.loc[timesHW[i]:timesHW[i+1]] = temp
+        values_corr.loc[timesHW[i] : timesHW[i + 1]] = temp
     ts_corr["values"] = values_corr
-    
+
     # early escape if tP_goal is None
     if tP_goal is None:
         return ts_corr
-    
+
     # catch DatetimeIndex with freq=None
     if ts.index.freq is None:
         raise ValueError(
             "DatetimeIndex should have a freq, since a constant freq is assumed when "
             "scaling the tidal period in `reshape_signal()`."
-            )
-    
+        )
+
     if len(timesHW) > 2:
         raise NotImplementedError(
-            "scaling the period is not supported for timeseries of multiple tidal waves"
-            )
-    
+            "scaling the period is not supported for timeseries containing more than "
+            "tidal periods in `reshape_signal()`."
+        )
+
     # scale period
     times_corr = ts_corr.index.to_series()
     for i in np.arange(0, len(timesHW) - 1):
@@ -500,14 +501,14 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
             end=timesHW[i] + tP_goal,
             periods=len(tide_HWtoHW),
         )
-        times_corr.loc[timesHW[i]:timesHW[i+1]] = new_times
+        times_corr.loc[timesHW[i] : timesHW[i + 1]] = new_times
     ts_corr.index = times_corr
     # interpolate from scaled freq to original freq again (preserving the tP_goal)
     freq = ts.index.freq
-    ts_corr = interpolate_timeseries_tofreq(ts_corr, freq)
-    
+    ts_corr = interpolate_timeseries_to_freq(ts_corr, freq)
+
     return ts_corr
-    
+
 
 def repeat_signal(ts_one_HWtoHW, nb, nf):
     """
