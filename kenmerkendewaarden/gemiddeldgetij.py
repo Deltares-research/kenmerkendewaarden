@@ -427,14 +427,11 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     scales tidal signal to provided HW/LW value and up/down going time
     tP_goal (tidal period time) is used to fix tidalperiod to 12h25m (for BOI timeseries)
 
-    time_down was scaled with havengetallen before, but not anymore to avoid issues with aggers
+    duurdaling was scaled with havengetallen before, but not anymore to avoid issues with aggers
     """
 
-    # TODO: consider removing the need for ts_ext, it should be possible with min/max, although the HW of the raw timeseries are not exactly equal
-
-    # early escape # TODO: should also be possible to only scale tP_goal
+    # early escape since None is used by calc_gemiddeldgetij
     if HW_goal is None and LW_goal is None:
-        ts.index.name = "timedelta"
         return ts
 
     TR_goal = HW_goal - LW_goal
