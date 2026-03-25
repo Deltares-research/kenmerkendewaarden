@@ -488,7 +488,7 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     if len(timesHW) > 2:
         raise NotImplementedError(
             "scaling the period is not supported for timeseries containing more than "
-            "tidal periods in `reshape_signal()`."
+            "one tidal period in `reshape_signal()`."
         )
 
     # scale period
