@@ -175,8 +175,6 @@ def calc_gemiddeldgetij(
     prediction_av_corr_one.index = (
         prediction_av_corr_one.index - prediction_av_corr_one.index[0]
     )
-    if scale_period:  # resampling required because of scaling
-        prediction_av_corr_one = prediction_av_corr_one.resample(freq).nearest()
     prediction_av = repeat_signal(prediction_av_corr_one, nb=nb, nf=nf)
 
     logger.info(f"reshape_signal SPRINGTIJ: {current_station}")
@@ -191,8 +189,6 @@ def calc_gemiddeldgetij(
     prediction_sp_corr_one.index = (
         prediction_sp_corr_one.index - prediction_sp_corr_one.index[0]
     )
-    if scale_period:  # resampling required because of scaling
-        prediction_sp_corr_one = prediction_sp_corr_one.resample(freq).nearest()
     prediction_sp = repeat_signal(prediction_sp_corr_one, nb=nb, nf=nf)
 
     logger.info(f"reshape_signal DOODTIJ: {current_station}")
@@ -207,8 +203,6 @@ def calc_gemiddeldgetij(
     prediction_np_corr_one.index = (
         prediction_np_corr_one.index - prediction_np_corr_one.index[0]
     )
-    if scale_period:  # resampling required because of scaling
-        prediction_np_corr_one = prediction_np_corr_one.resample(freq).nearest()
     prediction_np = repeat_signal(prediction_np_corr_one, nb=nb, nf=nf)
 
     # combine in single dictionary
@@ -491,6 +485,11 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
             "scaling the tidal period in `reshape_signal()`."
             )
     
+    if len(timesHW) > 2:
+        raise NotImplementedError(
+            "scaling the period is not supported for timeseries of multiple tidal waves"
+            )
+    
     # scale period
     times_corr = ts_corr.index.to_series()
     for i in np.arange(0, len(timesHW) - 1):
@@ -503,7 +502,7 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
         )
         times_corr.loc[timesHW[i]:timesHW[i+1]] = new_times
     ts_corr.index = times_corr
-    # interpolate to original freq again
+    # interpolate from scaled freq to original freq again (preserving the tP_goal)
     freq = ts.index.freq
     ts_corr = interpolate_timeseries_tofreq(ts_corr, freq)
     

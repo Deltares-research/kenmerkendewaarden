@@ -154,7 +154,7 @@ def test_calc_gemiddeldgetij_corr_boi(df_meas_2010, df_ext_12_2010):
     assert np.isclose(prediction_av_corr_boi.max(), 1.1300000000000003)
 
     assert len(prediction_sp_corr_boi) == 8196
-    assert np.isclose(prediction_sp_corr_boi.min(), -0.5700000000000001)
+    assert np.isclose(prediction_sp_corr_boi.min(), -0.5699939563338678)
     assert np.isclose(prediction_sp_corr_boi.max(), 1.3450000000000002)
 
     assert len(prediction_np_corr_boi) == 8196
