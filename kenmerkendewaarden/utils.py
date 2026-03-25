@@ -72,7 +72,7 @@ def crop_timeseries_last_nyears(df, nyears):
 def interpolate_timeseries_to_daterange(series, daterange):
     """
     Interpolate time series to a different date_range with time-aware interpolation.
-    Somehow this seems not yet possible in pandas: https://github.com/pandas-dev/pandas/issues/64841
+    This is not yet possible in pandas<3: https://github.com/pandas-dev/pandas/issues/64841
     """
     padded = series.reindex(series.index.union(daterange)).sort_index()
     interpolated = padded.interpolate(method="time").reindex(daterange)
