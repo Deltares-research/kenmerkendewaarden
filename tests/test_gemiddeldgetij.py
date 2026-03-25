@@ -262,4 +262,3 @@ def test_reshape_signal_multiple_tp(df_meas_2010):
             tP_goal=pd.Timedelta(hours=12),
         )
     assert "timeseries containing more than one tidal period" in str(e.value)
-
