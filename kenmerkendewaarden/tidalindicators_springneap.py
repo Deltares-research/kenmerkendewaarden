@@ -59,15 +59,6 @@ def calc_HWLW_springneap(
     raise_empty_df(df_ext)
     raise_extremes_with_aggers(df_ext)
 
-    # TODO: moonculminations cannot be computed before 1900
-    # https://github.com/Deltares-research/kenmerkendewaarden/issues/184
-    if df_ext.index.min().year < 1901:
-        logger.warning(
-            "calc_HWLW_springneap() only supports timestamps after 1900 "
-            "all older data will be ignored"
-        )
-        df_ext = df_ext.loc["1901":]
-
     current_station = df_ext.attrs["station"]
     logger.info(f"computing HWLW for spring/neap tide for {current_station}")
     df_ext_culm = calc_hwlw_moonculm_combi(
