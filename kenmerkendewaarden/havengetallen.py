@@ -67,7 +67,7 @@ def calc_havengetallen(
         Whether to shift the havengetallen towards the slotgemiddelden. If so, all HW's
         are shifted with the offset between the mean and the slotgemiddelde HW. The same
         goes for all LW values. The default is False.
-    
+
     Returns
     -------
     df_havengetallen : pd.DataFrame
@@ -96,31 +96,29 @@ def calc_havengetallen(
     logger.info("computing havengetallen done")
     if correct_slotgemiddelden:
         slotgem_year = str(df_ext_10y.index.year[-1] + 1)
-        
+
         slotgemiddelden_valid = calc_slotgemiddelden(
             df_ext=df_ext,
             min_coverage=min_coverage,
             clip_physical_break=True,
-            )
+        )
         HW_slotgem = slotgemiddelden_valid["HW_model_fit"].loc[slotgem_year]
         LW_slotgem = slotgemiddelden_valid["LW_model_fit"].loc[slotgem_year]
-        HW_offset = HW_slotgem - df_havengetallen.loc["mean","HW_values_median"]
-        LW_offset = LW_slotgem - df_havengetallen.loc["mean","LW_values_median"]
+        HW_offset = HW_slotgem - df_havengetallen.loc["mean", "HW_values_median"]
+        LW_offset = LW_slotgem - df_havengetallen.loc["mean", "LW_values_median"]
         logger.info(
             f"correcting havengetallen with HW/LW slotgemiddelden, {slotgem_year}.0: "
             f"HW correction {HW_offset:.2f} {eenheid}, "
             f"LW correction {LW_offset:.2f} {eenheid}."
-            )
-        
+        )
+
         HW_corrected = df_havengetallen["HW_values_median"] + HW_offset
         LW_corrected = df_havengetallen["LW_values_median"] + LW_offset
         df_havengetallen["HW_values_median"] = HW_corrected
         df_havengetallen["LW_values_median"] = LW_corrected
         df_havengetallen["tijverschil"] = (
-            df_havengetallen["HW_values_median"]
-            - df_havengetallen["LW_values_median"]
+            df_havengetallen["HW_values_median"] - df_havengetallen["LW_values_median"]
         )
-
 
     if return_df_ext:
         return df_havengetallen, df_ext_culm

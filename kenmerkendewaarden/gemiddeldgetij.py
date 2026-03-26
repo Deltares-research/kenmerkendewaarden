@@ -110,7 +110,8 @@ def calc_gemiddeldgetij(
 
         # compute trend/slotgemiddelden from the complete timeseries, not only last 10y
         df_havengetallen = calc_havengetallen(
-            df_ext=df_ext, min_coverage=min_coverage,
+            df_ext=df_ext,
+            min_coverage=min_coverage,
             correct_slotgemiddelden=correct_slotgemiddelden,
         )
         list_cols = ["HW_values_median", "LW_values_median"]
