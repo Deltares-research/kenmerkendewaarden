@@ -7,6 +7,7 @@
 - subset locations with Hoedanigheid MSL/NAP in [#276](https://github.com/Deltares-research/kenmerkendewaarden/pull/276)
 - alignment of peak detection code in [#277](https://github.com/Deltares-research/kenmerkendewaarden/pull/277)
 - subset locations with WaardeBewerkingsMethode NVT in [#284](https://github.com/Deltares-research/kenmerkendewaarden/pull/284)
+- support for pandas 3 in [#292](https://github.com/Deltares-research/kenmerkendewaarden/pull/292)
 
 ### Fix
 - more robust time scaling in `reshape_signal()` used by `calc_gemiddeldgetij()` in [#290](https://github.com/Deltares-research/kenmerkendewaarden/pull/290)
