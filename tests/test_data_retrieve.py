@@ -104,13 +104,14 @@ def test_retrieve_read_measurements(dir_meas):
         station="hagestein.boven",
         quantity="meas_q",
     )
-    assert df_meas.index.tz.zone == "Etc/GMT-1"
+    
+    assert str(df_meas.index.tz) == "Etc/GMT-1"
     assert df_meas.index[0] == pd.Timestamp("2010-01-01 00:00:00+0100", tz="Etc/GMT-1")
     assert df_meas.index[-1] == pd.Timestamp("2011-01-01 00:00:00+0100", tz="Etc/GMT-1")
-    assert df_ext.index.tz.zone == "Etc/GMT-1"
+    assert str(df_ext.index.tz) == "Etc/GMT-1"
     assert df_ext.index[0] == pd.Timestamp("2010-01-01 02:35:00+0100", tz="Etc/GMT-1")
     assert df_ext.index[-1] == pd.Timestamp("2010-12-31 23:50:00+0100", tz="Etc/GMT-1")
-    assert df_q.index.tz.zone == "Etc/GMT-1"
+    assert str(df_q.index.tz) == "Etc/GMT-1"
     assert df_q.index[0] == pd.Timestamp("2010-01-01 00:00:00+0100", tz="Etc/GMT-1")
     assert df_q.index[-1] == pd.Timestamp("2011-01-01 00:00:00+0100", tz="Etc/GMT-1")
 
