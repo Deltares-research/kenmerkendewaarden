@@ -40,7 +40,7 @@ def test_drop_duplicate_times(df_meas_2010, caplog):
     # create dataframe with many duplicated time-value-combinations
     meas_duplicated = pd.concat([df_meas_2010, df_meas_2010], axis=0)
     # convert 30 rows to only-times-duplicated by setting arbitrary value
-    meas_duplicated.iloc[:30] = 1
+    meas_duplicated.iloc[:30] = [1,1,"O"]
     meas_clean = drop_duplicate_times(meas_duplicated)
 
     assert len(meas_duplicated) == 105120

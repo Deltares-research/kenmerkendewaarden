@@ -26,8 +26,8 @@ dependencies = [
 	"rws-ddlpy>=0.10.0",
 	#hatyan>=2.13.0 works with ddlpy datasets retrieved from the new RWS waterwebservices
 	"hatyan>=2.13.0",
-	#statsmodels>=0.14.5 fixed scipy _lazywhere importerror
-	"statsmodels>=0.14.5",
+	#statsmodels>=0.14.6 added support for pandas 3
+	"statsmodels>=0.14.6",
 	#pyproj>=3.3.0 pip installable in py310
 	"pyproj>=3.3.0",
 ]
