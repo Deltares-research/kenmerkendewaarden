@@ -5,7 +5,7 @@ import kenmerkendewaarden as kw
 import numpy as np
 import pandas as pd
 import hatyan
-from kenmerkendewaarden.gemiddeldgetij import get_gemgetij_components
+from kenmerkendewaarden.gemiddeldgetij import get_gemgetij_components, reshape_signal
 
 
 @pytest.mark.unittest
@@ -154,7 +154,7 @@ def test_calc_gemiddeldgetij_corr_boi(df_meas_2010, df_ext_12_2010):
     assert np.isclose(prediction_av_corr_boi.max(), 1.1300000000000003)
 
     assert len(prediction_sp_corr_boi) == 8196
-    assert np.isclose(prediction_sp_corr_boi.min(), -0.5700000000000001)
+    assert np.isclose(prediction_sp_corr_boi.min(), -0.5699939563338678)
     assert np.isclose(prediction_sp_corr_boi.max(), 1.3450000000000002)
 
     assert len(prediction_np_corr_boi) == 8196
@@ -232,3 +232,33 @@ def test_plot_gemiddeldgetij(df_meas_2010):
         gemgetij_dict_raw=gemgetij_dict_raw,
         tick_hours=12,
     )
+
+
+@pytest.mark.unittest
+def test_reshape_signal_freq_none(df_meas_2010):
+    df_meas_2010_copy = df_meas_2010.loc["2010-01"]
+    df_meas_2010_copy.index.freq = None
+    df_ext = hatyan.calc_HWLW(df_meas_2010_copy)
+    with pytest.raises(ValueError) as e:
+        reshape_signal(
+            ts=df_meas_2010_copy,
+            ts_ext=df_ext,
+            HW_goal=2,
+            LW_goal=1,
+            tP_goal=pd.Timedelta(hours=12),
+        )
+    assert "DatetimeIndex should have a freq" in str(e.value)
+
+
+@pytest.mark.unittest
+def test_reshape_signal_multiple_tp(df_meas_2010):
+    df_ext = hatyan.calc_HWLW(df_meas_2010)
+    with pytest.raises(NotImplementedError) as e:
+        reshape_signal(
+            ts=df_meas_2010,
+            ts_ext=df_ext,
+            HW_goal=2,
+            LW_goal=1,
+            tP_goal=pd.Timedelta(hours=12),
+        )
+    assert "timeseries containing more than one tidal period" in str(e.value)

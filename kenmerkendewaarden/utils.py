@@ -2,6 +2,7 @@
 
 import numpy as np
 from matplotlib.ticker import Formatter
+import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
@@ -66,6 +67,27 @@ def crop_timeseries_last_nyears(df, nyears):
         )
 
     return df_10y
+
+
+def interpolate_timeseries_to_daterange(series, daterange):
+    """
+    Interpolate time series to a different date_range with time-aware interpolation.
+    This is not yet possible in pandas<3: https://github.com/pandas-dev/pandas/issues/64841
+    """
+    padded = series.reindex(series.index.union(daterange)).sort_index()
+    interpolated = padded.interpolate(method="time").reindex(daterange)
+    return interpolated
+
+
+def interpolate_timeseries_to_freq(series, freq):
+    """
+    Convert time series to a fixed frequency with time-aware interpolation.
+    """
+    daterange = pd.date_range(
+        start=series.index.min(), end=series.index.max(), freq=freq
+    )
+    interpolated = interpolate_timeseries_to_daterange(series, daterange)
+    return interpolated
 
 
 # TODO: fixing display of negative timedeltas was requested in
