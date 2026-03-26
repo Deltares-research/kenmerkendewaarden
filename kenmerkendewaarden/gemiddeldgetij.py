@@ -18,6 +18,7 @@ from kenmerkendewaarden.utils import (
     TimeSeries_TimedeltaFormatter_improved,
     raise_empty_df,
     raise_not_monotonic,
+    interpolate_timeseries_to_freq,
 )
 from matplotlib.ticker import MaxNLocator, MultipleLocator
 
@@ -179,8 +180,7 @@ def calc_gemiddeldgetij(
     prediction_av_corr_one.index = (
         prediction_av_corr_one.index - prediction_av_corr_one.index[0]
     )
-    if scale_period:  # resampling required because of scaling
-        prediction_av_corr_one = prediction_av_corr_one.resample(freq).nearest()
+    prediction_av_corr_one.index.name = "timedelta"
     prediction_av = repeat_signal(prediction_av_corr_one, nb=nb, nf=nf)
 
     logger.info(f"reshape_signal SPRINGTIJ: {current_station}")
@@ -195,8 +195,7 @@ def calc_gemiddeldgetij(
     prediction_sp_corr_one.index = (
         prediction_sp_corr_one.index - prediction_sp_corr_one.index[0]
     )
-    if scale_period:  # resampling required because of scaling
-        prediction_sp_corr_one = prediction_sp_corr_one.resample(freq).nearest()
+    prediction_sp_corr_one.index.name = "timedelta"
     prediction_sp = repeat_signal(prediction_sp_corr_one, nb=nb, nf=nf)
 
     logger.info(f"reshape_signal DOODTIJ: {current_station}")
@@ -211,8 +210,7 @@ def calc_gemiddeldgetij(
     prediction_np_corr_one.index = (
         prediction_np_corr_one.index - prediction_np_corr_one.index[0]
     )
-    if scale_period:  # resampling required because of scaling
-        prediction_np_corr_one = prediction_np_corr_one.resample(freq).nearest()
+    prediction_np_corr_one.index.name = "timedelta"
     prediction_np = repeat_signal(prediction_np_corr_one, nb=nb, nf=nf)
 
     # combine in single dictionary
@@ -437,17 +435,12 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     scales tidal signal to provided HW/LW value and up/down going time
     tP_goal (tidal period time) is used to fix tidalperiod to 12h25m (for BOI timeseries)
 
-    time_down was scaled with havengetallen before, but not anymore to avoid issues with aggers
+    duurdaling was scaled with havengetallen before, but not anymore to avoid issues with aggers
     """
 
-    # early escape # TODO: should also be possible to only scale tP_goal
+    # early escape since None is used by calc_gemiddeldgetij
     if HW_goal is None and LW_goal is None:
-        ts.index.name = "timedelta"
         return ts
-
-    # TODO: consider removing the need for ts_ext, it should be possible with min/max
-    # although the first and last HW of the raw sp/np timeseries are not equal
-    # and this is corrected for in the current approach
 
     TR_goal = HW_goal - LW_goal
 
@@ -466,17 +459,14 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
     ts_time_lastHW = ts_ext[bool_HW].index[-1]
     ts_corr = ts.copy().loc[ts_time_firstHW:ts_time_lastHW]
 
-    # this is necessary since datetimeindex with freq is not editable, and Series is editable
-    ts_corr["timedelta"] = ts_corr.index
+    # scale values
+    values_corr = ts_corr["values"].copy()
     for i in np.arange(0, len(timesHW) - 1):
         HW1_val = ts_corr.loc[timesHW[i], "values"]
         HW2_val = ts_corr.loc[timesHW[i + 1], "values"]
         LW_val = ts_corr.loc[timesLW[i], "values"]
         TR1_val = HW1_val - LW_val
         TR2_val = HW2_val - LW_val
-        tP_val = timesHW[i + 1] - timesHW[i]
-        if tP_goal is None:
-            tP_goal = tP_val
 
         temp1 = (
             ts_corr.loc[timesHW[i] : timesLW[i], "values"] - LW_val
@@ -486,18 +476,42 @@ def reshape_signal(ts, ts_ext, HW_goal, LW_goal, tP_goal=None):
         ) / TR2_val * TR_goal + LW_goal
         # .iloc[1:] since timesLW[i] is in both timeseries (values are equal)
         temp = pd.concat([temp1, temp2.iloc[1:]])
-        ts_corr["values_new"] = temp
+        values_corr.loc[timesHW[i] : timesHW[i + 1]] = temp
+    ts_corr["values"] = values_corr
 
-        tide_HWtoHW = ts_corr.loc[timesHW[i] : timesHW[i + 1]]
-        ts_corr["timedelta"] = pd.date_range(
-            start=ts_corr.loc[timesHW[i], "timedelta"],
-            end=ts_corr.loc[timesHW[i], "timedelta"] + tP_goal,
-            periods=len(tide_HWtoHW),
+    # early escape if tP_goal is None
+    if tP_goal is None:
+        return ts_corr
+
+    # catch DatetimeIndex with freq=None
+    if ts.index.freq is None:
+        raise ValueError(
+            "DatetimeIndex should have a freq, since a constant freq is assumed when "
+            "scaling the tidal period in `reshape_signal()`."
         )
 
-    ts_corr = ts_corr.set_index("timedelta", drop=True)
-    ts_corr["values"] = ts_corr["values_new"]
-    ts_corr = ts_corr.drop(["values_new"], axis=1)
+    if len(timesHW) > 2:
+        raise NotImplementedError(
+            "scaling the period is not supported for timeseries containing more than "
+            "one tidal period in `reshape_signal()`."
+        )
+
+    # scale period
+    times_corr = ts_corr.index.to_series()
+    for i in np.arange(0, len(timesHW) - 1):
+        tide_HWtoHW = ts_corr.loc[timesHW[i] : timesHW[i + 1]]
+        # replacing the datetimes assumes a constant freq
+        new_times = pd.date_range(
+            start=timesHW[i],
+            end=timesHW[i] + tP_goal,
+            periods=len(tide_HWtoHW),
+        )
+        times_corr.loc[timesHW[i] : timesHW[i + 1]] = new_times
+    ts_corr.index = times_corr
+    # interpolate from scaled freq to original freq again (preserving the tP_goal)
+    freq = ts.index.freq
+    ts_corr = interpolate_timeseries_to_freq(ts_corr, freq)
+
     return ts_corr
 
 

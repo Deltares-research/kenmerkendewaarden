@@ -7,6 +7,11 @@
 - subset locations with Hoedanigheid MSL/NAP in [#276](https://github.com/Deltares-research/kenmerkendewaarden/pull/276)
 - alignment of peak detection code in [#277](https://github.com/Deltares-research/kenmerkendewaarden/pull/277)
 - subset locations with WaardeBewerkingsMethode NVT in [#284](https://github.com/Deltares-research/kenmerkendewaarden/pull/284)
+- support for pandas 3 in [#292](https://github.com/Deltares-research/kenmerkendewaarden/pull/292)
+- support for pre-1900 timestamps in `kw.calc_HWLW_springneap()` in [293](https://github.com/Deltares-research/kenmerkendewaarden/pull/293)
+
+### Fix
+- more robust time scaling in `reshape_signal()` used by `kw.calc_gemiddeldgetij()` in [#290](https://github.com/Deltares-research/kenmerkendewaarden/pull/290)
 
 
 ## 0.5.0 (2025-12-14)

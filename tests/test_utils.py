@@ -11,6 +11,7 @@ from kenmerkendewaarden.utils import (
     raise_not_monotonic,
     clip_timeseries_last_newyearsday,
     crop_timeseries_last_nyears,
+    interpolate_timeseries_to_freq,
 )
 import pandas as pd
 import numpy as np
@@ -84,6 +85,33 @@ def test_crop_timeseries_last_nyears(df_meas):
 def test_crop_timeseries_last_nyears_warning_tooshort(df_meas_2010_2014, caplog):
     crop_timeseries_last_nyears(df_meas_2010_2014, nyears=10)
     assert "requested 10 years but resulted in 5" in caplog.text
+
+
+@pytest.mark.unittest
+def test_interpolate_timeseries_to_freq():
+    # irregular water level measurements
+    idx = pd.to_datetime(
+        ["2024-01-01 00:00", "2024-01-01 00:07", "2024-01-01 00:22", "2024-01-01 01:05"]
+    )
+    df = pd.Series([1.0, 1.5, 2.3, 3.1], index=idx)
+
+    # Convert to 15-minute fixed frequency
+    df_interp = interpolate_timeseries_to_freq(df, "15min")
+    assert len(df_interp) == 5
+    expected_index = pd.DatetimeIndex(
+        [
+            "2024-01-01 00:00:00",
+            "2024-01-01 00:15:00",
+            "2024-01-01 00:30:00",
+            "2024-01-01 00:45:00",
+            "2024-01-01 01:00:00",
+        ],
+        dtype="datetime64[ns]",
+        freq="15min",
+    )
+    assert (df_interp.index == expected_index).all()
+    expected_values = np.array([1.0, 1.92666667, 2.44883721, 2.72790698, 3.00697674])
+    assert np.allclose(df_interp.values, expected_values)
 
 
 @pytest.mark.unittest
