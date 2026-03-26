@@ -40,7 +40,7 @@ def test_drop_duplicate_times(df_meas_2010, caplog):
     # create dataframe with many duplicated time-value-combinations
     meas_duplicated = pd.concat([df_meas_2010, df_meas_2010], axis=0)
     # convert 30 rows to only-times-duplicated by setting arbitrary value
-    meas_duplicated.iloc[:30] = [1,1,"O"]
+    meas_duplicated.iloc[:30] = [1, 1, "O"]
     meas_clean = drop_duplicate_times(meas_duplicated)
 
     assert len(meas_duplicated) == 105120
@@ -104,7 +104,7 @@ def test_retrieve_read_measurements(dir_meas):
         station="hagestein.boven",
         quantity="meas_q",
     )
-    
+
     assert str(df_meas.index.tz) == "Etc/GMT-1"
     assert df_meas.index[0] == pd.Timestamp("2010-01-01 00:00:00+0100", tz="Etc/GMT-1")
     assert df_meas.index[-1] == pd.Timestamp("2011-01-01 00:00:00+0100", tz="Etc/GMT-1")
