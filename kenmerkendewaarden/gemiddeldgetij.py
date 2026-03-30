@@ -39,8 +39,8 @@ def calc_gemiddeldgetij(
     nb: int = 0,
     nf: int = 0,
     scale_extremes: bool = False,
-    scale_period: bool = False,
     correct_slotgemiddelden: bool = False,
+    scale_period: bool = False,
 ):
     """
     Generate an average tidal signal for average/spring/neap tide by doing a tidal
@@ -70,13 +70,14 @@ def calc_gemiddeldgetij(
         Amount of periods to repeat forward. The default is 0.
     scale_extremes : bool, optional
         Whether to scale extremes with havengetallen. The default is False.
-    scale_period : bool, optional
-        Whether to scale to 12h25min (for boi). The default is False.
     correct_slotgemiddelden : bool, optional
-        scale_extremes scales the extremes with havengetallen. correct_slotgemiddelden
-        steers whether to shift the havengetallen towards the slotgemiddelden. If so, all HW's
+        scale_extremes scales the extremes with havengetallen, correct_slotgemiddelden
+        is passed to kw.calc_slotgemiddelden() and controls
+        whether to shift the havengetallen towards the slotgemiddelden. If so, all HW's
         are shifted with the offset between the mean and the slotgemiddelde HW. The same
         goes for all LW values. The default is False.
+    scale_period : bool, optional
+        Whether to scale to 12h25min (for boi). The default is False.
 
     Returns
     -------
