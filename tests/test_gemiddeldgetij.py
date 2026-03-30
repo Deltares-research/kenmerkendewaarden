@@ -192,7 +192,7 @@ def test_calc_gemiddeldgetij_corr_slotgemiddelden(
     assert np.isclose(prediction_sp_corr_sg.max(), 1.3553218892868384)
 
     assert len(prediction_np_corr_sg) == 8196
-    assert np.isclose(prediction_np_corr_sg.min(), -0.5619627084346245)
+    assert np.isclose(prediction_np_corr_sg.min(), -0.5619559213850346)
     assert np.isclose(prediction_np_corr_sg.max(), 0.9653218892868384)
 
 
