@@ -132,8 +132,9 @@ for current_station in station_list:
     df_ext_all = hatyan.calc_HWLW12345to12(df_ext_12345_all)
     
     # crop measurement data to (excluding) year_slotgem
-    df_meas_todate = df_meas_all.loc[:str(year_slotgem-1)]
-    df_ext_todate = df_ext_all.loc[:str(year_slotgem-1)]
+    # excluding all pre-1900 data to be consistent with 2011.0 and Dillingh (2013)
+    df_meas_todate = df_meas_all.loc["1900":str(year_slotgem-1)]
+    df_ext_todate = df_ext_all.loc["1900":str(year_slotgem-1)]
     
     
     
