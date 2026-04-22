@@ -80,11 +80,9 @@ def df_components_2010(df_meas_2010):
     return df_components_2010
 
 
-# adding scope will raise "Failed: ScopeMismatch: You tried to access the function
-# scoped fixture tmp_path with a session scoped request object"
-@pytest.fixture
-def dir_meas(tmp_path):
-    dir_meas = tmp_path
+@pytest.fixture(scope="session")
+def dir_meas(tmp_path_factory):
+    dir_meas = tmp_path_factory.mktemp('outdir')
     start_date = pd.Timestamp(2010, 1, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2011, 1, 1, tz="UTC+01:00")
     current_station = "hoekvanholland"
@@ -114,11 +112,9 @@ def dir_meas(tmp_path):
     return dir_meas
 
 
-# adding scope will raise "Failed: ScopeMismatch: You tried to access the function
-# scoped fixture tmp_path with a session scoped request object"
-@pytest.fixture
-def dir_meas_amount(tmp_path):
-    dir_meas_amount = tmp_path
+@pytest.fixture(scope="session")
+def dir_meas_amount(tmp_path_factory):
+    dir_meas_amount = tmp_path_factory.mktemp('outdir')
     start_date = pd.Timestamp(2010, 11, 1, tz="UTC+01:00")
     end_date = pd.Timestamp(2011, 2, 1, tz="UTC+01:00")
     station_list = ["hoekvanholland"]
