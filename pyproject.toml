@@ -12,23 +12,23 @@ keywords = ["kenmerkendewaarden"]
 license = "LGPL-3.0"
 requires-python = ">=3.10"
 dependencies = [
-	#numpy>=1.25.0 supports wide range of python versions
-	"numpy>=1.25.0",
-	#pandas>=2.1.4 supports diff on timedeltas
-	"pandas>=2.1.4",
-	#matplotlib>=3.10.7 fixed deprecationwarnings emitted by pyparsing
+	# numpy>=2.0.0 is first not-EOL in april 2026
+	"numpy>=2.0.0",
+	# pandas>=2.2.2 supports numpy 2: https://github.com/Deltares/dfm_tools/issues/1330
+	"pandas>=2.2.2",
+	# matplotlib>=3.10.7 fixed deprecationwarnings emitted by pyparsing
 	"matplotlib>=3.10.7",
-	#netcdf4>=1.6.3 supports python 3.10
-	"netcdf4>=1.6.3",
-	#xarray>=2023.4.0 works with pandas<2.0.0 for resampling, only available for py39
-	"xarray>=2023.4.0",
-	#rws-ddlpy>=0.10.0 has more extensive default catalog_filter in ddlpy.locations()
+	# netcdf4>=1.7.2 supports numpy 2: https://github.com/Deltares/dfm_tools/issues/1330
+	"netcdf4>=1.7.2",
+	# xarray>=2024.7.0 includes fix for numpy v2: https://github.com/pydata/xarray/issues/9179
+	"xarray>=2024.7.0",
+	# rws-ddlpy>=0.10.0 has more extensive default catalog_filter in ddlpy.locations()
 	"rws-ddlpy>=0.10.0",
-	#hatyan>=2.14.0 support for pandas 3
+	# hatyan>=2.14.0 support for pandas 3
 	"hatyan>=2.14.0",
-	#statsmodels>=0.14.6 added support for pandas 3
+	# statsmodels>=0.14.6 added support for pandas 3
 	"statsmodels>=0.14.6",
-	#pyproj>=3.3.0 pip installable in py310
+	# pyproj>=3.3.0 pip installable in py310
 	"pyproj>=3.3.0",
 ]
 classifiers = [
@@ -54,6 +54,7 @@ Issues = "https://github.com/deltares-research/kenmerkendewaarden/issues"
 dev = [
 	"bump2version>=0.5.11",
 	"flake8",
+	"flake8-pyproject", # required to read the config from pyproject.toml
 	"pytest",
 	"pytest-cov",
 	"twine",
@@ -82,9 +83,80 @@ addopts = "-v --tb=short --durations=0"
 filterwarnings = [
 	"error",
 	"ignore::UserWarning",
+	# surfaced with the release of numpy 2.5: https://github.com/Deltares-research/kenmerkendewaarden/issues/297
+	"ignore:Setting the shape on a NumPy array has been deprecated in NumPy 2.5:DeprecationWarning",
 	]
 markers = [
 	"unittest: mark a test as unittest. Used for testing single methods",
 	"systemtest: mark a test as systemtest. Used for testing at a higher level, verifying a given input returns the expected output",
 	"acceptance: mark a test as acceptance. Used for non-functional requirements and data that needs to be human-verified",
 ]
+
+[tool.flake8]
+exclude = "docs,.pixi"
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+## Pixi related entries
+[tool.pixi.workspace]
+channels  = ["conda-forge"]
+platforms = ["linux-64", "win-64"]
+
+[tool.pixi.feature.test.tasks]
+test = { cmd = ["pytest", "--cov=kenmerkendewaarden", "--cov-report=xml", "--cov-report=term"] }
+
+[tool.pixi.feature.docs.tasks]
+docs-build = { cmd = ["sphinx-build", "docs", "docs/_build"] }
+
+# Install your code in editable mode, dependencies here are installed in all environments
+# Takes the dependencies from pyproject.toml, which will be overridden in the features below.
+[tool.pixi.pypi-dependencies]
+kenmerkendewaarden = { path = ".", editable = true }
+
+[tool.pixi.feature.minimal.pypi-dependencies]
+# the versions are a manual copy of [project.dependencies],
+# but with == to test with the lowest versions of direct dependencies
+numpy = "==2.0.0"
+pandas = "==2.2.2"
+matplotlib = "==3.10.7"
+netcdf4 = "==1.7.2"
+xarray = "==2024.7.0"
+rws-ddlpy = "==0.10.0"
+hatyan = "==2.14.0"
+statsmodels = "==0.14.6"
+pyproj = "==3.3.0"
+
+# Define features for different Python versions and Hydromt versions
+[tool.pixi.feature.py310.dependencies]
+python = "3.10.*"
+
+[tool.pixi.feature.py311.dependencies]
+python = "3.11.*"
+
+[tool.pixi.feature.py312.dependencies]
+python = "3.12.*"
+
+[tool.pixi.feature.py313.dependencies]
+python = "3.13.*"
+
+[tool.pixi.feature.py314.dependencies]
+python = "3.14.*"
+
+#[tool.pixi.feature.docs.dependencies]
+#pandoc = "*"
+
+# Define environments to combine features
+[tool.pixi.environments]
+default = { features = ["py314", "dev", "docs", "examples", "test"]}
+
+dev = { features = ["py314", "dev"]}
+
+py310 = { features = ["py310", "dev", "test"]}
+py311 = { features = ["py311", "dev", "test"]}
+py312 = { features = ["py312", "dev", "test"]}
+py313 = { features = ["py313", "dev", "test"]}
+py314 = { features = ["py314", "dev", "test"]}
+
+py310-mindeps = { features = ["py310", "dev", "test", "minimal"]}
