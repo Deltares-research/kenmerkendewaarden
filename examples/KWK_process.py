@@ -222,7 +222,9 @@ for current_station in station_list:
     ### HAVENGETALLEN 
     if compute_havengetallen:
         print(f'havengetallen for {current_station}')
-        df_havengetallen, df_HWLW = kw.calc_havengetallen(df_ext=df_ext_todate, return_df_ext=True, min_coverage=min_coverage)
+        df_havengetallen, df_HWLW = kw.calc_havengetallen(
+            df_ext=df_ext_todate, return_df_ext=True, min_coverage=min_coverage, correct_slotgemiddelden=True,
+            )
         
         # plot hwlw per timeclass including median
         fig, axs = kw.plot_HWLW_pertimeclass(df_ext=df_HWLW, df_havengetallen=df_havengetallen)
@@ -251,11 +253,11 @@ for current_station in station_list:
                                               min_coverage=min_coverage)
         gemgetij_corr = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=df_ext_todate,
                                                freq=pred_freq, nb=1, nf=1, 
-                                               scale_extremes=True, scale_period=False,
+                                               scale_extremes=True, correct_slotgemiddelden=True, scale_period=False,
                                                min_coverage=min_coverage)
         gemgetij_corr_boi = kw.calc_gemiddeldgetij(df_meas=df_meas_todate, df_ext=df_ext_todate,
                                                    freq=pred_freq, nb=0, nf=4, 
-                                                   scale_extremes=True, scale_period=True,
+                                                   scale_extremes=True, correct_slotgemiddelden=True, scale_period=True,
                                                    min_coverage=min_coverage)
 
         fig, ax = kw.plot_gemiddeldgetij(gemgetij_dict=gemgetij_corr, gemgetij_dict_raw=gemgetij_raw, tick_hours=6)

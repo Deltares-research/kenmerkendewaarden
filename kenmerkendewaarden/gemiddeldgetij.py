@@ -39,6 +39,7 @@ def calc_gemiddeldgetij(
     nb: int = 0,
     nf: int = 0,
     scale_extremes: bool = False,
+    correct_slotgemiddelden: bool = False,
     scale_period: bool = False,
 ):
     """
@@ -69,6 +70,12 @@ def calc_gemiddeldgetij(
         Amount of periods to repeat forward. The default is 0.
     scale_extremes : bool, optional
         Whether to scale extremes with havengetallen. The default is False.
+    correct_slotgemiddelden : bool, optional
+        scale_extremes scales the extremes with havengetallen, correct_slotgemiddelden
+        is passed to kw.calc_slotgemiddelden() and controls
+        whether to shift the havengetallen towards the slotgemiddelden. If so, all HW's
+        are shifted with the offset between the mean and the slotgemiddelde HW. The same
+        goes for all LW values. The default is False.
     scale_period : bool, optional
         Whether to scale to 12h25min (for boi). The default is False.
 
@@ -89,8 +96,6 @@ def calc_gemiddeldgetij(
 
     current_station = df_meas_10y.attrs["station"]
 
-    # TODO: add correctie havengetallen HW/LW av/sp/np met slotgemiddelde uit PLSS/modelfit (HW/LW av)
-
     if scale_period:
         tP_goal = pd.Timedelta(hours=12, minutes=25)
     else:
@@ -104,9 +109,11 @@ def calc_gemiddeldgetij(
         station_attrs = [df.attrs["station"] for df in [df_meas, df_ext]]
         assert all(x == station_attrs[0] for x in station_attrs)
 
-        df_ext_10y = crop_timeseries_last_nyears(df_ext, nyears=10)
+        # compute trend/slotgemiddelden from the complete timeseries, not only last 10y
         df_havengetallen = calc_havengetallen(
-            df_ext=df_ext_10y, min_coverage=min_coverage
+            df_ext=df_ext,
+            min_coverage=min_coverage,
+            correct_slotgemiddelden=correct_slotgemiddelden,
         )
         list_cols = ["HW_values_median", "LW_values_median"]
         HW_sp, LW_sp = df_havengetallen.loc[0, list_cols]  # spring
