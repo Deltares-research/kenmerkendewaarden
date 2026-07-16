@@ -263,7 +263,7 @@ def test_retrieve_measurements_amount_emptylocslist(tmp_path, caplog):
 @pytest.mark.unittest
 def test_raise_multiple_locations_toomuch():
     locs_meas_wl, _, _, _ = kw.data_retrieve.retrieve_catalog()
-    bool_stations = locs_meas_wl.index.isin(["europlatform"])
+    bool_stations = locs_meas_wl.index.isin(["goeree.lichteiland"])
     locs_sel = locs_meas_wl.loc[bool_stations]
     with pytest.raises(ValueError) as e:
         kw.data_retrieve.raise_multiple_locations(locs_sel)
