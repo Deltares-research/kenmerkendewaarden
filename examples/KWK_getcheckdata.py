@@ -152,7 +152,8 @@ if plot_stations:
 if write_stations_table:
     # TODO: consider making retrieve_catalog public
     from kenmerkendewaarden.data_retrieve import retrieve_catalog
-    locs_meas_wl_all, _, _, _ = retrieve_catalog(crs=4326)
+    crs = 28992
+    locs_meas_wl_all, _, _, _ = retrieve_catalog(crs=crs)
     locs_wl = locs_meas_wl_all.loc[locs_meas_wl_all.index.isin(station_list)]
-    file_csv = os.path.join(dir_base, "station_locations.csv")
+    file_csv = os.path.join(dir_base, f"station_locations_epsg-{crs}.csv")
     locs_wl[["Locatie_MessageID","Lon","Lat","Coordinatenstelsel","Naam"]].to_csv(file_csv)
