@@ -19,10 +19,13 @@ def test_calc_havengetallen_outputtype(df_ext_12_2010):
         assert v.index.name == "culm_hr"
 
 
+@pytest.mark.parametrize("correct_slotgemiddelden", [False, True])
 @pytest.mark.unittest
-def test_calc_havengetallen(df_ext_12_2010):
+def test_calc_havengetallen(correct_slotgemiddelden, df_ext_12_2010_2014):
     df_havengetallen, data_pd_hwlw = kw.calc_havengetallen(
-        df_ext=df_ext_12_2010, return_df_ext=True
+        df_ext=df_ext_12_2010_2014,
+        return_df_ext=True,
+        correct_slotgemiddelden=correct_slotgemiddelden,
     )
 
     # check if all expected columns are present
@@ -42,46 +45,66 @@ def test_calc_havengetallen(df_ext_12_2010):
     assert "mean" in df_havengetallen.index
 
     # check if extremes dataframe length has not changed
-    assert len(data_pd_hwlw) == len(df_ext_12_2010)
+    assert len(data_pd_hwlw) == len(df_ext_12_2010_2014)
 
     # assert the havengetallen values
     hw_values_median = df_havengetallen["HW_values_median"].values
-    hw_values_median_expected = np.array(
-        [
-            1.345,
-            1.31,
-            1.225,
-            1.17,
-            1.04,
-            0.925,
-            0.865,
-            0.9,
-            1.045,
-            1.135,
-            1.25,
-            1.35,
-            1.13,
-        ]
-    )
+    if correct_slotgemiddelden:
+        hw_values_median_expected = np.array(
+            [
+                1.35532189,
+                1.33532189,
+                1.27532189,
+                1.21532189,
+                1.11532189,
+                1.00532189,
+                0.96532189,
+                0.99532189,
+                1.10532189,
+                1.19532189,
+                1.27532189,
+                1.34532189,
+                1.18198856,
+            ]
+        )
+    else:
+        hw_values_median_expected = np.array(
+            [
+                1.31,
+                1.29,
+                1.23,
+                1.17,
+                1.07,
+                0.96,
+                0.92,
+                0.95,
+                1.06,
+                1.15,
+                1.23,
+                1.3,
+                1.13666667,
+            ]
+        )
+
     assert np.allclose(hw_values_median, hw_values_median_expected)
 
     # test time delays
     hw_delay_median = df_havengetallen["HW_delay_median"].values.astype(float)
     hw_delay_median_expected = np.array(
         [
-            5697000000000,
-            4763000000000,
-            3792000000000,
-            3230000000000,
-            2985000000000,
-            3729000000000,
-            5722000000000,
-            7830000000000,
-            8335000000000,
-            7995000000000,
-            7501000000000,
-            6628000000000,
-            5684000000000,
+            5.662e12,
+            4.762e12,
+            3.842e12,
+            3.147e12,
+            2.997e12,
+            3.635e12,
+            5.556e12,
+            7.576e12,
+            8.151e12,
+            7.967e12,
+            7.378e12,
+            6.577e12,
+            5.604e12,
         ]
     )  # nanoseconds representation
     assert np.allclose(hw_delay_median, hw_delay_median_expected)
