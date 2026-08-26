@@ -1,4 +1,4 @@
-[![pytest](https://github.com/deltares-research/kenmerkendewaarden/actions/workflows/pytest.yml/badge.svg?branch=main)](https://github.com/deltares-research/kenmerkendewaarden/actions/workflows/pytest.yml)
+[![test](https://github.com/deltares-research/kenmerkendewaarden/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/deltares-research/kenmerkendewaarden/actions/workflows/test.yml)
 [![codecov](https://img.shields.io/codecov/c/github/deltares-research/kenmerkendewaarden.svg?style=flat-square)](https://app.codecov.io/gh/deltares-research/kenmerkendewaarden?displayType=list)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Deltares-research_kenmerkendewaarden&metric=alert_status)](https://sonarcloud.io/dashboard?id=Deltares-research_kenmerkendewaarden)
 [![Available on pypi](https://img.shields.io/pypi/v/kenmerkendewaarden.svg)](https://pypi.python.org/pypi/kenmerkendewaarden)
