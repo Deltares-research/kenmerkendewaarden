@@ -28,7 +28,6 @@ Running the tests can be done within any of the environment specified in the pyp
 
 ```
 pixi run -e default test
-pixi run -e default pytest
 ```
 
 ## Updating the lockfile
