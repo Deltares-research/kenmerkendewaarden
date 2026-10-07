@@ -61,7 +61,7 @@ stations_skip = []
 stations_skip += ["north.cormorant"]
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
-stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
+stations_skip += ["goeree.lichteiland", "k13a"]
 # skip stations without extremes
 stations_skip += ["a12", "ameland.westgat", "d15", "f16", "f3", "j6", "k14", "l9", "north.cormorant", "q1.1"]
 # skip stations Unalignable boolean indexing error

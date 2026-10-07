@@ -16,14 +16,6 @@ logging.getLogger("ddlpy").setLevel(level="INFO")
 # TODO: overview of data issues in https://github.com/Deltares-research/kenmerkendewaarden/issues/4
 # TODO: missings/duplicates reported in https://github.com/Rijkswaterstaat/wm-ws-dl/issues/39. Some of the duplicates are not retrieved since we use clean_df in ddlpy
 
-retrieve_meas_amount = False
-plot_meas_amount = False
-retrieve_meas = False
-derive_stats = False
-plot_meas = False
-plot_stations = False
-write_stations_table = False
-
 start_date = pd.Timestamp(1870, 1, 1, tz="UTC+01:00")
 end_date = pd.Timestamp(2024, 1, 1, tz="UTC+01:00")
 
@@ -61,12 +53,20 @@ stations_skip = []
 stations_skip += ["north.cormorant"]
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
-stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
+stations_skip += ["goeree.lichteiland", "k13a"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
         print(f"removing {stat_remove} from station_list")
         station_list.remove(stat_remove)
+
+retrieve_meas_amount = False
+plot_meas_amount = False
+retrieve_meas = False
+derive_stats = False
+plot_meas = False
+plot_stations = False
+write_stations_table = False
 
 
 ### RETRIEVE MEASUREMENTS AMOUNT
