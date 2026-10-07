@@ -61,7 +61,7 @@ stations_skip = []
 stations_skip += ["north.cormorant"]
 # skip MSL/NAP duplicate stations from station_list_tk
 # TODO: avoid this: https://github.com/Rijkswaterstaat/wm-ws-dl/issues/17
-stations_skip += ["europlatform", "goeree.lichteiland", "k13a"]
+stations_skip += ["goeree.lichteiland", "k13a"]
 # remove stations from station_list
 for stat_remove in stations_skip:
     if stat_remove in station_list:
