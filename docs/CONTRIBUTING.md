@@ -76,7 +76,7 @@ pixi run docs-build
 - bump the versionnumber with `pixi run bumpversion minor`
 - update the lockfile with `pixi lock`
 - update `docs/whats-new.md` and add a date to the current release heading
-- run local testbank with `pixi run pytest -m "not requireslocaldata"`
+- run local testbank with `pixi run test`
 - local check with: `pixi run python -m build` and `pixi run twine check dist/*` ([does not work on WCF](https://github.com/pypa/setuptools/issues/4133))
 - commit+push to branch and merge PR
 - copy the kenmerkendewaarden version from [pyproject.toml](https://github.com/Deltares-research/kenmerkendewaarden/blob/main/pyproject.toml) (e.g. `0.11.0`)
