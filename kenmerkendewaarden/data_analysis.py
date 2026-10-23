@@ -214,7 +214,7 @@ def get_flat_meta_from_dataset(ds):
     meta_dict_flat = {}
     for key in list_relevantmetadata:
         if key in ds.data_vars:
-            vals_unique = ds[key].to_pandas().drop_duplicates()
+            vals_unique = ds[key].to_pandas().drop_duplicates().astype(str)
             meta_dict_flat[key] = "|".join(vals_unique)
         else:
             meta_dict_flat[key] = ds.attrs[key]
