@@ -288,16 +288,17 @@ def plot_gemiddeldgetij(
     ax.set_xlabel("time since high water")
     ax.set_ylabel("water level [cm]")
 
-    # fix timedelta ticks
-    ax.xaxis.set_major_formatter(TimeSeries_TimedeltaFormatter_improved())
+    # fix timedelta ticks with the correct precision (us or ns)
+    precision = prediction_av_corr.index.unit
+    formatter = TimeSeries_TimedeltaFormatter_improved(unit=precision)
+    ax.xaxis.set_major_formatter(formatter)
     # put ticks at intervals of multiples of 3 and 6, resulting in whole seconds
     ax.xaxis.set_major_locator(MaxNLocator(steps=[3, 6], integer=True))
     if tick_hours is not None:
-        # put ticks at fixed 12-hour intervals
-        ax.xaxis.set_major_locator(MultipleLocator(base=tick_hours * 3600e9))
-    # the above avoids having to manually set tick locations based on hourly intervals (3600e9 nanoseconds)
-    # ax.set_xticks([x*3600e9 for x in range(-15, 25, 5)])
-    # ax.set_xlim([x*3600e9 for x in [-15.5,15.5]])
+        exp = {"ns": 9, "us": 6, "ms": 3, "s": 0}[precision]
+        factor = 3600 * 10 ** exp
+        # put ticks at fixed n-hour intervals
+        ax.xaxis.set_major_locator(MultipleLocator(base=tick_hours * factor))
 
     fig.tight_layout()
 
