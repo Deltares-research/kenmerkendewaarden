@@ -12,6 +12,7 @@
 
 ### Fix
 - more robust time scaling in `reshape_signal()` used by `kw.calc_gemiddeldgetij()` in [#290](https://github.com/Deltares-research/kenmerkendewaarden/pull/290)
+- fixed timedelta formatting on figure axis for pandas 3 in [#311](https://github.com/Deltares-research/kenmerkendewaarden/pull/311)
 
 
 ## 0.5.0 (2025-12-14)
