@@ -323,7 +323,10 @@ def plot_aardappelgrafiek(df_havengetallen: pd.DataFrame):
         HWLW_culmhr_summary["HW_values_median"],
         ".-",
     )
-    ax1.xaxis.set_major_formatter(TimeSeries_TimedeltaFormatter_improved())
+    # fix timedelta ticks with the correct precision (us or ns)
+    precision = pd.TimedeltaIndex(HWLW_culmhr_summary["HW_delay_median"]).unit
+    formatter = TimeSeries_TimedeltaFormatter_improved(unit=precision)
+    ax1.xaxis.set_major_formatter(formatter)
     ax1.grid()
     ax2.set_title("LW")
     ax2.set_xlabel("maansverloop [uu:mm:ss]")

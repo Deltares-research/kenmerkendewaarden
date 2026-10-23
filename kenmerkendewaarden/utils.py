@@ -97,9 +97,17 @@ class TimeSeries_TimedeltaFormatter_improved(Formatter):
     Formats the ticks along an axis controlled by a :class:`TimedeltaIndex`.
     based on pandas.plotting._matplotlib.converter.TimeSeries_TimedeltaFormatter
     """
+    from matplotlib.axis import Axis
+    from pandas._typing import TimeUnit
+
+    def __init__(self, unit: TimeUnit = "ns"):
+        self.unit = unit
+        super().__init__()
+
+    axis: Axis
 
     @staticmethod
-    def format_timedelta_ticks(x, pos, n_decimals: int) -> str:
+    def format_timedelta_ticks(x, pos, n_decimals: int, exp: int = 9) -> str:
         """
         Convert seconds to 'D days HH:MM:SS.F'
         """
@@ -108,11 +116,11 @@ class TimeSeries_TimedeltaFormatter_improved(Formatter):
             x = np.abs(x)
         else:
             negative = False
-        s, ns = divmod(x, 10**9)
+        s, ns = divmod(x, 10 ** exp)
         m, s = divmod(s, 60)
         h, m = divmod(m, 60)
         d, h = divmod(h, 24)
-        decimals = int(ns * 10 ** (n_decimals - 9))
+        decimals = int(ns * 10 ** (n_decimals - exp))
         s = f"{int(h):02d}:{int(m):02d}:{int(s):02d}"
         if n_decimals > 0:
             s += f".{decimals:0{n_decimals}d}"
@@ -122,7 +130,8 @@ class TimeSeries_TimedeltaFormatter_improved(Formatter):
             s = "-" + s
         return s
 
-    def __call__(self, x, pos: int = 0) -> str:
+    def __call__(self, x, pos: int | None = 0) -> str:
+        exp = {"ns": 9, "us": 6, "ms": 3, "s": 0}[self.unit]
         (vmin, vmax) = tuple(self.axis.get_view_interval())
-        n_decimals = min(int(np.ceil(np.log10(100 * 10**9 / abs(vmax - vmin)))), 9)
-        return self.format_timedelta_ticks(x, pos, n_decimals)
+        n_decimals = min(int(np.ceil(np.log10(100 * 10 ** exp / abs(vmax - vmin)))), exp)
+        return self.format_timedelta_ticks(x, pos, n_decimals, exp)

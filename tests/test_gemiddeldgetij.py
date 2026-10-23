@@ -222,15 +222,15 @@ def test_plot_gemiddeldgetij(df_meas_2010):
         df_meas=df_meas_2010,
         df_ext=None,
         freq=pred_freq,
-        nb=0,
-        nf=0,
+        nb=1,
+        nf=1,
         scale_extremes=False,
         scale_period=False,
     )
     kw.plot_gemiddeldgetij(
         gemgetij_dict=gemgetij_dict_raw,
         gemgetij_dict_raw=gemgetij_dict_raw,
-        tick_hours=12,
+        tick_hours=3,
     )
 
 
