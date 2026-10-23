@@ -7,6 +7,7 @@ import pandas as pd
 from kenmerkendewaarden.data_retrieve import (
     drop_duplicate_times,
     raise_incorrect_quantity,
+    xarray_to_hatyan,
 )
 import logging
 
@@ -219,6 +220,28 @@ def test_retrieve_measurements_wrongperiod(caplog):
             end_date=end_date,
         )
     assert "no data found for the requested period" in caplog.text
+
+
+def test_xarray_to_hatyan(dir_meas):
+    # `xarray_to_hatyan` is used like this in `kw.derive_statistics()`
+    ds_meas = kw.read_measurements(
+        dir_output=dir_meas,
+        station="hoekvanholland",
+        quantity="meas_wl",
+        return_xarray=True,
+    )
+    ds_ext = kw.read_measurements(
+        dir_output=dir_meas,
+        station="hoekvanholland",
+        quantity="meas_ext",
+        return_xarray=True,
+    )
+    ts_meas = xarray_to_hatyan(ds_meas)
+    ts_ext = xarray_to_hatyan(ds_ext)
+
+    assert set(ts_meas.columns) == set(['values', 'qualitycode', 'status'])
+    assert set(ts_ext.columns) == set(['values', 'qualitycode', 'status', 'HWLWcode'])
+    assert str(ts_ext["HWLWcode"].dtype) == 'int32'
 
 
 @pytest.mark.timeout(60)  # useful in case of ddl failure
