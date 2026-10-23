@@ -22,8 +22,8 @@ dependencies = [
 	"netcdf4>=1.7.5",
 	# xarray>=2024.7.0 includes fix for numpy v2: https://github.com/pydata/xarray/issues/9179
 	"xarray>=2024.7.0",
-	# rws-ddlpy>=0.10.0 has more extensive default catalog_filter in ddlpy.locations()
-	"rws-ddlpy>=0.10.0",
+	# rws-ddlpy>=0.11.0 consistently writes strings as char arrays
+	"rws-ddlpy>=0.11.0",
 	# hatyan>=2.14.0 support for pandas 3
 	"hatyan>=2.14.0",
 	# statsmodels>=0.14.6 added support for pandas 3
@@ -128,7 +128,7 @@ pandas = "==2.2.2"
 matplotlib = "==3.10.7"
 netcdf4 = "==1.7.5"
 xarray = "==2024.7.0"
-rws-ddlpy = "==0.10.0"
+rws-ddlpy = "==0.11.0"
 hatyan = "==2.14.0"
 statsmodels = "==0.14.6"
 pyproj = "==3.4.0"
