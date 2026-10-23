@@ -397,7 +397,7 @@ def xarray_to_hatyan(ds):
         }
     )
     if "HWLWcode" in ds.data_vars:
-        df["HWLWcode"] = ds["HWLWcode"]
+        df["HWLWcode"] = ds["HWLWcode"].to_series()
 
     # convert timezone back to UTC+1
     df.index = df.index.tz_localize("UTC").tz_convert("Etc/GMT-1")
