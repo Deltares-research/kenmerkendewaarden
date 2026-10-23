@@ -12,24 +12,24 @@ keywords = ["kenmerkendewaarden"]
 license = "LGPL-3.0"
 requires-python = ">=3.10"
 dependencies = [
-	# numpy>=2.0.0 is first not-EOL in april 2026
-	"numpy>=2.0.0",
+	# numpy>=2.2 is oldest supported version in Q4 2026, numpy 2.1 has vulnerability issues
+	"numpy>=2.2.0",
 	# pandas>=2.2.2 supports numpy 2: https://github.com/Deltares/dfm_tools/issues/1330
 	"pandas>=2.2.2",
 	# matplotlib>=3.10.7 fixed deprecationwarnings emitted by pyparsing
 	"matplotlib>=3.10.7",
-	# netcdf4>=1.7.2 supports numpy 2: https://github.com/Deltares/dfm_tools/issues/1330
-	"netcdf4>=1.7.2",
+	# netcdf4>=1.7.5 resolves numpy 2.5 shape warning
+	"netcdf4>=1.7.5",
 	# xarray>=2024.7.0 includes fix for numpy v2: https://github.com/pydata/xarray/issues/9179
 	"xarray>=2024.7.0",
-	# rws-ddlpy>=0.10.0 has more extensive default catalog_filter in ddlpy.locations()
+	# rws-ddlpy>=0.11.0 has more extensive default catalog_filter in ddlpy.locations()
 	"rws-ddlpy>=0.10.0",
 	# hatyan>=2.14.0 support for pandas 3
 	"hatyan>=2.14.0",
 	# statsmodels>=0.14.6 added support for pandas 3
 	"statsmodels>=0.14.6",
-	# pyproj>=3.3.0 pip installable in py310
-	"pyproj>=3.3.0",
+	#pyproj>=3.4.0 is the first version to support Python 3.11
+	"pyproj>=3.4.0",
 ]
 classifiers = [
 	"Development Status :: 2 - Pre-Alpha",
@@ -38,7 +38,6 @@ classifiers = [
 	"Topic :: Scientific/Engineering :: Information Analysis",
 	"Programming Language :: Python",
 	"Programming Language :: Python :: 3",
-	"Programming Language :: Python :: 3.10",
 	"Programming Language :: Python :: 3.11",
 	"Programming Language :: Python :: 3.12",
 	"Programming Language :: Python :: 3.13",
@@ -83,8 +82,6 @@ addopts = "-v --tb=short --durations=0"
 filterwarnings = [
 	"error",
 	"ignore::UserWarning",
-	# surfaced with the release of numpy 2.5: https://github.com/Deltares-research/kenmerkendewaarden/issues/297
-	"ignore:Setting the shape on a NumPy array has been deprecated in NumPy 2.5:DeprecationWarning",
 	]
 markers = [
 	"unittest: mark a test as unittest. Used for testing single methods",
@@ -126,20 +123,17 @@ kenmerkendewaarden = { path = ".", editable = true }
 [tool.pixi.feature.minimal.pypi-dependencies]
 # the versions are a manual copy of [project.dependencies],
 # but with == to test with the lowest versions of direct dependencies
-numpy = "==2.0.0"
+numpy = "==2.2.0"
 pandas = "==2.2.2"
 matplotlib = "==3.10.7"
-netcdf4 = "==1.7.2"
+netcdf4 = "==1.7.5"
 xarray = "==2024.7.0"
 rws-ddlpy = "==0.10.0"
 hatyan = "==2.14.0"
 statsmodels = "==0.14.6"
-pyproj = "==3.3.0"
+pyproj = "==3.4.0"
 
 # Define features for different Python versions and Hydromt versions
-[tool.pixi.feature.py310.dependencies]
-python = "3.10.*"
-
 [tool.pixi.feature.py311.dependencies]
 python = "3.11.*"
 
@@ -161,10 +155,9 @@ default = { features = ["py314", "dev", "docs", "examples", "test"]}
 
 dev = { features = ["py314", "dev"]}
 
-py310 = { features = ["py310", "dev", "test"]}
 py311 = { features = ["py311", "dev", "test"]}
 py312 = { features = ["py312", "dev", "test"]}
 py313 = { features = ["py313", "dev", "test"]}
 py314 = { features = ["py314", "dev", "test"]}
 
-py310-mindeps = { features = ["py310", "dev", "test", "minimal"]}
+py311-mindeps = { features = ["py311", "dev", "test", "minimal"]}
